@@ -1,0 +1,10 @@
+{
+  "description": "Premium e-commerce platform offering luxury diamond and gold jewelry, bridal pieces, and rental options with a modern, user-friendly shopping experience.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

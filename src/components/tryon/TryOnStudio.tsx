@@ -1,0 +1,418 @@
+import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  Camera,
+  Download,
+  FlipHorizontal2,
+  ImageUp,
+  Move,
+  RefreshCw,
+  RotateCcw,
+  ScanFace,
+  ShieldCheck,
+  SwitchCamera,
+  X,
+} from 'lucide-react'
+import { METALS, PRODUCTS, priceFor, tryOnKind, type Metal, type Product, type TryOnKind } from '../../data/catalog'
+import { href, useStore } from '../../store'
+import { getLenis } from '../SmoothScroll'
+import Price from '../Price'
+import JewelryOverlay from './JewelryOverlay'
+import type { TryOnRequest } from './TryOnProvider'
+
+interface Placement {
+  x: number // % of stage width
+  y: number // % of stage height
+  scale: number
+  rotate: number // degrees
+  spread: number // earrings only
+}
+
+// Starting positions tuned for a selfie framed head-and-shoulders, or a hand held up to the lens.
+const DEFAULTS: Record<TryOnKind, Placement & { width: number; guide: string; tip: string }> = {
+  necklace: { x: 50, y: 70, scale: 1, rotate: 0, spread: 0.5, width: 0.62, guide: 'Frame your face and shoulders', tip: 'Drag the chain to your collarbone.' },
+  earrings: { x: 50, y: 46, scale: 1, rotate: 0, spread: 0.55, width: 0.62, guide: 'Face the camera, hair tucked back', tip: 'Align each stone with your earlobes using Spacing.' },
+  ring: { x: 50, y: 52, scale: 1, rotate: 0, spread: 0.5, width: 0.42, guide: 'Hold your hand flat, back to the lens', tip: 'Drag the band onto your ring finger and rotate to match.' },
+  bracelet: { x: 50, y: 55, scale: 1, rotate: 0, spread: 0.5, width: 0.55, guide: 'Show your wrist to the camera', tip: 'Drag onto your wrist and rotate to follow your arm.' },
+  watch: { x: 50, y: 52, scale: 1, rotate: 90, spread: 0.5, width: 0.4, guide: 'Show the top of your wrist', tip: 'Rotate so the strap runs along your arm.' },
+}
+
+type Source = 'idle' | 'requesting' | 'camera' | 'photo' | 'denied' | 'unsupported'
+
+export default function TryOnStudio({ request, onClose }: { request: TryOnRequest; onClose: () => void }) {
+  const { currency, addToCart } = useStore()
+  const [product, setProduct] = useState<Product>(request.product)
+  const kind = tryOnKind(product) as TryOnKind
+  const [metal, setMetal] = useState<Metal | undefined>(request.metal ?? product.metals[0])
+  const [place, setPlace] = useState<Placement>(() => ({ ...DEFAULTS[kind] }))
+  const [source, setSource] = useState<Source>('idle')
+  const [facing, setFacing] = useState<'user' | 'environment'>(kind === 'ring' || kind === 'bracelet' || kind === 'watch' ? 'environment' : 'user')
+  const [mirror, setMirror] = useState(true)
+  const [guide, setGuide] = useState(true)
+  const [photo, setPhoto] = useState<string | null>(null)
+  const [shot, setShot] = useState<string | null>(null)
+  const [added, setAdded] = useState(false)
+
+  const stage = useRef<HTMLDivElement>(null)
+  const video = useRef<HTMLVideoElement>(null)
+  const still = useRef<HTMLImageElement>(null)
+  const overlay = useRef<SVGSVGElement>(null)
+  const stream = useRef<MediaStream | null>(null)
+  const pointers = useRef(new Map<number, { x: number; y: number }>())
+  const gesture = useRef<{ dist: number; angle: number; scale: number; rotate: number } | null>(null)
+
+  const swatch = metal ? METALS[metal].swatch : '#D4B982'
+  const defaults = DEFAULTS[kind]
+  const list = (request.list ?? PRODUCTS).filter((p) => tryOnKind(p) !== null)
+  const needsConfig = !!product.rental || !!product.personalization || product.category === 'rings' || product.category === 'bridal' || product.category === 'custom'
+
+  // Lock page scroll while open.
+  useEffect(() => {
+    const lenis = getLenis()
+    lenis?.stop()
+    document.documentElement.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    window.addEventListener('keydown', onKey)
+    return () => {
+      lenis?.start()
+      document.documentElement.style.overflow = ''
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [onClose])
+
+  const stopCamera = useCallback(() => {
+    stream.current?.getTracks().forEach((t) => t.stop())
+    stream.current = null
+  }, [])
+
+  const startCamera = useCallback(
+    async (mode: 'user' | 'environment') => {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setSource('unsupported')
+        return
+      }
+      stopCamera()
+      setSource('requesting')
+      try {
+        const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: mode, width: { ideal: 1280 }, height: { ideal: 1600 } }, audio: false })
+        stream.current = s
+        if (video.current) {
+          video.current.srcObject = s
+          await video.current.play().catch(() => undefined)
+        }
+        setPhoto(null)
+        setMirror(mode === 'user')
+        setSource('camera')
+      } catch {
+        setSource('denied')
+      }
+    },
+    [stopCamera],
+  )
+
+  useEffect(() => stopCamera, [stopCamera])
+
+  // Reset placement when switching to a different kind of piece.
+  const choose = (p: Product) => {
+    const k = tryOnKind(p) as TryOnKind
+    if (k !== kind) setPlace({ ...DEFAULTS[k] })
+    setProduct(p)
+    setMetal(p.metals.includes(metal as Metal) ? metal : p.metals[0])
+    setAdded(false)
+  }
+
+  const onUpload = (file?: File) => {
+    if (!file) return
+    stopCamera()
+    const url = URL.createObjectURL(file)
+    setPhoto(url)
+    setMirror(false)
+    setSource('photo')
+  }
+
+  // Gestures: drag with one pointer, pinch/rotate with two, wheel to scale.
+  const onPointerDown = (e: React.PointerEvent) => {
+    ;(e.target as Element).setPointerCapture?.(e.pointerId)
+    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+    if (pointers.current.size === 2) {
+      const [a, b] = [...pointers.current.values()]
+      gesture.current = { dist: Math.hypot(b.x - a.x, b.y - a.y), angle: Math.atan2(b.y - a.y, b.x - a.x), scale: place.scale, rotate: place.rotate }
+    }
+  }
+  const onPointerMove = (e: React.PointerEvent) => {
+    const prev = pointers.current.get(e.pointerId)
+    if (!prev || !stage.current) return
+    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+    const r = stage.current.getBoundingClientRect()
+    if (pointers.current.size === 1) {
+      const dx = ((e.clientX - prev.x) / r.width) * 100
+      const dy = ((e.clientY - prev.y) / r.height) * 100
+      setPlace((p) => ({ ...p, x: Math.min(100, Math.max(0, p.x + dx)), y: Math.min(100, Math.max(0, p.y + dy)) }))
+    } else if (pointers.current.size === 2 && gesture.current) {
+      const [a, b] = [...pointers.current.values()]
+      const g = gesture.current
+      const dist = Math.hypot(b.x - a.x, b.y - a.y)
+      const angle = Math.atan2(b.y - a.y, b.x - a.x)
+      setPlace((p) => ({ ...p, scale: Math.min(3, Math.max(0.3, g.scale * (dist / g.dist))), rotate: g.rotate + ((angle - g.angle) * 180) / Math.PI }))
+    }
+  }
+  const onPointerUp = (e: React.PointerEvent) => {
+    pointers.current.delete(e.pointerId)
+    if (pointers.current.size < 2) gesture.current = null
+  }
+  const onWheel = (e: React.WheelEvent) => setPlace((p) => ({ ...p, scale: Math.min(3, Math.max(0.3, p.scale * (1 - e.deltaY * 0.0012))) }))
+
+  const nudge = (key: keyof Placement, delta: number) => setPlace((p) => ({ ...p, [key]: (p[key] as number) + delta }))
+
+  // Composite the frame (with object-cover crop and mirroring) plus the vector overlay into a PNG.
+  const capture = async () => {
+    const st = stage.current
+    const media = source === 'camera' ? video.current : still.current
+    if (!st || !media || !overlay.current) return
+    const dpr = Math.min(2, window.devicePixelRatio || 1)
+    const cw = st.clientWidth * dpr
+    const ch = st.clientHeight * dpr
+    const canvas = document.createElement('canvas')
+    canvas.width = cw
+    canvas.height = ch
+    const ctx = canvas.getContext('2d')!
+    const mw = media instanceof HTMLVideoElement ? media.videoWidth : media.naturalWidth
+    const mh = media instanceof HTMLVideoElement ? media.videoHeight : media.naturalHeight
+    const s = Math.max(cw / mw, ch / mh)
+    ctx.save()
+    if (mirror) {
+      ctx.translate(cw, 0)
+      ctx.scale(-1, 1)
+    }
+    ctx.drawImage(media, (cw - mw * s) / 2, (ch - mh * s) / 2, mw * s, mh * s)
+    ctx.restore()
+
+    const svg = new XMLSerializer().serializeToString(overlay.current)
+    const img = new Image()
+    img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
+    await img.decode()
+    const size = cw * defaults.width * place.scale
+    ctx.save()
+    ctx.translate((place.x / 100) * cw, (place.y / 100) * ch)
+    ctx.rotate((place.rotate * Math.PI) / 180)
+    ctx.drawImage(img, -size / 2, -size / 2, size, size)
+    ctx.restore()
+
+    // Discreet maison mark.
+    ctx.fillStyle = 'rgba(251,249,245,0.85)'
+    ctx.font = `${14 * dpr}px 'Cormorant Garamond', serif`
+    ctx.fillText('Teresa & Sons · Montréal', 18 * dpr, ch - 18 * dpr)
+    setShot(canvas.toDataURL('image/png'))
+  }
+
+  const add = () => {
+    addToCart({ slug: product.slug, metal })
+    setAdded(true)
+  }
+
+  const live = source === 'camera' || source === 'photo'
+  const ctrl = 'flex h-11 w-11 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur transition-colors hover:bg-black/70 disabled:opacity-40'
+
+  return (
+    <div className="fixed inset-0 z-[110] flex flex-col bg-[var(--bg-vault)] text-[var(--bg-travertine)] lg:flex-row" role="dialog" aria-modal="true" aria-label={`View ${product.name} on you`} data-lenis-prevent>
+      {/* Stage */}
+      <div className="relative flex min-h-0 flex-1 items-center justify-center p-3 lg:p-8">
+        <div
+          ref={stage}
+          className="relative aspect-[3/4] h-full max-h-full max-w-full touch-none select-none overflow-hidden bg-black"
+          onPointerDown={live ? onPointerDown : undefined}
+          onPointerMove={live ? onPointerMove : undefined}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
+          onWheel={live ? onWheel : undefined}
+        >
+          <video ref={video} playsInline muted className={`absolute inset-0 h-full w-full object-cover ${source === 'camera' ? '' : 'hidden'}`} style={{ transform: mirror ? 'scaleX(-1)' : undefined }} />
+          {photo && <img ref={still} src={photo} alt="Your photo" className={`absolute inset-0 h-full w-full object-cover ${source === 'photo' ? '' : 'hidden'}`} />}
+
+          {live && guide && (
+            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-end pb-6">
+              <svg viewBox="0 0 300 400" className="absolute inset-0 h-full w-full opacity-35" aria-hidden>
+                {kind === 'necklace' || kind === 'earrings' ? (
+                  <path d="M150 70 C 105 70 92 110 95 150 C 98 195 120 225 150 228 C 180 225 202 195 205 150 C 208 110 195 70 150 70 Z M60 400 C 65 320 100 285 150 280 C 200 285 235 320 240 400" fill="none" stroke="#fff" strokeWidth="1.2" strokeDasharray="5 5" />
+                ) : (
+                  <path d="M120 380 L 120 250 C 105 230 95 200 100 170 L 110 90 C 112 80 126 80 127 92 L 130 160 L 138 70 C 140 58 156 58 157 72 L 158 160 L 166 80 C 168 68 184 68 184 82 L 182 165 L 196 110 C 199 99 214 101 212 114 L 198 220 C 192 245 182 255 180 270 L 180 380" fill="none" stroke="#fff" strokeWidth="1.2" strokeDasharray="5 5" />
+                )}
+              </svg>
+              <p className="font-mono-spec relative rounded-full bg-black/45 px-4 py-2 text-[10px] uppercase tracking-[0.2em] backdrop-blur">{defaults.guide}</p>
+            </div>
+          )}
+
+          {live && (
+            <div
+              className="absolute cursor-grab active:cursor-grabbing"
+              style={{
+                left: `${place.x}%`,
+                top: `${place.y}%`,
+                width: `${defaults.width * 100}%`,
+                aspectRatio: '1',
+                transform: `translate(-50%, -50%) rotate(${place.rotate}deg) scale(${place.scale})`,
+              }}
+            >
+              <JewelryOverlay ref={overlay} kind={kind} swatch={swatch} product={product} text={request.product.slug === product.slug ? request.text : undefined} spread={place.spread} />
+            </div>
+          )}
+
+          {/* Pre-start / fallback states */}
+          {!live && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-[radial-gradient(ellipse_at_center,#2a2622_0%,#121110_75%)] p-8 text-center">
+              <ScanFace size={40} strokeWidth={1} className="text-[var(--gold-champagne)]" />
+              <p className="font-mono-spec mt-6 text-[10px] uppercase tracking-[0.3em] text-[var(--gold-champagne)]">Essayage virtuel</p>
+              <h2 className="font-serif-editorial mt-3 text-4xl font-light lg:text-5xl">
+                View it <em className="text-[var(--gold-champagne)]">on you</em>
+              </h2>
+              <p className="mt-4 max-w-xs text-sm text-white/60">
+                {source === 'denied'
+                  ? 'Camera access was declined. You can allow it in your browser settings, or use a photo instead.'
+                  : source === 'unsupported'
+                    ? 'Your browser does not support camera access here. Upload a photo to try the piece on.'
+                    : source === 'requesting'
+                      ? 'Waiting for camera permission…'
+                      : defaults.guide + '. Your camera feed stays on this device.'}
+              </p>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                {source !== 'unsupported' && (
+                  <button onClick={() => startCamera(facing)} disabled={source === 'requesting'} className="flex items-center justify-center gap-2 bg-[var(--gold-champagne)] px-7 py-3.5 text-[11px] font-medium uppercase tracking-[0.22em] text-[var(--bg-vault)] transition-colors hover:bg-white disabled:opacity-60">
+                    <Camera size={15} strokeWidth={1.5} /> {source === 'denied' ? 'Try camera again' : 'Start camera'}
+                  </button>
+                )}
+                <label className="flex cursor-pointer items-center justify-center gap-2 border border-white/25 px-7 py-3.5 text-[11px] uppercase tracking-[0.22em] transition-colors hover:border-[var(--gold-champagne)]">
+                  <ImageUp size={15} strokeWidth={1.3} /> Upload a photo
+                  <input type="file" accept="image/*" className="sr-only" onChange={(e) => onUpload(e.target.files?.[0])} />
+                </label>
+              </div>
+            </div>
+          )}
+
+          {/* Stage controls */}
+          <div className="absolute right-3 top-3 flex flex-col gap-2">
+            <button onClick={onClose} aria-label="Close try-on" className={ctrl}><X size={18} strokeWidth={1.4} /></button>
+            {source === 'camera' && (
+              <>
+                <button onClick={() => { const f = facing === 'user' ? 'environment' : 'user'; setFacing(f); startCamera(f) }} aria-label="Switch camera" className={ctrl}><SwitchCamera size={17} strokeWidth={1.4} /></button>
+                <button onClick={() => setMirror((m) => !m)} aria-label="Mirror image" aria-pressed={mirror} className={ctrl}><FlipHorizontal2 size={17} strokeWidth={1.4} /></button>
+              </>
+            )}
+            {live && (
+              <>
+                <button onClick={() => setGuide((g) => !g)} aria-label="Toggle positioning guide" aria-pressed={guide} className={ctrl}><ScanFace size={17} strokeWidth={1.4} /></button>
+                <button onClick={() => setPlace({ ...defaults })} aria-label="Reset position" className={ctrl}><RotateCcw size={17} strokeWidth={1.4} /></button>
+              </>
+            )}
+          </div>
+
+          {live && (
+            <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 bg-gradient-to-t from-black/70 to-transparent p-4 pt-16">
+              <p className="font-mono-spec hidden max-w-[50%] items-center gap-2 text-[10px] uppercase leading-relaxed tracking-[0.16em] text-white/75 sm:flex">
+                <Move size={13} strokeWidth={1.4} className="shrink-0" /> {defaults.tip}
+              </p>
+              <div className="flex items-center gap-3">
+                {source === 'photo' && (
+                  <label className={`${ctrl} cursor-pointer`} aria-label="Choose another photo">
+                    <RefreshCw size={16} strokeWidth={1.4} />
+                    <input type="file" accept="image/*" className="sr-only" onChange={(e) => onUpload(e.target.files?.[0])} />
+                  </label>
+                )}
+                <button onClick={capture} aria-label="Take photo" className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-white/80 transition-transform active:scale-95">
+                  <span className="h-12 w-12 rounded-full bg-white" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Captured shot */}
+          {shot && (
+            <div className="absolute inset-0 z-10 flex flex-col bg-black">
+              <img src={shot} alt="Your try-on" className="min-h-0 flex-1 object-contain" />
+              <div className="flex gap-2 p-3">
+                <button onClick={() => setShot(null)} className="flex-1 border border-white/25 py-3 text-[11px] uppercase tracking-[0.2em] hover:border-white">Retake</button>
+                <a href={shot} download={`${product.slug}-try-on.png`} className="flex flex-1 items-center justify-center gap-2 bg-[var(--gold-champagne)] py-3 text-[11px] font-medium uppercase tracking-[0.2em] text-[var(--bg-vault)] hover:bg-white">
+                  <Download size={14} strokeWidth={1.5} /> Save photo
+                </a>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Side panel */}
+      <aside className="max-h-[46vh] shrink-0 overflow-y-auto border-t border-white/10 bg-[var(--bg-vault)] px-6 py-6 lg:max-h-none lg:w-[400px] lg:border-l lg:border-t-0 lg:px-8 lg:py-10" data-lenis-prevent>
+        <p className="font-mono-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-champagne)]">View on you · {kind}</p>
+        <h3 className="font-serif-editorial mt-3 text-3xl font-light leading-tight lg:text-4xl">{product.name}</h3>
+        <Price amount={product.rental ? product.rental.weekend[currency] : priceFor(product, currency, metal)} className="mt-2 block text-sm text-white/80 [&_span]:text-white/40" />
+
+        {product.metals.length > 1 && !product.rental && (
+          <div className="mt-6">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-white/50">Metal — {metal && METALS[metal].label}</p>
+            <div className="mt-3 flex gap-2">
+              {product.metals.map((m) => (
+                <button key={m} onClick={() => setMetal(m)} aria-label={METALS[m].label} aria-pressed={metal === m} className={`h-9 w-9 rounded-full p-1 ring-1 transition ${metal === m ? 'ring-[var(--gold-champagne)]' : 'ring-white/15'}`}>
+                  <span className="block h-full w-full rounded-full" style={{ background: `linear-gradient(135deg, ${METALS[m].swatch}, #ffffffaa, ${METALS[m].swatch})` }} />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {live && (
+          <div className="mt-6 space-y-4">
+            {([
+              ['scale', 'Size', 0.3, 3, 0.01],
+              ['rotate', 'Rotation', -180, 180, 1],
+              ...(kind === 'earrings' ? [['spread', 'Spacing', 0, 1, 0.01] as const] : []),
+            ] as const).map(([key, label, min, max, step]) => (
+              <label key={key} className="block">
+                <span className="flex justify-between text-[10px] uppercase tracking-[0.2em] text-white/50">
+                  {label}
+                  <span className="font-mono-spec">{key === 'rotate' ? `${Math.round(place.rotate)}°` : key === 'scale' ? `${Math.round(place.scale * 100)}%` : `${Math.round(place.spread * 100)}%`}</span>
+                </span>
+                <input type="range" min={min} max={max} step={step} value={place[key]} onChange={(e) => setPlace((p) => ({ ...p, [key]: Number(e.target.value) }))} className="mt-2 w-full accent-[var(--gold-champagne)]" />
+              </label>
+            ))}
+            <div className="flex gap-2">
+              {([['←', 'x', -1], ['→', 'x', 1], ['↑', 'y', -1], ['↓', 'y', 1]] as const).map(([l, k, d]) => (
+                <button key={l} onClick={() => nudge(k, d)} aria-label={`Nudge ${l}`} className="font-mono-spec flex-1 border border-white/15 py-2 text-xs hover:border-white/40">{l}</button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="mt-8 space-y-2">
+          {needsConfig ? (
+            <a href={href.product(product.slug)} onClick={onClose} className="block w-full bg-[var(--gold-champagne)] py-4 text-center text-[11px] font-medium uppercase tracking-[0.24em] text-[var(--bg-vault)] hover:bg-white">
+              {product.rental ? 'Choose dates' : product.personalization ? 'Personalize this piece' : 'Choose size & options'}
+            </a>
+          ) : (
+            <button onClick={add} className="w-full bg-[var(--gold-champagne)] py-4 text-[11px] font-medium uppercase tracking-[0.24em] text-[var(--bg-vault)] hover:bg-white">
+              {added ? 'Added to bag' : 'Add to bag'}
+            </button>
+          )}
+          <a href={href.atelier} onClick={onClose} className="block w-full border border-white/20 py-3.5 text-center text-[10px] uppercase tracking-[0.22em] hover:border-[var(--gold-champagne)]">
+            See it in person — book a viewing
+          </a>
+        </div>
+
+        {list.length > 1 && (
+          <div className="mt-10">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-white/50">Try another</p>
+            <div className="mt-3 grid grid-cols-4 gap-2">
+              {list.slice(0, 12).map((p) => (
+                <button key={p.id} onClick={() => choose(p)} aria-label={`Try ${p.name}`} className={`aspect-square overflow-hidden ring-1 transition ${p.slug === product.slug ? 'ring-[var(--gold-champagne)]' : 'opacity-60 ring-white/10 hover:opacity-100'}`}>
+                  <img src={p.images[0]} alt="" className="h-full w-full object-cover" />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <p className="mt-10 flex items-start gap-2 text-xs leading-relaxed text-white/45">
+          <ShieldCheck size={14} strokeWidth={1.3} className="mt-0.5 shrink-0 text-[var(--gold-champagne)]" />
+          Processed entirely on your device. Nothing is recorded or uploaded. The rendering is an illustration — proportions are approximate.
+        </p>
+      </aside>
+    </div>
+  )
+}
