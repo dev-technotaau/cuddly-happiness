@@ -36,13 +36,13 @@ export default function GiftFinder() {
     <section className="mx-auto max-w-[1600px] px-6 py-28 lg:px-12 lg:py-36">
       <div className="grid gap-12 lg:grid-cols-12">
         <div className="lg:col-span-4" data-reveal>
-          <p className="font-mono-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]"><span className="mr-4 text-[var(--text-linen)]">05</span>Le Trouveur de Cadeaux</p>
+          <p className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]"><span className="mr-4 text-[var(--text-linen)]">05</span>Le Trouveur de Cadeaux</p>
           <h2 className="font-serif-editorial mt-6 text-[2.75rem] font-light leading-[0.98] tracking-[-0.02em] sm:text-6xl lg:text-[4.75rem]">
             Find the <em className="text-[var(--gold-vermeil)]">perfect</em> gift.
           </h2>
           <p className="mt-6 max-w-sm text-[var(--text-taupe)]">Choose a budget and an occasion. Every gift arrives in our travertine box with a handwritten card.</p>
 
-          <p className="mt-10 text-[11px] uppercase tracking-[0.22em]">Budget <span className="font-mono-spec text-[var(--text-linen)]">({currency})</span></p>
+          <p className="mt-10 text-[11px] uppercase tracking-[0.22em]">Budget <span className="font-spec text-[var(--text-linen)]">({currency})</span></p>
           <div className="mt-3 flex flex-wrap gap-2">
             {BUDGETS.map((b) => <button key={b.id} onClick={() => setBudget(b.id)} className={chip(budget === b.id)}>{b.label}</button>)}
           </div>

@@ -75,7 +75,7 @@ export default function GiftCards() {
   }
 
   const label = 'mb-4 block text-[11px] uppercase tracking-[0.22em]'
-  const num = 'font-mono-spec mr-3 text-[10px] text-[var(--gold-vermeil)]'
+  const num = 'font-spec mr-3 text-[10px] text-[var(--gold-vermeil)]'
   const input = 'w-full border border-[var(--border-hairline)] bg-transparent px-4 py-3.5 text-sm outline-none transition-colors placeholder:text-[var(--text-linen)] focus:border-[var(--text-espresso)]'
   const choice = (on: boolean) => `border px-4 py-3.5 text-left transition-colors ${on ? 'border-[var(--text-espresso)] bg-[var(--text-espresso)] text-[var(--bg-travertine)]' : 'border-[var(--border-hairline)] hover:border-[var(--text-espresso)]'}`
   const recipientShown = !toSelf ? recipientName.trim() || undefined : undefined
@@ -86,7 +86,7 @@ export default function GiftCards() {
       <section className="border-b border-[var(--border-hairline)] bg-[var(--bg-silk)]">
         <div className="mx-auto grid max-w-[1600px] items-center gap-12 px-6 py-20 lg:grid-cols-12 lg:px-12 lg:py-28">
           <div className="lg:col-span-6">
-            <p className="font-mono-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">
+            <p className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">
               <a href={href.category('gifts')} className="hover:text-[var(--text-espresso)]">Gifts</a> / Carte-cadeau
             </p>
             <h1 className="font-serif-editorial mt-6 text-[3.25rem] font-light leading-[0.92] tracking-[-0.03em] sm:text-7xl lg:text-[7rem]">
@@ -120,10 +120,10 @@ export default function GiftCards() {
             {message.trim() && (
               <div className="mx-auto mt-6 max-w-md border border-[var(--border-hairline)] bg-[var(--bg-travertine)] p-6 text-center shadow-[0_20px_40px_-30px_rgba(20,19,17,0.5)]">
                 <p className="font-serif-editorial text-xl italic leading-relaxed">“{message.trim()}”</p>
-                {senderName.trim() && <p className="font-mono-spec mt-4 text-[10px] uppercase tracking-[0.24em] text-[var(--text-taupe)]">— {senderName.trim()}</p>}
+                {senderName.trim() && <p className="font-spec mt-4 text-[10px] uppercase tracking-[0.24em] text-[var(--text-taupe)]">— {senderName.trim()}</p>}
               </div>
             )}
-            <dl className="font-mono-spec mt-8 grid grid-cols-3 divide-x divide-[var(--border-hairline)] border-y border-[var(--border-hairline)] text-center text-[10px] uppercase tracking-[0.18em]">
+            <dl className="font-spec mt-8 grid grid-cols-3 divide-x divide-[var(--border-hairline)] border-y border-[var(--border-hairline)] text-center text-[10px] uppercase tracking-[0.18em]">
               <div className="py-4"><dt className="text-[var(--text-linen)]">Design</dt><dd className="mt-1">{DESIGNS.find((d) => d.id === design)?.name}</dd></div>
               <div className="py-4"><dt className="text-[var(--text-linen)]">Delivery</dt><dd className="mt-1">{delivery === 'email' ? 'Email' : 'Mailed'}</dd></div>
               <div className="py-4">
@@ -150,22 +150,22 @@ export default function GiftCards() {
 
           {/* 02 Amount */}
           <fieldset>
-            <legend className={label}><span className={num}>02</span>Amount <span className="font-mono-spec normal-case tracking-normal text-[var(--text-linen)]">({currency})</span></legend>
+            <legend className={label}><span className={num}>02</span>Amount <span className="font-spec normal-case tracking-normal text-[var(--text-linen)]">({currency})</span></legend>
             <div className="grid grid-cols-3 gap-2">
               {DENOMINATIONS[currency].map((d) => (
-                <button type="button" key={d} onClick={() => { setAmount(d); setCustom('') }} className={`${choice(!custom && amount === d)} font-mono-spec text-center text-sm`}>
+                <button type="button" key={d} onClick={() => { setAmount(d); setCustom('') }} className={`${choice(!custom && amount === d)} font-spec text-center text-sm`}>
                   {formatPrice(d, currency)}
                 </button>
               ))}
             </div>
             <label className="mt-3 flex items-center border border-[var(--border-hairline)] focus-within:border-[var(--text-espresso)]">
-              <span className="font-mono-spec pl-4 text-sm text-[var(--text-taupe)]">$</span>
+              <span className="font-spec pl-4 text-sm text-[var(--text-taupe)]">$</span>
               <input
                 inputMode="numeric"
                 value={custom}
                 onChange={(e) => setCustom(e.target.value.replace(/\D/g, '').slice(0, 5))}
                 placeholder={`Custom amount, ${min}–${max.toLocaleString('en-CA')}`}
-                className="font-mono-spec min-w-0 flex-1 bg-transparent px-2 py-3.5 text-sm outline-none placeholder:text-[var(--text-linen)]"
+                className="font-spec min-w-0 flex-1 bg-transparent px-2 py-3.5 text-sm outline-none placeholder:text-[var(--text-linen)]"
               />
             </label>
           </fieldset>
@@ -205,7 +205,7 @@ export default function GiftCards() {
                     <input type="email" value={recipientEmail} onChange={(e) => setRecipientEmail(e.target.value)} placeholder="Recipient email" aria-label="Recipient email" className={input} />
                     <label className="block">
                       <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-taupe)]">Send on</span>
-                      <input type="date" value={sendOn} min={today} max={maxDate} onChange={(e) => setSendOn(e.target.value || today)} className={`${input} font-mono-spec mt-2`} />
+                      <input type="date" value={sendOn} min={today} max={maxDate} onChange={(e) => setSendOn(e.target.value || today)} className={`${input} font-spec mt-2`} />
                     </label>
                   </>
                 )}
@@ -215,7 +215,7 @@ export default function GiftCards() {
             <div className="mt-3 space-y-3">
               <div>
                 <textarea value={message} onChange={(e) => setMessage(e.target.value.slice(0, MESSAGE_MAX))} rows={3} placeholder="Add a personal message (optional)" aria-label="Personal message" className={`${input} resize-none`} />
-                <p className="font-mono-spec mt-1 text-right text-[10px] text-[var(--text-linen)]">{message.length}/{MESSAGE_MAX}</p>
+                <p className="font-spec mt-1 text-right text-[10px] text-[var(--text-linen)]">{message.length}/{MESSAGE_MAX}</p>
               </div>
               <input value={senderName} onChange={(e) => setSenderName(e.target.value)} placeholder="From (your name)" aria-label="Your name" className={input} />
             </div>
@@ -231,7 +231,7 @@ export default function GiftCards() {
             <div className="flex gap-3">
               <div className="flex items-center border border-[var(--border-hairline)]">
                 <button type="button" onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Fewer cards" className="px-4 py-4">−</button>
-                <span className="font-mono-spec w-6 text-center text-sm">{qty}</span>
+                <span className="font-spec w-6 text-center text-sm">{qty}</span>
                 <button type="button" onClick={() => setQty((q) => Math.min(20, q + 1))} aria-label="More cards" className="px-4 py-4">+</button>
               </div>
               <button className={`flex flex-1 items-center justify-center gap-3 py-5 text-[11px] font-medium uppercase tracking-[0.26em] text-[var(--bg-travertine)] transition-colors duration-500 ${added ? 'bg-[var(--gold-vermeil)]' : 'bg-[var(--text-espresso)] hover:bg-[var(--gold-vermeil)]'}`}>
@@ -254,7 +254,7 @@ export default function GiftCards() {
             const I = Icon as typeof Gift
             return (
               <li key={t as string} data-reveal={i * 0.08} className="bg-[var(--bg-silk)] p-10 lg:p-14">
-                <span className="font-mono-spec text-[10px] text-[var(--gold-vermeil)]">0{i + 1}</span>
+                <span className="font-spec text-[10px] text-[var(--gold-vermeil)]">0{i + 1}</span>
                 <I size={22} strokeWidth={1.2} className="mt-6 text-[var(--gold-vermeil)]" />
                 <h3 className="font-serif-editorial mt-6 text-3xl">{t as string}</h3>
                 <p className="mt-3 text-sm leading-relaxed text-[var(--text-taupe)]">{d as string}</p>
@@ -268,7 +268,7 @@ export default function GiftCards() {
       <section className="bg-[var(--bg-vault)] text-[var(--bg-travertine)]">
         <div className="mx-auto grid max-w-[1600px] items-center gap-12 px-6 py-24 lg:grid-cols-12 lg:px-12 lg:py-32">
           <div className="lg:col-span-5">
-            <p data-reveal className="font-mono-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-champagne)]">Solde</p>
+            <p data-reveal className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-champagne)]">Solde</p>
             <h2 data-reveal="0.05" className="font-serif-editorial mt-6 text-5xl font-light leading-[1] lg:text-7xl">
               Check your <em className="text-[var(--gold-champagne)]">balance</em>
             </h2>

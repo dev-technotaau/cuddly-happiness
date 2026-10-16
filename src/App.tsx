@@ -4,6 +4,7 @@ import SmoothScroll from './components/SmoothScroll'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import CartDrawer from './components/CartDrawer'
+import BackToTop from './components/BackToTop'
 import Home from './pages/Home'
 import Category from './pages/Category'
 import Product from './pages/Product'
@@ -50,6 +51,7 @@ export default function App() {
           </main>
           <Footer />
           <CartDrawer />
+          <BackToTop />
           <div className="film-grain" aria-hidden />
         </div>
       </SmoothScroll>

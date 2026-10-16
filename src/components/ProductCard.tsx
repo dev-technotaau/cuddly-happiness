@@ -29,19 +29,19 @@ export default function ProductCard({ product, index = 0 }: { product: Product; 
           <TryOnButton product={product} variant="chip" label="Try on" />
         </div>
         {product.badges?.[0] && (
-          <span className="font-mono-spec absolute left-4 top-4 bg-[var(--bg-travertine)]/90 px-2.5 py-1 text-[10px] uppercase tracking-[0.2em]">
+          <span className="font-spec absolute left-4 top-4 bg-[var(--bg-travertine)]/90 px-2.5 py-1 text-[10px] uppercase tracking-[0.2em]">
             {product.badges[0]}
           </span>
         )}
       </div>
-      <div className="mt-5 flex items-start justify-between gap-4">
-        <div>
-          <p className="font-mono-spec text-[10px] uppercase tracking-[0.24em] text-[var(--text-linen)]">
+      <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+        <div className="min-w-0">
+          <p className="font-spec text-[10px] uppercase tracking-[0.24em] text-[var(--text-linen)]">
             {product.collection}
           </p>
-          <h3 className="font-serif-editorial mt-1.5 text-2xl leading-tight">{product.name}</h3>
+          <h3 className="font-serif-editorial mt-1.5 text-xl leading-tight sm:text-2xl">{product.name}</h3>
         </div>
-        <div className="shrink-0 pt-5 text-right text-sm">
+        <div className="shrink-0 text-sm sm:pt-5 sm:text-right">
           {isRental ? (
             <>
               <span className="block text-[10px] uppercase tracking-[0.2em] text-[var(--text-taupe)]">From</span>

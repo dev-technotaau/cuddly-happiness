@@ -1,5 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Pinyon+Script&display=swap');
+/* Type: Baskervville (display serif, Baskerville's 1757 letterforms revived by ANRT in France) for headlines, names
+   and the wordmark; Jost (Futura lineage) for text, labels and figures; Pinyon Script only for the engraving option. */
+@import url('https://fonts.googleapis.com/css2?family=Baskervville:ital,wght@0,400..700;1,400..700&family=Jost:ital,wght@0,300..600;1,300..600&family=Pinyon+Script&display=swap');
 @import 'tailwindcss';
+/* Keep Claude's knowledge base (.claude/ docs full of class recipes) out of Tailwind's source scan. */
+@source not "../.claude";
 
 @layer base {
   :root {
@@ -17,7 +21,7 @@
   html {
     background-color: var(--bg-travertine);
     color: var(--text-espresso);
-    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Jost', 'Futura', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -28,17 +32,18 @@
   }
 }
 
+/* Display serif. Baskervville defaults to old-style figures, whose zero reads as an "o" in counts and amounts, so
+   lining figures are the default; opt a headline into old-style with `!oldstyle-nums` (the home hero's "since 1962"). */
 .font-serif-editorial {
-  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-family: 'Baskervville', 'Baskerville', 'Libre Baskerville', Georgia, serif;
+  font-variant-numeric: lining-nums;
 }
 
-.font-sans-luxury {
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-}
-
-.font-mono-spec {
-  font-family: 'JetBrains Mono', monospace;
-  font-variant-numeric: tabular-nums;
+/* Labels, eyebrows, prices and specs: the sans with lining, tabular figures so amounts align.
+   Declared after .font-serif-editorial so it wins when both are present (Price always keeps this face). */
+.font-spec {
+  font-family: 'Jost', 'Futura', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-variant-numeric: lining-nums tabular-nums;
 }
 
 /* Subtle film grain overlay */

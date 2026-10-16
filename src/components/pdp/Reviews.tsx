@@ -171,7 +171,7 @@ function MediaLightbox({ items, start, onClose }: { items: FlatMedia[]; start: n
         <button onClick={onClose} aria-label="Close" className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/30 hover:border-[var(--gold-champagne)]"><X size={18} strokeWidth={1.3} /></button>
       </div>
       <aside className="max-h-[40vh] shrink-0 overflow-y-auto border-t border-white/10 px-6 py-6 lg:max-h-none lg:w-[380px] lg:border-l lg:border-t-0 lg:px-8 lg:py-12">
-        <p className="font-mono-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-champagne)]">
+        <p className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-champagne)]">
           {String(i + 1).padStart(2, '0')} / {String(items.length).padStart(2, '0')} · Client {m.type}
         </p>
         <div className="mt-6"><Stars n={r.stars} /></div>
@@ -258,7 +258,7 @@ function WriteReview({ product, onClose, onSubmit }: { product: Product; onClose
       <form onSubmit={submit} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Write a review" className="max-h-[92vh] w-full max-w-xl overflow-y-auto bg-[var(--bg-travertine)] p-6 sm:p-10" data-lenis-prevent>
         <div className="flex items-start justify-between gap-6">
           <div>
-            <p className="font-mono-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">Votre avis</p>
+            <p className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">Votre avis</p>
             <h3 className="font-serif-editorial mt-2 text-4xl font-light">Review {product.name}</h3>
           </div>
           <button type="button" onClick={onClose} aria-label="Close"><X size={20} strokeWidth={1.3} /></button>
@@ -296,7 +296,7 @@ function WriteReview({ product, onClose, onSubmit }: { product: Product; onClose
             ))}
             {media.length < MAX && (
               <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 border border-dashed border-[var(--text-linen)] text-[var(--text-taupe)] transition-colors hover:border-[var(--text-espresso)] hover:text-[var(--text-espresso)]">
-                {busy ? <span className="font-mono-spec text-[10px]">…</span> : <ImagePlus size={18} strokeWidth={1.2} />}
+                {busy ? <span className="font-spec text-[10px]">…</span> : <ImagePlus size={18} strokeWidth={1.2} />}
                 <span className="text-[9px] uppercase tracking-[0.16em]">Add</span>
                 <input ref={fileRef} type="file" accept="image/*,video/*" multiple className="sr-only" onChange={(e) => addFiles(e.target.files)} />
               </label>
@@ -366,7 +366,7 @@ export default function Reviews({ product, index }: { product: Product; index: s
         <div className="mb-16" data-reveal>
           <div className="mb-4 flex items-baseline justify-between">
             <p className="text-[11px] uppercase tracking-[0.22em]">Client photos & videos</p>
-            <p className="font-mono-spec text-[10px] uppercase tracking-[0.18em] text-[var(--text-linen)]">
+            <p className="font-spec text-[10px] uppercase tracking-[0.18em] text-[var(--text-linen)]">
               {mediaCount - videoCount} photos · {videoCount} videos
             </p>
           </div>
@@ -387,8 +387,8 @@ export default function Reviews({ product, index }: { product: Product; index: s
         <aside className="lg:col-span-4" data-reveal>
           <p className="font-serif-editorial text-8xl font-light leading-none">{rating}</p>
           <div className="mt-4"><Stars n={5} size={16} /></div>
-          <p className="font-mono-spec mt-3 text-[10px] uppercase tracking-[0.22em] text-[var(--text-taupe)]">{count + mine.length} verified reviews</p>
-          <ul className="font-mono-spec mt-10 space-y-2.5 text-[11px]">
+          <p className="font-spec mt-3 text-[10px] uppercase tracking-[0.22em] text-[var(--text-taupe)]">{count + mine.length} verified reviews</p>
+          <ul className="font-spec mt-10 space-y-2.5 text-[11px]">
             {dist.map((d, i) => (
               <li key={i} className="flex items-center gap-4">
                 <span className="w-4">{5 - i}</span>
@@ -400,8 +400,8 @@ export default function Reviews({ product, index }: { product: Product; index: s
             ))}
           </ul>
           <dl className="mt-10 grid grid-cols-2 gap-6 border-t border-[var(--border-hairline)] pt-8 text-sm">
-            <div><dt className="font-mono-spec text-[10px] uppercase tracking-[0.2em] text-[var(--text-linen)]">Fit</dt><dd className="mt-1">True to size</dd></div>
-            <div><dt className="font-mono-spec text-[10px] uppercase tracking-[0.2em] text-[var(--text-linen)]">Would gift</dt><dd className="mt-1">98%</dd></div>
+            <div><dt className="font-spec text-[10px] uppercase tracking-[0.2em] text-[var(--text-linen)]">Fit</dt><dd className="mt-1">True to size</dd></div>
+            <div><dt className="font-spec text-[10px] uppercase tracking-[0.2em] text-[var(--text-linen)]">Would gift</dt><dd className="mt-1">98%</dd></div>
           </dl>
         </aside>
 
@@ -423,7 +423,7 @@ export default function Reviews({ product, index }: { product: Product; index: s
               <li key={r.id} className="py-10">
                 <div className="flex items-center justify-between gap-6">
                   <Stars n={r.stars} />
-                  <span className="font-mono-spec text-[10px] uppercase tracking-[0.18em] text-[var(--text-linen)]">
+                  <span className="font-spec text-[10px] uppercase tracking-[0.18em] text-[var(--text-linen)]">
                     {r.mine ? 'Pending moderation' : `${r.days} days ago`}
                   </span>
                 </div>
@@ -437,7 +437,7 @@ export default function Reviews({ product, index }: { product: Product; index: s
                 <p className="mt-5 flex items-center gap-2 text-[11px] uppercase tracking-[0.2em]">
                   {r.a} <span className="text-[var(--text-linen)]">· {r.loc}</span>
                   {r.mine ? (
-                    <span className="font-mono-spec ml-1 text-[9px] text-[var(--gold-vermeil)]">You</span>
+                    <span className="font-spec ml-1 text-[9px] text-[var(--gold-vermeil)]">You</span>
                   ) : (
                     <BadgeCheck size={14} strokeWidth={1.3} className="ml-1 text-[var(--gold-vermeil)]" aria-label="Verified purchase" />
                   )}

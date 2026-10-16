@@ -32,7 +32,7 @@ export default function CraftStory({ product, index }: { product: Product; index
           <img data-parallax src={product.images[1] ?? product.images[0]} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover opacity-85" />
         </div>
         <div className="flex flex-col justify-center px-6 py-24 lg:px-20">
-          <p data-reveal className="font-mono-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-champagne)]">
+          <p data-reveal className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-champagne)]">
             <span className="mr-4 text-white/45">{index}</span>The {product.collection} story
           </p>
           <h2 data-reveal="0.05" className="font-serif-editorial mt-8 text-[2.75rem] font-light leading-[0.98] tracking-[-0.02em] sm:text-6xl lg:text-[5rem]">
@@ -43,7 +43,7 @@ export default function CraftStory({ product, index }: { product: Product; index
             {c.stats.map(([v, k]) => (
               <div key={k} className="bg-[var(--bg-vault)] py-6 pr-4">
                 <dd className="font-serif-editorial text-4xl text-[var(--gold-champagne)]">{v}</dd>
-                <dt className="font-mono-spec mt-2 text-[9px] uppercase tracking-[0.2em] text-white/50">{k}</dt>
+                <dt className="font-spec mt-2 text-[9px] uppercase tracking-[0.2em] text-white/50">{k}</dt>
               </div>
             ))}
           </dl>

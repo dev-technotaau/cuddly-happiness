@@ -27,12 +27,13 @@ export default function StickyBar({ product, amount, detail, label, target, onAc
     <div
       className={`fixed inset-x-0 bottom-0 z-40 border-t border-[var(--border-hairline)] bg-[var(--bg-travertine)]/95 backdrop-blur-md transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${show ? 'translate-y-0' : 'translate-y-full'}`}
       aria-hidden={!show}
+      data-fab-avoid
     >
       <div className="mx-auto flex max-w-[1600px] items-center gap-5 px-6 py-3 lg:px-12">
         <img src={product.images[0]} alt="" className="hidden h-12 w-10 object-cover sm:block" />
         <div className="min-w-0 flex-1">
           <p className="font-serif-editorial truncate text-xl leading-tight">{product.name}</p>
-          {detail && <p className="font-mono-spec truncate text-[10px] uppercase tracking-[0.16em] text-[var(--text-taupe)]">{detail}</p>}
+          {detail && <p className="font-spec truncate text-[10px] uppercase tracking-[0.16em] text-[var(--text-taupe)]">{detail}</p>}
         </div>
         <Price amount={amount} className="hidden text-sm sm:inline" />
         <TryOnButton product={product} variant="icon" />

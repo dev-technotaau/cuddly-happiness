@@ -199,7 +199,7 @@ export default function TryOnStudio({ request, onClose }: { request: TryOnReques
 
     // Discreet maison mark.
     ctx.fillStyle = 'rgba(251,249,245,0.85)'
-    ctx.font = `${14 * dpr}px 'Cormorant Garamond', serif`
+    ctx.font = `${14 * dpr}px 'Baskervville', serif`
     ctx.fillText('Teresa & Sons · Montréal', 18 * dpr, ch - 18 * dpr)
     setShot(canvas.toDataURL('image/png'))
   }
@@ -237,7 +237,7 @@ export default function TryOnStudio({ request, onClose }: { request: TryOnReques
                   <path d="M120 380 L 120 250 C 105 230 95 200 100 170 L 110 90 C 112 80 126 80 127 92 L 130 160 L 138 70 C 140 58 156 58 157 72 L 158 160 L 166 80 C 168 68 184 68 184 82 L 182 165 L 196 110 C 199 99 214 101 212 114 L 198 220 C 192 245 182 255 180 270 L 180 380" fill="none" stroke="#fff" strokeWidth="1.2" strokeDasharray="5 5" />
                 )}
               </svg>
-              <p className="font-mono-spec relative rounded-full bg-black/45 px-4 py-2 text-[10px] uppercase tracking-[0.2em] backdrop-blur">{defaults.guide}</p>
+              <p className="font-spec relative rounded-full bg-black/45 px-4 py-2 text-[10px] uppercase tracking-[0.2em] backdrop-blur">{defaults.guide}</p>
             </div>
           )}
 
@@ -260,7 +260,7 @@ export default function TryOnStudio({ request, onClose }: { request: TryOnReques
           {!live && (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-[radial-gradient(ellipse_at_center,#2a2622_0%,#121110_75%)] p-8 text-center">
               <ScanFace size={40} strokeWidth={1} className="text-[var(--gold-champagne)]" />
-              <p className="font-mono-spec mt-6 text-[10px] uppercase tracking-[0.3em] text-[var(--gold-champagne)]">Essayage virtuel</p>
+              <p className="font-spec mt-6 text-[10px] uppercase tracking-[0.3em] text-[var(--gold-champagne)]">Essayage virtuel</p>
               <h2 className="font-serif-editorial mt-3 text-4xl font-light lg:text-5xl">
                 View it <em className="text-[var(--gold-champagne)]">on you</em>
               </h2>
@@ -306,7 +306,7 @@ export default function TryOnStudio({ request, onClose }: { request: TryOnReques
 
           {live && (
             <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 bg-gradient-to-t from-black/70 to-transparent p-4 pt-16">
-              <p className="font-mono-spec hidden max-w-[50%] items-center gap-2 text-[10px] uppercase leading-relaxed tracking-[0.16em] text-white/75 sm:flex">
+              <p className="font-spec hidden max-w-[50%] items-center gap-2 text-[10px] uppercase leading-relaxed tracking-[0.16em] text-white/75 sm:flex">
                 <Move size={13} strokeWidth={1.4} className="shrink-0" /> {defaults.tip}
               </p>
               <div className="flex items-center gap-3">
@@ -340,7 +340,7 @@ export default function TryOnStudio({ request, onClose }: { request: TryOnReques
 
       {/* Side panel */}
       <aside className="max-h-[46vh] shrink-0 overflow-y-auto border-t border-white/10 bg-[var(--bg-vault)] px-6 py-6 lg:max-h-none lg:w-[400px] lg:border-l lg:border-t-0 lg:px-8 lg:py-10" data-lenis-prevent>
-        <p className="font-mono-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-champagne)]">View on you · {kind}</p>
+        <p className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-champagne)]">View on you · {kind}</p>
         <h3 className="font-serif-editorial mt-3 text-3xl font-light leading-tight lg:text-4xl">{product.name}</h3>
         <Price amount={product.rental ? product.rental.weekend[currency] : priceFor(product, currency, metal)} className="mt-2 block text-sm text-white/80 [&_span]:text-white/40" />
 
@@ -367,14 +367,14 @@ export default function TryOnStudio({ request, onClose }: { request: TryOnReques
               <label key={key} className="block">
                 <span className="flex justify-between text-[10px] uppercase tracking-[0.2em] text-white/50">
                   {label}
-                  <span className="font-mono-spec">{key === 'rotate' ? `${Math.round(place.rotate)}°` : key === 'scale' ? `${Math.round(place.scale * 100)}%` : `${Math.round(place.spread * 100)}%`}</span>
+                  <span className="font-spec">{key === 'rotate' ? `${Math.round(place.rotate)}°` : key === 'scale' ? `${Math.round(place.scale * 100)}%` : `${Math.round(place.spread * 100)}%`}</span>
                 </span>
                 <input type="range" min={min} max={max} step={step} value={place[key]} onChange={(e) => setPlace((p) => ({ ...p, [key]: Number(e.target.value) }))} className="mt-2 w-full accent-[var(--gold-champagne)]" />
               </label>
             ))}
             <div className="flex gap-2">
               {([['←', 'x', -1], ['→', 'x', 1], ['↑', 'y', -1], ['↓', 'y', 1]] as const).map(([l, k, d]) => (
-                <button key={l} onClick={() => nudge(k, d)} aria-label={`Nudge ${l}`} className="font-mono-spec flex-1 border border-white/15 py-2 text-xs hover:border-white/40">{l}</button>
+                <button key={l} onClick={() => nudge(k, d)} aria-label={`Nudge ${l}`} className="font-spec flex-1 border border-white/15 py-2 text-xs hover:border-white/40">{l}</button>
               ))}
             </div>
           </div>

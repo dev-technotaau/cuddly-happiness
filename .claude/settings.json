@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc --noEmit)",
+      "Bash(npx tsc --noEmit *)",
+      "Bash(pnpm run build)",
+      "Bash(pnpm build)",
+      "Bash(git status)",
+      "Bash(git status *)",
+      "Bash(git diff)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git ls-files *)",
+      "Bash(node .claude/scripts/kb-status.mjs)",
+      "Bash(node .claude/scripts/kb-status.mjs *)",
+      "Bash(node .claude/scripts/kb-index.mjs)"
+    ],
+    "ask": [
+      "Edit(/.figma/make/**)",
+      "Edit(/vite.config.ts)",
+      "Edit(/index.html)",
+      "Edit(/AGENTS.md)",
+      "Edit(/CLAUDE.md)"
+    ],
+    "deny": [
+      "Bash(pnpm run format)",
+      "Bash(pnpm run format *)",
+      "Bash(pnpm format)",
+      "Bash(pnpm format *)",
+      "Bash(npx oxfmt)",
+      "Bash(npx oxfmt *)",
+      "Bash(pnpm exec oxfmt *)",
+      "Bash(pnpm dlx oxfmt *)",
+      "Bash(oxfmt *)",
+      "Bash(node_modules/.bin/oxfmt *)",
+      "Bash(.figma/make/format)",
+      "Bash(.figma/make/format *)",
+      "Bash(bash .figma/make/format *)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/scripts/kb-status.mjs\"",
+            "shell": "bash",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

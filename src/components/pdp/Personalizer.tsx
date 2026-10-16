@@ -12,8 +12,8 @@ import Price from '../Price'
 
 export const FONT_STYLES: Record<PersonalizationFont, { label: string; style: CSSProperties }> = {
   script: { label: 'Script', style: { fontFamily: "'Pinyon Script', cursive", letterSpacing: '0' } },
-  serif: { label: 'Serif', style: { fontFamily: "'Cormorant Garamond', serif", fontStyle: 'italic', fontWeight: 500 } },
-  block: { label: 'Block', style: { fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.18em' } },
+  serif: { label: 'Serif', style: { fontFamily: "'Baskervville', serif", fontStyle: 'italic', fontWeight: 500 } },
+  block: { label: 'Block', style: { fontFamily: "'Jost', sans-serif", fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.18em' } },
 }
 
 interface Props {
@@ -78,8 +78,8 @@ function Preview({ product, value, swatch }: { product: Product; value: Personal
         </div>
       )}
 
-      <span className="font-mono-spec absolute bottom-3 left-4 text-[9px] uppercase tracking-[0.24em] text-[var(--text-linen)]">Live preview</span>
-      {value.chainLength && <span className="font-mono-spec absolute bottom-3 right-4 text-[9px] uppercase tracking-[0.24em] text-[var(--text-linen)]">{value.chainLength} chain</span>}
+      <span className="font-spec absolute bottom-3 left-4 text-[9px] uppercase tracking-[0.24em] text-[var(--text-linen)]">Live preview</span>
+      {value.chainLength && <span className="font-spec absolute bottom-3 right-4 text-[9px] uppercase tracking-[0.24em] text-[var(--text-linen)]">{value.chainLength} chain</span>}
     </div>
   )
 }
@@ -95,7 +95,7 @@ export default function Personalizer({ product, value, onChange, step, metalSwat
     <fieldset>
       <legend className={`mb-4 flex w-full items-baseline justify-between gap-4 ${label} ${error && showError ? 'text-red-700' : ''}`}>
         <span>
-          <span className="font-mono-spec mr-3 text-[10px] text-[var(--gold-vermeil)]">{step}</span>
+          <span className="font-spec mr-3 text-[10px] text-[var(--gold-vermeil)]">{step}</span>
           Personalize <span className="normal-case tracking-normal text-[var(--text-linen)]">— {cfg.label.toLowerCase()}</span>
         </span>
       </legend>
@@ -108,7 +108,7 @@ export default function Personalizer({ product, value, onChange, step, metalSwat
           <div>
             <div className="flex items-baseline justify-between">
               <label htmlFor="personal-text" className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-taupe)]">{cfg.label}</label>
-              <span className="font-mono-spec text-[10px] text-[var(--text-linen)]">{value.text.length}/{cfg.maxLength}</span>
+              <span className="font-spec text-[10px] text-[var(--text-linen)]">{value.text.length}/{cfg.maxLength}</span>
             </div>
             {cfg.kind === 'initial' ? (
               <div className="mt-3 grid grid-cols-9 gap-1">
@@ -170,7 +170,7 @@ export default function Personalizer({ product, value, onChange, step, metalSwat
                     type="button"
                     key={c}
                     onClick={() => onChange({ ...value, chainLength: c })}
-                    className={`font-mono-spec flex-1 border py-2.5 text-xs transition-colors ${value.chainLength === c ? 'border-[var(--text-espresso)] bg-[var(--text-espresso)] text-[var(--bg-travertine)]' : 'border-[var(--border-hairline)] hover:border-[var(--text-espresso)]'}`}
+                    className={`font-spec flex-1 border py-2.5 text-xs transition-colors ${value.chainLength === c ? 'border-[var(--text-espresso)] bg-[var(--text-espresso)] text-[var(--bg-travertine)]' : 'border-[var(--border-hairline)] hover:border-[var(--text-espresso)]'}`}
                   >
                     {c}
                   </button>

@@ -80,7 +80,7 @@ export default function Checkout() {
   if (placed) {
     return (
       <section className="mx-auto max-w-3xl px-6 py-32 text-center">
-        <p className="font-mono-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">Order {placed.order}</p>
+        <p className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">Order {placed.order}</p>
         <h1 className="font-serif-editorial mt-6 text-6xl font-light">Merci.</h1>
         <p className="mt-6 text-[var(--text-taupe)]">
           A confirmation is on its way.{placed.paidWithCards > 0 && <> <Price amount={placed.paidWithCards} /> was paid with gift cards.</>}
@@ -173,7 +173,7 @@ export default function Checkout() {
                 <span className={label}>{isCA ? 'Postal code' : 'ZIP code'}</span>
                 <input
                   required
-                  className={`${field} font-mono-spec uppercase`}
+                  className={`${field} font-spec uppercase`}
                   pattern={isCA ? '[A-Za-z]\\d[A-Za-z] ?\\d[A-Za-z]\\d' : '\\d{5}(-\\d{4})?'}
                   placeholder={isCA ? 'H3G 1K4' : '10001'}
                 />
@@ -209,7 +209,7 @@ export default function Checkout() {
                   )}
                   <div className="flex-1">
                     <p className="font-serif-editorial text-lg leading-tight">{p.name}</p>
-                    <p className="font-mono-spec mt-1 text-[10px] uppercase tracking-[0.14em] text-[var(--text-taupe)]">
+                    <p className="font-spec mt-1 text-[10px] uppercase tracking-[0.14em] text-[var(--text-taupe)]">
                       {lineDetails(l, p).join(' · ')} · ×{l.qty}
                     </p>
                   </div>
@@ -242,7 +242,7 @@ export default function Checkout() {
                 placeholder="XXXX XXXX XXXX XXXX"
                 autoComplete="off"
                 spellCheck={false}
-                className="font-mono-spec min-w-0 flex-1 bg-transparent px-3 py-3 text-xs uppercase tracking-[0.14em] outline-none placeholder:opacity-40"
+                className="font-spec min-w-0 flex-1 bg-transparent px-3 py-3 text-xs uppercase tracking-[0.14em] outline-none placeholder:opacity-40"
               />
               <button type="button" onClick={applyCode} className="px-4 text-[10px] font-medium uppercase tracking-[0.2em] hover:text-[var(--gold-vermeil)]">Apply</button>
             </div>
@@ -251,7 +251,7 @@ export default function Checkout() {
               <ul className="mt-3 space-y-2">
                 {usage.map((u) => (
                   <li key={u.card.code} className="flex items-center justify-between gap-3 text-xs">
-                    <span className="font-mono-spec flex items-center gap-2">
+                    <span className="font-spec flex items-center gap-2">
                       <button type="button" onClick={() => setApplied((a) => a.filter((x) => x.card.code !== u.card.code))} aria-label="Remove gift card" className="text-[var(--text-linen)] hover:text-[var(--text-espresso)]"><X size={12} /></button>
                       {maskCode(u.card.code)}
                     </span>
@@ -268,7 +268,7 @@ export default function Checkout() {
           <dl className="mt-6 space-y-3 border-t border-[var(--border-hairline)] pt-6 text-sm">
             {merch > 0 && <div className="flex justify-between"><dt>Merchandise</dt><dd><Price amount={merch} /></dd></div>}
             {giftTotal > 0 && <div className="flex justify-between"><dt>Gift cards</dt><dd><Price amount={giftTotal} /></dd></div>}
-            {needsShipping && <div className="flex justify-between"><dt>Insured shipping</dt><dd className="font-mono-spec">Complimentary</dd></div>}
+            {needsShipping && <div className="flex justify-between"><dt>Insured shipping</dt><dd className="font-spec">Complimentary</dd></div>}
             {merch > 0 && (
               <div className="flex justify-between">
                 <dt>{isCA ? `Tax · ${PROVINCES[province].label}` : 'Sales tax'}</dt>

@@ -41,7 +41,7 @@ export default function FourCs() {
     <section className="bg-[var(--bg-vault)] text-[var(--bg-travertine)]">
       <div className="mx-auto grid max-w-[1600px] gap-16 px-6 py-28 lg:grid-cols-12 lg:px-12 lg:py-36">
         <div className="lg:col-span-5">
-          <p data-reveal className="font-mono-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-champagne)]"><span className="mr-4 text-white/45">04</span>Diamond Education</p>
+          <p data-reveal className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-champagne)]"><span className="mr-4 text-white/45">04</span>Diamond Education</p>
           <h2 data-reveal="0.05" className="font-serif-editorial mt-6 text-[2.75rem] font-light leading-[0.98] tracking-[-0.02em] sm:text-6xl lg:text-[4.75rem]">
             The <em className="text-[var(--gold-champagne)]">Four Cs</em>, explained by a jeweller.
           </h2>
@@ -62,7 +62,7 @@ export default function FourCs() {
                 onClick={() => setActive(i)}
                 className={`-mb-px border-b py-5 text-left transition-colors ${active === i ? 'border-[var(--gold-champagne)] text-white' : 'border-transparent text-white/40 hover:text-white/70'}`}
               >
-                <span className="font-mono-spec block text-[10px] text-[var(--gold-champagne)]">0{i + 1}</span>
+                <span className="font-spec block text-[10px] text-[var(--gold-champagne)]">0{i + 1}</span>
                 <span className="font-serif-editorial mt-1 block text-2xl lg:text-3xl">{x.key}</span>
               </button>
             ))}
@@ -72,7 +72,7 @@ export default function FourCs() {
             <p className="mt-5 max-w-lg leading-relaxed text-white/70">{c.body}</p>
 
             <div className="mt-12">
-              <div className="font-mono-spec flex justify-between text-[10px] uppercase tracking-[0.12em] text-white/50">
+              <div className="font-spec flex justify-between text-[10px] uppercase tracking-[0.12em] text-white/50">
                 {c.scale.map((s, i) => (
                   <span key={s} className={i >= c.ours[0] && i <= c.ours[1] ? 'text-[var(--gold-champagne)]' : ''}>{s}</span>
                 ))}
@@ -86,7 +86,7 @@ export default function FourCs() {
                   }}
                 />
               </div>
-              <p className="font-mono-spec mt-4 text-[10px] uppercase tracking-[0.24em] text-white/50">
+              <p className="font-spec mt-4 text-[10px] uppercase tracking-[0.24em] text-white/50">
                 <span className="mr-2 inline-block h-2 w-2 bg-[var(--gold-champagne)]" /> Teresa &amp; Sons standard
               </p>
             </div>

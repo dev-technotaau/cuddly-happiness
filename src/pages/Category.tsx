@@ -42,7 +42,7 @@ export default function Category({ slug }: { slug: string }) {
         <img key={category.hero} data-parallax src={category.hero} alt={category.name} className="absolute inset-0 h-full w-full object-cover opacity-60" />
         <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-vault)]/90 to-transparent" />
         <div className="relative mx-auto flex h-full max-w-[1600px] flex-col justify-end px-6 pb-14 text-[var(--bg-travertine)] lg:px-12">
-          <p className="font-mono-spec text-[10px] uppercase tracking-[0.32em] text-[var(--gold-champagne)]">
+          <p className="font-spec text-[10px] uppercase tracking-[0.32em] text-[var(--gold-champagne)]">
             <a href={href.home} className="hover:text-white">Maison</a> / Chapter {category.eyebrow}
           </p>
           <h1 className="font-serif-editorial mt-5 text-7xl font-light leading-none lg:text-[9rem]">
@@ -58,7 +58,7 @@ export default function Category({ slug }: { slug: string }) {
           <a href={href.giftcards} className="group mx-auto grid max-w-[1600px] items-center gap-8 px-6 py-12 sm:grid-cols-[200px_1fr_auto] lg:px-12">
             <div className="w-48 -rotate-3 transition-transform duration-700 group-hover:rotate-0"><GiftCardArt design="travertine" currency={currency} amount={250} /></div>
             <div>
-              <p className="font-mono-spec text-[10px] uppercase tracking-[0.28em] text-[var(--gold-vermeil)]">Carte-cadeau</p>
+              <p className="font-spec text-[10px] uppercase tracking-[0.28em] text-[var(--gold-vermeil)]">Carte-cadeau</p>
               <p className="font-serif-editorial mt-2 text-4xl font-light">Not sure what to choose? Give the <em className="text-[var(--gold-vermeil)]">choice</em>.</p>
               <p className="mt-2 text-sm text-[var(--text-taupe)]">Digital or mailed · scheduled delivery · never expires</p>
             </div>
@@ -72,7 +72,7 @@ export default function Category({ slug }: { slug: string }) {
           <ol className="mx-auto grid max-w-[1600px] gap-8 px-6 py-12 sm:grid-cols-4 lg:px-12">
             {['Reserve online or in salon', 'Fitting & ID verification', 'Insured courier delivery', 'Collected the next morning'].map((s, i) => (
               <li key={s} data-reveal={i * 0.06} className="flex items-baseline gap-4">
-                <span className="font-mono-spec text-[10px] text-[var(--gold-vermeil)]">0{i + 1}</span>
+                <span className="font-spec text-[10px] text-[var(--gold-vermeil)]">0{i + 1}</span>
                 <span className="font-serif-editorial text-xl">{s}</span>
               </li>
             ))}
@@ -82,7 +82,7 @@ export default function Category({ slug }: { slug: string }) {
 
       <section className="mx-auto max-w-[1600px] px-6 py-16 lg:px-12 lg:py-24">
         <div className="mb-12 flex items-center justify-between border-b border-[var(--border-hairline)] pb-5">
-          <span className="font-mono-spec text-[10px] uppercase tracking-[0.24em] text-[var(--text-taupe)]">
+          <span className="font-spec text-[10px] uppercase tracking-[0.24em] text-[var(--text-taupe)]">
             {products.length} pieces · Prices in {currency}
           </span>
           <div className="flex items-center gap-8">

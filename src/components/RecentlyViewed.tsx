@@ -69,7 +69,7 @@ export function RecentlyViewedStrip({ exclude, limit = 3, onNavigate, title = 'R
               </div>
               <div className="min-w-0 flex-1">
                 <p className="font-serif-editorial truncate text-lg leading-tight group-hover:text-[var(--gold-vermeil)]">{p.name}</p>
-                <p className="font-mono-spec text-[10px] uppercase tracking-[0.14em] text-[var(--text-linen)]">{p.collection}</p>
+                <p className="font-spec text-[10px] uppercase tracking-[0.14em] text-[var(--text-linen)]">{p.collection}</p>
               </div>
               <Price amount={p.rental ? p.rental.weekend[currency] : priceFor(p, currency)} className="shrink-0 text-xs" />
             </a>

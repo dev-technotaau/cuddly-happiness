@@ -53,7 +53,7 @@ export default function Header() {
       <div className="overflow-hidden bg-[var(--bg-vault)] py-2 text-[var(--gold-champagne)]">
         <div className="animate-marquee">
           {[...announcements, ...announcements].map((a, i) => (
-            <span key={i} className="font-mono-spec flex items-center px-10 text-[10px] uppercase tracking-[0.28em]">
+            <span key={i} className="font-spec flex items-center px-10 text-[10px] uppercase tracking-[0.28em]">
               {a}
               <span className="ml-20 text-[var(--gold-vermeil)]">&#10022;</span>
             </span>
@@ -76,16 +76,16 @@ export default function Header() {
           </button>
 
           <a href={href.home} className="text-center leading-none">
-            <span className="font-serif-editorial block text-[28px] font-medium tracking-[0.04em] lg:text-[32px]">
-              Teresa <em className="font-light text-[var(--gold-vermeil)]">&amp;</em> Sons
+            <span className="font-serif-editorial -mr-[0.12em] block whitespace-nowrap text-[17px] uppercase tracking-[0.12em] sm:-mr-[0.16em] sm:text-[22px] sm:tracking-[0.16em] lg:text-[25px]">
+              Teresa <em className="text-[var(--gold-vermeil)]">&amp;</em> Sons
             </span>
-            <span className="font-mono-spec mt-1 block text-[9px] uppercase tracking-[0.4em] text-[var(--text-taupe)]">
+            <span className="font-spec -mr-[0.28em] mt-1.5 block whitespace-nowrap text-[8px] uppercase tracking-[0.28em] text-[var(--text-taupe)] sm:-mr-[0.4em] sm:text-[9px] sm:tracking-[0.4em]">
               Montréal &middot; Est. 1962
             </span>
           </a>
 
           <div className="flex items-center justify-end gap-4 lg:gap-7">
-            <div className="font-mono-spec flex border border-[var(--border-hairline)] text-[10px] tracking-[0.15em]" role="group" aria-label="Currency">
+            <div className="font-spec hidden border border-[var(--border-hairline)] text-[10px] tracking-[0.15em] sm:flex" role="group" aria-label="Currency">
               {(['CAD', 'USD'] as const).map((c) => (
                 <button
                   key={c}
@@ -103,7 +103,7 @@ export default function Header() {
             <a href={href.wishlist} className="relative transition-colors hover:text-[var(--gold-vermeil)]" aria-label="Wishlist">
               <Heart size={20} strokeWidth={1.4} />
               {wishlist.length > 0 && (
-                <span className="font-mono-spec absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--text-espresso)] px-1 text-[9px] text-[var(--bg-travertine)]">
+                <span className="font-spec absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--text-espresso)] px-1 text-[9px] text-[var(--bg-travertine)]">
                   {wishlist.length}
                 </span>
               )}
@@ -111,7 +111,7 @@ export default function Header() {
             <button onClick={() => setCartOpen(true)} className="relative" aria-label="Open bag">
               <ShoppingBag size={20} strokeWidth={1.4} />
               {count > 0 && (
-                <span className="font-mono-spec absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--gold-vermeil)] px-1 text-[9px] text-white">
+                <span className="font-spec absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--gold-vermeil)] px-1 text-[9px] text-white">
                   {count}
                 </span>
               )}
@@ -136,7 +136,7 @@ export default function Header() {
                     onMouseEnter={() => setActive(i)}
                     className={`group flex items-baseline gap-5 py-2 transition-colors ${active === i ? 'text-[var(--text-espresso)]' : 'text-[var(--text-linen)]'}`}
                   >
-                    <span className="font-mono-spec w-6 text-[10px] text-[var(--gold-vermeil)]">{c.eyebrow}</span>
+                    <span className="font-spec w-6 text-[10px] text-[var(--gold-vermeil)]">{c.eyebrow}</span>
                     <span className="font-serif-editorial text-[26px] leading-tight">{c.name}</span>
                     <span className="font-serif-editorial text-sm italic text-[var(--text-linen)] opacity-0 transition-opacity group-hover:opacity-100">{c.french}</span>
                   </a>
@@ -148,13 +148,13 @@ export default function Header() {
                     <span className="block aspect-[1.586] w-6 rounded-[2px] bg-[linear-gradient(135deg,#e8d3a3,#c9a45f_45%,#9c7a3c)]" />
                   </span>
                   <span className="font-serif-editorial text-[26px] leading-tight transition-colors group-hover:text-[var(--gold-vermeil)]">Gift Cards</span>
-                  <span className="font-mono-spec text-[10px] uppercase tracking-[0.2em] text-[var(--text-linen)]">From $100 · never expires</span>
+                  <span className="font-spec text-[10px] uppercase tracking-[0.2em] text-[var(--text-linen)]">From $100 · never expires</span>
                 </a>
               </li>
             </ul>
             <div className="col-span-3 flex flex-col justify-between" data-mega-item>
               <div>
-                <p className="font-mono-spec text-[10px] uppercase tracking-[0.28em] text-[var(--gold-vermeil)]">Chapter {cat.eyebrow}</p>
+                <p className="font-spec text-[10px] uppercase tracking-[0.28em] text-[var(--gold-vermeil)]">Chapter {cat.eyebrow}</p>
                 <p className="font-serif-editorial mt-4 text-3xl leading-snug">{cat.description}</p>
               </div>
               <ul className="mt-8 space-y-3 text-sm">
@@ -194,7 +194,7 @@ export default function Header() {
             {CATEGORIES.map((c) => (
               <li key={c.slug} className="border-b border-[var(--border-hairline)]">
                 <a href={href.category(c.slug)} className="flex items-baseline gap-4 py-4">
-                  <span className="font-mono-spec w-6 text-[10px] text-[var(--gold-vermeil)]">{c.eyebrow}</span>
+                  <span className="font-spec w-6 text-[10px] text-[var(--gold-vermeil)]">{c.eyebrow}</span>
                   <span className="font-serif-editorial text-3xl">{c.name}</span>
                 </a>
               </li>
@@ -204,6 +204,17 @@ export default function Header() {
             <li><a href={href.account} className="font-serif-editorial block py-4 text-3xl italic">{user ? 'My Account' : 'Sign In'}</a></li>
             <li><a href={href.wishlist} className="font-serif-editorial block py-4 text-3xl italic">Wishlist ({wishlist.length})</a></li>
           </ul>
+          {/* Phones: the header has no room for the currency switch, so it lives here */}
+          <div className="mt-10 flex items-center justify-between border-t border-[var(--border-hairline)] pt-6 sm:hidden">
+            <span className="font-spec text-[10px] uppercase tracking-[0.28em] text-[var(--text-taupe)]">Shopping in</span>
+            <div className="font-spec flex border border-[var(--border-hairline)] text-[10px] tracking-[0.15em]" role="group" aria-label="Currency">
+              {(['CAD', 'USD'] as const).map((c) => (
+                <button key={c} onClick={() => setCurrency(c)} aria-pressed={currency === c} className={`px-3.5 py-2 transition-colors ${currency === c ? 'bg-[var(--text-espresso)] text-[var(--bg-travertine)]' : 'text-[var(--text-taupe)]'}`}>
+                  {c === 'CAD' ? 'CA' : 'US'} · {c}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </header>

@@ -52,12 +52,12 @@ export default function CategoryIndex() {
               onMouseEnter={() => setHover(i)}
               className={`group grid grid-cols-12 items-baseline border-b border-[var(--border-hairline)] py-7 transition-colors duration-500 ${hover !== null && hover !== i ? 'text-[var(--text-linen)]' : ''}`}
             >
-              <span className="font-mono-spec col-span-1 text-[10px] text-[var(--gold-vermeil)]">{c.eyebrow}</span>
+              <span className="font-spec col-span-1 text-[10px] text-[var(--gold-vermeil)]">{c.eyebrow}</span>
               <span className="font-serif-editorial col-span-5 text-6xl font-light leading-none tracking-[-0.02em] transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-4">
                 {c.name}
               </span>
               <span className="font-serif-editorial col-span-3 text-xl italic text-[var(--text-linen)]">{c.french}</span>
-              <span className="font-mono-spec col-span-2 text-[10px] uppercase tracking-[0.22em] text-[var(--text-taupe)]">
+              <span className="font-spec col-span-2 text-[10px] uppercase tracking-[0.22em] text-[var(--text-taupe)]">
                 {getProductsByCategory(c.slug).length} pieces
               </span>
               <span className="col-span-1 flex justify-end">
@@ -76,7 +76,7 @@ export default function CategoryIndex() {
               <img src={c.hero} alt={c.name} loading="lazy" className="editorial-zoom h-full w-full object-cover" />
             </div>
             <div className="mt-4 flex items-baseline gap-3">
-              <span className="font-mono-spec text-[10px] text-[var(--gold-vermeil)]">{c.eyebrow}</span>
+              <span className="font-spec text-[10px] text-[var(--gold-vermeil)]">{c.eyebrow}</span>
               <span className="font-serif-editorial text-2xl">{c.name}</span>
             </div>
           </a>

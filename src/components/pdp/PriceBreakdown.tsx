@@ -70,7 +70,7 @@ export default function PriceBreakdown({ product, index, metal, personalization,
   const grand = price + taxTotal
   const pct = (n: number) => `${((n / price) * 100).toFixed(n / price < 0.1 ? 1 : 0)}%`
 
-  const select = 'font-mono-spec cursor-pointer border-b border-[var(--border-hairline)] bg-transparent py-1 text-xs outline-none focus:border-[var(--text-espresso)]'
+  const select = 'font-spec cursor-pointer border-b border-[var(--border-hairline)] bg-transparent py-1 text-xs outline-none focus:border-[var(--text-espresso)]'
 
   return (
     <section id="price-breakdown" className="scroll-mt-32 border-t border-[var(--border-hairline)]">
@@ -94,7 +94,7 @@ export default function PriceBreakdown({ product, index, metal, personalization,
             <div className="lg:sticky lg:top-36">
               <p className="text-[11px] uppercase tracking-[0.22em]">Composition</p>
               <p className="font-serif-editorial mt-3 text-6xl font-light leading-none"><Price amount={price} className="[&_span]:text-xl" /></p>
-              <p className="font-mono-spec mt-2 text-[10px] uppercase tracking-[0.18em] text-[var(--text-linen)]">
+              <p className="font-spec mt-2 text-[10px] uppercase tracking-[0.18em] text-[var(--text-linen)]">
                 {rental ? `${period} rental fee · before tax` : `${metal ? METALS[metal].label : ''} · before tax`}
               </p>
 
@@ -115,7 +115,7 @@ export default function PriceBreakdown({ product, index, metal, personalization,
                       {g.label}
                     </span>
                     <span className="flex items-baseline gap-4">
-                      <span className="font-mono-spec text-[10px] text-[var(--text-linen)]">{pct(g.amount)}</span>
+                      <span className="font-spec text-[10px] text-[var(--text-linen)]">{pct(g.amount)}</span>
                       <Price amount={g.amount} className="text-xs [&_span]:hidden" />
                     </span>
                   </li>
@@ -126,11 +126,11 @@ export default function PriceBreakdown({ product, index, metal, personalization,
                 <dl className="mt-10 grid grid-cols-2 gap-px bg-[var(--border-hairline)] text-center">
                   <div className="bg-[var(--bg-travertine)] py-5">
                     <dd className="font-serif-editorial text-3xl">{metalWeight.toFixed(1)} g</dd>
-                    <dt className="font-mono-spec mt-1 text-[9px] uppercase tracking-[0.2em] text-[var(--text-linen)]">Metal weight</dt>
+                    <dt className="font-spec mt-1 text-[9px] uppercase tracking-[0.2em] text-[var(--text-linen)]">Metal weight</dt>
                   </div>
                   <div className="bg-[var(--bg-travertine)] py-5">
                     <dd className="font-serif-editorial text-3xl">{labourHours} h</dd>
-                    <dt className="font-mono-spec mt-1 text-[9px] uppercase tracking-[0.2em] text-[var(--text-linen)]">At the bench</dt>
+                    <dt className="font-spec mt-1 text-[9px] uppercase tracking-[0.2em] text-[var(--text-linen)]">At the bench</dt>
                   </div>
                 </dl>
               )}
@@ -158,9 +158,9 @@ export default function PriceBreakdown({ product, index, metal, personalization,
                         <li key={l.id} className="grid grid-cols-[1fr_auto] gap-x-6 gap-y-1 px-6 py-4">
                           <span className="text-sm">{l.label}</span>
                           <span className="text-right text-sm">
-                            {l.included ? <span className="font-mono-spec text-[10px] uppercase tracking-[0.18em] text-[var(--gold-vermeil)]">Included</span> : <Price amount={l.amount} className="[&_span]:hidden" />}
+                            {l.included ? <span className="font-spec text-[10px] uppercase tracking-[0.18em] text-[var(--gold-vermeil)]">Included</span> : <Price amount={l.amount} className="[&_span]:hidden" />}
                           </span>
-                          {l.detail && <span className="font-mono-spec col-span-2 text-[10px] uppercase tracking-[0.1em] text-[var(--text-linen)]">{l.detail}</span>}
+                          {l.detail && <span className="font-spec col-span-2 text-[10px] uppercase tracking-[0.1em] text-[var(--text-linen)]">{l.detail}</span>}
                         </li>
                       ))}
                     </ul>
@@ -197,7 +197,7 @@ export default function PriceBreakdown({ product, index, metal, personalization,
                       <li key={t.name} className="flex items-baseline justify-between px-6 py-4 text-sm">
                         <span>
                           {t.name}
-                          <span className="font-mono-spec ml-3 text-[10px] text-[var(--text-linen)]">{(t.rate * 100).toFixed(t.rate * 100 % 1 ? 3 : 0).replace(/0+$/, '').replace(/\.$/, '')}% of <Price amount={price} className="[&_span]:hidden" /></span>
+                          <span className="font-spec ml-3 text-[10px] text-[var(--text-linen)]">{(t.rate * 100).toFixed(t.rate * 100 % 1 ? 3 : 0).replace(/0+$/, '').replace(/\.$/, '')}% of <Price amount={price} className="[&_span]:hidden" /></span>
                         </span>
                         <Price amount={t.amount} className="[&_span]:hidden" />
                       </li>
@@ -207,16 +207,16 @@ export default function PriceBreakdown({ product, index, metal, personalization,
                       <li className="flex items-baseline justify-between gap-6 px-6 py-4 text-sm">
                         <span>
                           Sales tax · {state}
-                          <span className="font-mono-spec mt-1 block text-[10px] uppercase tracking-[0.1em] text-[var(--text-linen)]">Calculated at checkout from your ZIP code</span>
+                          <span className="font-spec mt-1 block text-[10px] uppercase tracking-[0.1em] text-[var(--text-linen)]">Calculated at checkout from your ZIP code</span>
                         </span>
-                        <span className="font-mono-spec text-[10px] uppercase tracking-[0.18em] text-[var(--text-taupe)]">At checkout</span>
+                        <span className="font-spec text-[10px] uppercase tracking-[0.18em] text-[var(--text-taupe)]">At checkout</span>
                       </li>
                       <li className="flex items-baseline justify-between gap-6 px-6 py-4 text-sm">
                         <span>
                           Import duties & customs fees
-                          <span className="font-mono-spec mt-1 block text-[10px] uppercase tracking-[0.1em] text-[var(--text-linen)]">CUSMA-qualifying, cleared by Teresa & Sons</span>
+                          <span className="font-spec mt-1 block text-[10px] uppercase tracking-[0.1em] text-[var(--text-linen)]">CUSMA-qualifying, cleared by Teresa & Sons</span>
                         </span>
-                        <span className="font-mono-spec text-[10px] uppercase tracking-[0.18em] text-[var(--gold-vermeil)]">Prepaid</span>
+                        <span className="font-spec text-[10px] uppercase tracking-[0.18em] text-[var(--gold-vermeil)]">Prepaid</span>
                       </li>
                     </>
                   )}
@@ -233,7 +233,7 @@ export default function PriceBreakdown({ product, index, metal, personalization,
                 <div className="flex items-baseline justify-between gap-6 px-6 py-5 text-sm">
                   <span>
                     Refundable security deposit
-                    <span className="font-mono-spec mt-1 block text-[10px] uppercase tracking-[0.1em] text-[var(--text-linen)]">Card pre-authorisation · released within 48 h of return</span>
+                    <span className="font-spec mt-1 block text-[10px] uppercase tracking-[0.1em] text-[var(--text-linen)]">Card pre-authorisation · released within 48 h of return</span>
                   </span>
                   <Price amount={deposit} className="[&_span]:hidden" />
                 </div>

@@ -39,7 +39,7 @@ export default function CartLineItem({ line, variant = 'drawer', onNavigate }: P
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <p className="font-mono-spec text-[9px] uppercase tracking-[0.22em] text-[var(--text-linen)]">{line.rental ? 'Rental' : line.giftCard ? 'Gift card' : p.collection}</p>
+            <p className="font-spec text-[9px] uppercase tracking-[0.22em] text-[var(--text-linen)]">{line.rental ? 'Rental' : line.giftCard ? 'Gift card' : p.collection}</p>
             <a href={productHref} onClick={onNavigate} className={`font-serif-editorial mt-1 block leading-tight transition-colors hover:text-[var(--gold-vermeil)] ${page ? 'text-3xl' : 'text-xl'}`}>
               {p.name}
             </a>
@@ -51,7 +51,7 @@ export default function CartLineItem({ line, variant = 'drawer', onNavigate }: P
 
         <ul className="mt-2 space-y-0.5">
           {details.map((d) => (
-            <li key={d} className="font-mono-spec text-[10px] uppercase tracking-[0.12em] text-[var(--text-taupe)]">{d}</li>
+            <li key={d} className="font-spec text-[10px] uppercase tracking-[0.12em] text-[var(--text-taupe)]">{d}</li>
           ))}
         </ul>
 
@@ -80,15 +80,15 @@ export default function CartLineItem({ line, variant = 'drawer', onNavigate }: P
             >
               <Minus size={12} />
             </button>
-            <span className="font-mono-spec w-7 text-center text-xs" aria-live="polite">{line.qty}</span>
+            <span className="font-spec w-7 text-center text-xs" aria-live="polite">{line.qty}</span>
             <button onClick={() => updateQty(line.key, Math.min(10, line.qty + 1))} aria-label="Increase quantity" className="flex h-9 w-9 items-center justify-center transition-colors hover:bg-[var(--bg-silk)]">
               <Plus size={12} />
             </button>
           </div>
           <div className="text-right">
             <Price amount={linePrice(line)} className={page ? 'text-base' : 'text-sm'} />
-            {line.qty > 1 && <p className="font-mono-spec mt-0.5 text-[10px] text-[var(--text-linen)]"><Price amount={unit} className="[&_span]:hidden" /> each</p>}
-            {fullPrice !== unit && <p className="font-mono-spec text-[10px] text-[var(--text-linen)] line-through"><Price amount={fullPrice} className="[&_span]:hidden" /></p>}
+            {line.qty > 1 && <p className="font-spec mt-0.5 text-[10px] text-[var(--text-linen)]"><Price amount={unit} className="[&_span]:hidden" /> each</p>}
+            {fullPrice !== unit && <p className="font-spec text-[10px] text-[var(--text-linen)] line-through"><Price amount={fullPrice} className="[&_span]:hidden" /></p>}
           </div>
         </div>
       </div>

@@ -45,14 +45,14 @@ export default function MakingScroll() {
       <div className="mx-auto max-w-[1600px] px-6 pt-24 lg:absolute lg:inset-x-0 lg:top-0 lg:px-12 lg:pt-16">
         <div className="flex items-end justify-between gap-8">
           <h2 className="font-serif-editorial text-5xl font-light leading-none tracking-[-0.02em] lg:text-7xl">
-            <span className="font-mono-spec mb-5 block text-[10px] font-normal uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">06 · The making</span>
+            <span className="font-spec mb-5 block text-[10px] font-normal uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">06 · The making</span>
             From <em className="text-[var(--gold-vermeil)]">bench</em> to heirloom
           </h2>
           <div className="hidden w-48 lg:block">
             <div className="h-px bg-[var(--border-hairline)]">
               <div data-making-progress className="h-px origin-left scale-x-0 bg-[var(--gold-vermeil)]" />
             </div>
-            <p className="font-mono-spec mt-2 text-[10px] uppercase tracking-[0.24em] text-[var(--text-taupe)]">Five stages · 40+ hours</p>
+            <p className="font-spec mt-2 text-[10px] uppercase tracking-[0.24em] text-[var(--text-taupe)]">Five stages · 40+ hours</p>
           </div>
         </div>
       </div>
@@ -63,7 +63,7 @@ export default function MakingScroll() {
               <img src={s.img} alt={s.t} loading="lazy" className="editorial-zoom h-full w-full object-cover" />
             </div>
             <div className="mt-5 flex gap-5">
-              <span className="font-mono-spec text-[10px] text-[var(--gold-vermeil)]">{s.n}</span>
+              <span className="font-spec text-[10px] text-[var(--gold-vermeil)]">{s.n}</span>
               <div>
                 <h3 className="font-serif-editorial text-3xl">{s.t}</h3>
                 <p className="mt-2 max-w-xs text-sm text-[var(--text-taupe)]">{s.d}</p>

@@ -20,7 +20,7 @@ export default function Atelier() {
     <div ref={root}>
       <section className="mx-auto grid max-w-[1600px] gap-12 px-6 py-20 lg:grid-cols-12 lg:px-12 lg:py-28">
         <div className="lg:col-span-6">
-          <p data-reveal className="font-mono-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">L'Atelier · Since 1962</p>
+          <p data-reveal className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">L'Atelier · Since 1962</p>
           <h1 data-reveal="0.05" className="font-serif-editorial mt-6 text-6xl font-light leading-[0.95] lg:text-[7.5rem]">
             Made <em className="text-[var(--gold-vermeil)]">for you</em>, by a family.
           </h1>
@@ -37,7 +37,7 @@ export default function Atelier() {
         <ol className="mx-auto grid max-w-[1600px] gap-px bg-[var(--border-hairline)] sm:grid-cols-2 lg:grid-cols-4">
           {steps.map(([t, d], i) => (
             <li key={t} data-reveal={i * 0.08} className="bg-[var(--bg-silk)] p-10 lg:p-12">
-              <span className="font-mono-spec text-[10px] text-[var(--gold-vermeil)]">0{i + 1}</span>
+              <span className="font-spec text-[10px] text-[var(--gold-vermeil)]">0{i + 1}</span>
               <h3 className="font-serif-editorial mt-6 text-3xl">{t}</h3>
               <p className="mt-4 text-sm leading-relaxed text-[var(--text-taupe)]">{d}</p>
             </li>

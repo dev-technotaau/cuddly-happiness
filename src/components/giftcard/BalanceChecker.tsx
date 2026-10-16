@@ -31,7 +31,7 @@ export default function BalanceChecker({ tone = 'light' }: { tone?: 'light' | 'd
           placeholder="XXXX XXXX XXXX XXXX"
           autoComplete="off"
           spellCheck={false}
-          className="font-mono-spec min-w-0 flex-1 bg-transparent px-4 py-3.5 text-sm uppercase tracking-[0.16em] outline-none placeholder:normal-case placeholder:tracking-[0.16em] placeholder:opacity-40"
+          className="font-spec min-w-0 flex-1 bg-transparent px-4 py-3.5 text-sm uppercase tracking-[0.16em] outline-none placeholder:normal-case placeholder:tracking-[0.16em] placeholder:opacity-40"
         />
         <button className={`flex items-center gap-2 px-5 text-[10px] font-medium uppercase tracking-[0.2em] ${dark ? 'bg-[var(--gold-champagne)] text-[var(--bg-vault)]' : 'bg-[var(--text-espresso)] text-[var(--bg-travertine)]'}`}>
           <Search size={13} strokeWidth={1.5} /> Check

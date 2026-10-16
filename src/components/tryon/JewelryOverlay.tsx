@@ -62,7 +62,7 @@ const JewelryOverlay = forwardRef<SVGSVGElement, Props>(function JewelryOverlay(
             return <g key={i}>{sparkle(x, y, r)}</g>
           })}
         {!collar && text && (
-          <text x="100" y="94" textAnchor="middle" fontFamily="'Pinyon Script', 'Cormorant Garamond', serif" fontSize={Math.max(18, 40 - text.length * 2)} fill={`url(#${metal})`} stroke="#6b5226" strokeWidth="0.3">
+          <text x="100" y="94" textAnchor="middle" fontFamily="'Pinyon Script', 'Baskervville', serif" fontSize={Math.max(18, 40 - text.length * 2)} fill={`url(#${metal})`} stroke="#6b5226" strokeWidth="0.3">
             {text}
           </text>
         )}
@@ -112,7 +112,7 @@ const JewelryOverlay = forwardRef<SVGSVGElement, Props>(function JewelryOverlay(
         {signet ? (
           <g>
             <ellipse cx="100" cy="96" rx="20" ry="15" fill={`url(#${metal})`} />
-            {text && <text x="100" y="101" textAnchor="middle" fontFamily="'Cormorant Garamond', serif" fontStyle="italic" fontSize="14" fill="#4a3a22" opacity="0.7">{text}</text>}
+            {text && <text x="100" y="101" textAnchor="middle" fontFamily="'Baskervville', serif" fontStyle="italic" fontSize="14" fill="#4a3a22" opacity="0.7">{text}</text>}
           </g>
         ) : hasStone || gem ? (
           <g>

@@ -15,7 +15,7 @@ export default function SectionHeader({ index, eyebrow, title, aside, tone = 'li
   const muted = tone === 'dark' ? 'text-white/45' : 'text-[var(--text-linen)]'
   return (
     <header className="mb-14 lg:mb-20">
-      <div data-reveal className={`font-mono-spec flex items-center gap-5 text-[10px] uppercase tracking-[0.3em] ${muted}`}>
+      <div data-reveal className={`font-spec flex items-center gap-5 text-[10px] uppercase tracking-[0.3em] ${muted}`}>
         <span className={accent}>{index}</span>
         <span className={`h-px flex-1 ${rule}`} />
         <span>{eyebrow}</span>

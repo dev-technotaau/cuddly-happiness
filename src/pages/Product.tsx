@@ -180,7 +180,7 @@ export default function Product({ slug }: { slug: string }) {
   ].filter(Boolean) as string[]
   const stepNo = (id: string) => String(steps.indexOf(id) + 1).padStart(2, '0')
   const stepLabel = 'mb-4 flex items-baseline justify-between gap-4 text-[11px] uppercase tracking-[0.22em]'
-  const stepNum = 'font-mono-spec mr-3 text-[10px] text-[var(--gold-vermeil)]'
+  const stepNum = 'font-spec mr-3 text-[10px] text-[var(--gold-vermeil)]'
   const metalSwatch = metal ? METALS[metal].swatch : '#D4B982'
 
   const shipCopy =
@@ -193,7 +193,7 @@ export default function Product({ slug }: { slug: string }) {
     <div ref={root}>
       {/* Breadcrumb bar */}
       <div className="border-b border-[var(--border-hairline)]">
-        <div className="font-mono-spec mx-auto flex max-w-[1600px] items-center justify-between gap-6 px-6 py-4 text-[10px] uppercase tracking-[0.24em] text-[var(--text-linen)] lg:px-12">
+        <div className="font-spec mx-auto flex max-w-[1600px] items-center justify-between gap-6 px-6 py-4 text-[10px] uppercase tracking-[0.24em] text-[var(--text-linen)] lg:px-12">
           <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-3">
             <a href={href.home} className="hover:text-[var(--text-espresso)]">Maison</a>
             <span>/</span>
@@ -219,7 +219,7 @@ export default function Product({ slug }: { slug: string }) {
               <span className="h-1.5 w-1.5 rounded-full bg-[var(--gold-vermeil)]" /> {availability}
             </span>
           </div>
-          <p data-pdp-in className="font-mono-spec mt-8 text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">
+          <p data-pdp-in className="font-spec mt-8 text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">
             {product.collection} · Chapter {category.eyebrow}
           </p>
           <h1 data-pdp-in className="font-serif-editorial mt-4 text-[3rem] font-light leading-[0.95] tracking-[-0.025em] sm:text-[3.75rem] lg:text-[4.25rem]">
@@ -230,7 +230,7 @@ export default function Product({ slug }: { slug: string }) {
             <span className="flex gap-0.5 text-[var(--gold-vermeil)]">
               {Array.from({ length: 5 }).map((_, k) => <Star key={k} size={12} strokeWidth={1.2} className="fill-current" />)}
             </span>
-            <span className="font-mono-spec">{rating}</span>
+            <span className="font-spec">{rating}</span>
             <span className="border-b border-[var(--border-hairline)] pb-0.5 text-[var(--text-taupe)] transition-colors group-hover:border-[var(--gold-vermeil)]">{count} reviews</span>
           </button>
 
@@ -358,7 +358,7 @@ export default function Product({ slug }: { slug: string }) {
               <div>
                 <label htmlFor="engraving" className={stepLabel}>
                   <span><span className={stepNum}>{stepNo('engraving')}</span>{pcfg ? 'Reverse engraving' : 'Engraving'} <span className="normal-case tracking-normal text-[var(--text-linen)]">— {pcfg ? 'optional' : 'complimentary'}</span></span>
-                  <span className="font-mono-spec text-[10px] text-[var(--text-linen)]">{engraving.length}/18</span>
+                  <span className="font-spec text-[10px] text-[var(--text-linen)]">{engraving.length}/18</span>
                 </label>
                 <input
                   id="engraving"
@@ -433,11 +433,11 @@ export default function Product({ slug }: { slug: string }) {
                     <p className="font-serif-editorial text-3xl tracking-[0.12em]">GIA</p>
                     <p className="mt-1 text-[10px] uppercase tracking-[0.22em] text-[var(--text-taupe)]">Diamond grading report</p>
                   </div>
-                  <p className="font-mono-spec text-right text-[10px] uppercase tracking-[0.16em] text-[var(--text-linen)]">
+                  <p className="font-spec text-right text-[10px] uppercase tracking-[0.16em] text-[var(--text-linen)]">
                     Report №<br /><span className="text-xs text-[var(--gold-vermeil)]">{product.gia.reportNumber}</span>
                   </p>
                 </div>
-                <dl className="font-mono-spec mt-6 grid grid-cols-5 divide-x divide-[var(--border-hairline)] border-t border-[var(--border-hairline)] pt-5 text-center">
+                <dl className="font-spec mt-6 grid grid-cols-5 divide-x divide-[var(--border-hairline)] border-t border-[var(--border-hairline)] pt-5 text-center">
                   {Object.entries({ Shape: product.gia.shape.split(' ')[0], Carat: product.gia.carat.toFixed(2), Color: product.gia.color, Clarity: product.gia.clarity, Cut: product.gia.cut.split(' ')[0] }).map(([k, v]) => (
                     <div key={k} className="px-1">
                       <dt className="text-[8px] uppercase tracking-[0.18em] text-[var(--text-linen)]">{k}</dt>
@@ -461,12 +461,12 @@ export default function Product({ slug }: { slug: string }) {
                       {Object.entries(product.specs).map(([k, v]) => (
                         <div key={k} className="flex justify-between gap-6 py-2.5">
                           <dt>{k}</dt>
-                          <dd className="font-mono-spec text-right text-xs">{v}</dd>
+                          <dd className="font-spec text-right text-xs">{v}</dd>
                         </div>
                       ))}
                       <div className="flex justify-between gap-6 py-2.5">
                         <dt>Reference</dt>
-                        <dd className="font-mono-spec text-right text-xs uppercase">{product.id}</dd>
+                        <dd className="font-spec text-right text-xs uppercase">{product.id}</dd>
                       </div>
                     </dl>
                   ),

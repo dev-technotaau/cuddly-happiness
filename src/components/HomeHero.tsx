@@ -85,9 +85,13 @@ export default function HomeHero() {
   // Headline reveal per slide
   useLayoutEffect(() => {
     if (!root.current) return
+    const el = root.current
     const ctx = gsap.context(() => {
+      const lines = el.querySelectorAll(`[data-slide="${index}"] [data-line]`)
+      // A tween from this slide's previous exit may still hold its lines; take them over cleanly.
+      gsap.killTweensOf(lines)
       const tl = gsap.timeline()
-      tl.fromTo(`[data-slide="${index}"] [data-line]`, { yPercent: 115, rotate: 2 }, { yPercent: 0, rotate: 0, duration: 1.4, stagger: 0.1, ease: 'expo.out' })
+      tl.fromTo(lines, { yPercent: 115, rotate: 2 }, { yPercent: 0, rotate: 0, duration: 1.4, stagger: 0.1, ease: 'expo.out' })
         .fromTo(`[data-slide="${index}"] [data-fade]`, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 1, stagger: 0.08, ease: 'expo.out' }, '-=1')
       gsap.fromTo('[data-progress]', { scaleX: 0 }, { scaleX: 1, duration: DURATION, ease: 'none' })
     }, root)
@@ -100,6 +104,8 @@ export default function HomeHero() {
       busy.current = true
       const target = (next + SLIDES.length) % SLIDES.length
       const q = gsap.utils.selector(root)
+      // Swap slides only after every line of the old headline has lifted out (0.7 s + 0.05 s stagger per extra line).
+      const linesOut = 0.7 + 0.05 * (SLIDES[index].lines.length - 1)
       gsap
         .timeline({ onComplete: () => { busy.current = false } })
         .to(q(`[data-slide="${index}"] [data-line]`), { yPercent: -115, duration: 0.7, stagger: 0.05, ease: 'expo.in' })
@@ -107,7 +113,7 @@ export default function HomeHero() {
         .fromTo(q(`[data-bg="${target}"]`), { clipPath: 'inset(0 0 0 100%)' }, { clipPath: 'inset(0 0 0 0%)', duration: 1.4, ease: 'expo.inOut' }, 0.1)
         .fromTo(q(`[data-bg="${target}"] img`), { scale: 1.25 }, { scale: 1, duration: 2.2, ease: 'expo.out' }, 0.1)
         .fromTo(q(`[data-inset-img="${target}"]`), { clipPath: 'inset(100% 0 0 0)' }, { clipPath: 'inset(0% 0 0 0)', duration: 1.2, ease: 'expo.inOut' }, 0.3)
-        .add(() => setIndex(target), 0.75)
+        .add(() => setIndex(target), linesOut)
     },
     [index],
   )
@@ -153,14 +159,14 @@ export default function HomeHero() {
             />
           ))}
         </div>
-        <figcaption className="font-mono-spec mt-5 flex justify-between text-[9px] uppercase tracking-[0.24em] text-white/60">
+        <figcaption className="font-spec mt-5 flex justify-between text-[9px] uppercase tracking-[0.24em] text-white/60">
           <span>{slide.insetLabel}</span>
           <span className="text-[var(--gold-champagne)]">0{index + 1}</span>
         </figcaption>
       </figure>
 
       {/* Vertical side label */}
-      <p data-hero-meta className="font-mono-spec absolute left-6 top-1/2 z-[5] hidden origin-left -translate-y-1/2 -rotate-90 text-[9px] uppercase tracking-[0.5em] text-white/40 lg:block lg:left-10">
+      <p data-hero-meta className="font-spec absolute left-6 top-1/2 z-[5] hidden origin-left -translate-y-1/2 -rotate-90 text-[9px] uppercase tracking-[0.5em] text-white/40 lg:block lg:left-10">
         Joailliers · Montréal · Est. 1962
       </p>
 
@@ -169,13 +175,13 @@ export default function HomeHero() {
         <div className="relative">
           {SLIDES.map((s, i) => (
             <div key={s.eyebrow} data-slide={i} className={i === index ? 'relative' : 'pointer-events-none absolute inset-x-0 bottom-0 opacity-0'} aria-hidden={i !== index}>
-              <p data-fade className="font-mono-spec mb-7 flex items-center gap-4 text-[10px] uppercase tracking-[0.34em] text-[var(--gold-champagne)]">
+              <p data-fade className="font-spec mb-7 flex items-center gap-4 text-[10px] uppercase tracking-[0.34em] text-[var(--gold-champagne)]">
                 <span className="h-px w-10 bg-[var(--gold-champagne)]" />
                 {s.eyebrow}
               </p>
               {/* Size tracks both viewport width and height so three lines never crowd the controls. */}
               <h1
-                className="font-serif-editorial font-light leading-[0.84] tracking-[-0.035em] lg:max-w-[72%]"
+                className="font-serif-editorial font-light leading-[0.84] tracking-[-0.035em] !oldstyle-nums lg:max-w-[72%]"
                 style={{ fontSize: 'clamp(3.4rem, min(10.5vw, 15.5vh), 10rem)' }}
               >
                 {s.lines.map((l, li) => {
@@ -183,11 +189,11 @@ export default function HomeHero() {
                   return (
                     <span
                       key={l}
-                      className={`block overflow-hidden pb-[0.08em] ${accent ? 'pl-[0.9em] sm:pl-[1.6em]' : li === 2 ? 'pl-[0.35em] sm:pl-[0.55em]' : ''}`}
+                      className={`block overflow-hidden pb-[0.24em] -mb-[0.16em] ${accent ? 'pl-[0.9em] sm:pl-[1.6em]' : li === 2 ? 'pl-[0.35em] sm:pl-[0.55em]' : ''}`}
                     >
                       <span data-line className="relative inline-flex items-start">
                         {li === 0 && (
-                          <span className="font-mono-spec mr-4 mt-[0.22em] hidden text-[10px] font-normal not-italic tracking-[0.2em] text-[var(--gold-champagne)] sm:inline">
+                          <span className="font-spec mr-4 mt-[0.22em] hidden text-[10px] font-normal not-italic tracking-[0.2em] text-[var(--gold-champagne)] sm:inline">
                             (0{i + 1})
                           </span>
                         )}
@@ -207,7 +213,7 @@ export default function HomeHero() {
                   </span>
                   {s.cta.label}
                 </a>
-                <dl data-fade className="font-mono-spec hidden grid-cols-3 gap-6 border-l border-white/15 pl-6 text-[10px] uppercase tracking-[0.18em] lg:col-span-4 lg:grid">
+                <dl data-fade className="font-spec hidden grid-cols-3 gap-6 border-l border-white/15 pl-6 text-[10px] uppercase tracking-[0.18em] lg:col-span-4 lg:grid">
                   {['Piece', 'Weight', 'Grade'].map((k, ki) => (
                     <div key={k}>
                       <dt className="text-white/40">{k}</dt>
@@ -222,7 +228,7 @@ export default function HomeHero() {
 
         {/* Controls */}
         <div data-hero-meta className="mt-12 flex items-center gap-8 border-t border-white/15 pt-6">
-          <div className="font-mono-spec flex items-center gap-3 text-[11px] tracking-[0.2em]">
+          <div className="font-spec flex items-center gap-3 text-[11px] tracking-[0.2em]">
             <span className="text-[var(--gold-champagne)]">0{index + 1}</span>
             <span className="relative h-px w-28 overflow-hidden bg-white/20">
               <span data-progress className="absolute inset-0 origin-left bg-[var(--gold-champagne)]" />
@@ -235,13 +241,13 @@ export default function HomeHero() {
                 key={s.eyebrow}
                 onClick={() => go(i)}
                 aria-label={`Show slide ${i + 1}`}
-                className={`font-mono-spec px-2 py-1 text-[9px] uppercase tracking-[0.22em] transition-colors ${i === index ? 'text-white' : 'text-white/35 hover:text-white/70'}`}
+                className={`font-spec px-2 py-1 text-[9px] uppercase tracking-[0.22em] transition-colors ${i === index ? 'text-white' : 'text-white/35 hover:text-white/70'}`}
               >
                 {s.eyebrow.split('·')[1]?.trim() ?? s.eyebrow}
               </button>
             ))}
           </div>
-          <span className="font-mono-spec ml-auto hidden items-center gap-3 text-[9px] uppercase tracking-[0.3em] text-white/50 sm:flex">
+          <span className="font-spec ml-auto hidden items-center gap-3 text-[9px] uppercase tracking-[0.3em] text-white/50 sm:flex">
             Scroll <ArrowDown size={12} strokeWidth={1.4} className="animate-bounce" />
           </span>
         </div>

@@ -55,7 +55,7 @@ export default function CartDrawer() {
         <header className="border-b border-[var(--border-hairline)] px-7 pb-5 pt-6">
           <div className="flex items-center justify-between">
             <h2 className="font-serif-editorial text-3xl">
-              Your Bag {count > 0 && <span className="font-mono-spec align-middle text-xs text-[var(--text-linen)]">({count})</span>}
+              Your Bag {count > 0 && <span className="font-spec align-middle text-xs text-[var(--text-linen)]">({count})</span>}
             </h2>
             <button ref={closeBtn} onClick={close} aria-label="Close bag" className="-mr-2 p-2 transition-transform hover:rotate-90">
               <X size={20} strokeWidth={1.4} />

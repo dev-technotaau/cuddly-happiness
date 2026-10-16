@@ -109,7 +109,7 @@ export default function VideoViewer({ videos, start, onClose }: Props) {
           </div>
 
           <div className="absolute left-4 top-8 text-white">
-            <p className="font-mono-spec text-[10px] uppercase tracking-[0.2em] text-white/70">{video.handle}</p>
+            <p className="font-spec text-[10px] uppercase tracking-[0.2em] text-white/70">{video.handle}</p>
           </div>
 
           {paused && (
@@ -149,7 +149,7 @@ export default function VideoViewer({ videos, start, onClose }: Props) {
 
         {/* Desktop side panel */}
         <aside className="hidden w-[340px] shrink-0 text-[var(--bg-travertine)] lg:block">
-          <p className="font-mono-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-champagne)]">
+          <p className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-champagne)]">
             {String(i + 1).padStart(2, '0')} / {String(videos.length).padStart(2, '0')} · Shop the film
           </p>
           <h3 className="font-serif-editorial mt-4 text-4xl font-light leading-tight">{video.title}</h3>

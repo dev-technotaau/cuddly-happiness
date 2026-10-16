@@ -16,7 +16,7 @@ export default function GiftOptions({ defaultOpen = false }: { defaultOpen?: boo
         <span className="block text-[11px] uppercase tracking-[0.18em]">{label}</span>
         <span className="mt-0.5 block text-xs text-[var(--text-linen)]">{desc}</span>
       </span>
-      <span className="font-mono-spec ml-auto shrink-0 text-[10px] uppercase tracking-[0.16em] text-[var(--gold-vermeil)]">Free</span>
+      <span className="font-spec ml-auto shrink-0 text-[10px] uppercase tracking-[0.16em] text-[var(--gold-vermeil)]">Free</span>
     </label>
   )
 
@@ -33,7 +33,7 @@ export default function GiftOptions({ defaultOpen = false }: { defaultOpen?: boo
             aria-label="Gift message"
             className="font-serif-editorial w-full resize-none border border-[var(--border-hairline)] bg-transparent px-4 py-3 text-lg italic outline-none placeholder:not-italic placeholder:text-[var(--text-linen)] focus:border-[var(--text-espresso)]"
           />
-          <p className="font-mono-spec mt-1 text-right text-[10px] text-[var(--text-linen)]">{meta.giftMessage.length}/{MAX}</p>
+          <p className="font-spec mt-1 text-right text-[10px] text-[var(--text-linen)]">{meta.giftMessage.length}/{MAX}</p>
         </div>
       )}
       {toggle(meta.giftReceipt, 'Gift receipt', 'Prices hidden on the packing slip', Receipt, (v) => setMeta({ giftReceipt: v }))}

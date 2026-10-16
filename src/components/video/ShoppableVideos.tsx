@@ -19,7 +19,7 @@ function Tile({ video, onOpen, index }: { video: ShoppableVideo; onOpen: () => v
     <button onClick={onOpen} data-reveal={(index % 4) * 0.06} className="group relative aspect-[9/16] w-[62vw] shrink-0 snap-start overflow-hidden bg-[var(--bg-vault)] text-left sm:w-[38vw] lg:w-[19vw] lg:min-w-[240px]">
       <video ref={ref} src={video.preview} poster={video.poster} muted loop playsInline preload="none" className="editorial-zoom h-full w-full object-cover" />
       <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/25" />
-      <span className="font-mono-spec absolute left-3 top-3 text-[10px] uppercase tracking-[0.18em] text-white/85">{video.handle}</span>
+      <span className="font-spec absolute left-3 top-3 text-[10px] uppercase tracking-[0.18em] text-white/85">{video.handle}</span>
       <span className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur transition-colors group-hover:bg-white group-hover:text-[var(--text-espresso)]">
         <Play size={12} strokeWidth={1.5} className="ml-0.5 fill-current" />
       </span>
@@ -32,7 +32,7 @@ function Tile({ video, onOpen, index }: { video: ShoppableVideo; onOpen: () => v
               <span className="block truncate text-[11px] font-medium">{first.name}</span>
               <Price amount={first.rental ? first.rental.weekend[currency] : priceFor(first, currency)} className="text-[10px]" />
             </span>
-            {rest.length > 0 && <span className="font-mono-spec text-[10px] text-[var(--text-taupe)]">+{rest.length}</span>}
+            {rest.length > 0 && <span className="font-spec text-[10px] text-[var(--text-taupe)]">+{rest.length}</span>}
           </div>
         )}
       </div>

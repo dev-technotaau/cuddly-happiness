@@ -1,0 +1,1044 @@
+{
+  "version": 1,
+  "generatedAt": "2026-10-16",
+  "gitHead": "db22872",
+  "files": {
+    ".figma/make/analyze-routes": {
+      "hash": "d51912b900af",
+      "docs": [
+        "platform-and-tooling.md"
+      ]
+    },
+    ".figma/make/deploy": {
+      "hash": "276bc5dd531d",
+      "docs": [
+        "platform-and-tooling.md"
+      ]
+    },
+    ".figma/make/deploy-preview": {
+      "hash": "cb65cf970825",
+      "docs": [
+        "platform-and-tooling.md"
+      ]
+    },
+    ".figma/make/dev": {
+      "hash": "6bfe07ef3cbc",
+      "docs": [
+        "platform-and-tooling.md"
+      ]
+    },
+    ".figma/make/dev.json": {
+      "hash": "29408e7e81f8",
+      "docs": [
+        "platform-and-tooling.md"
+      ]
+    },
+    ".figma/make/format": {
+      "hash": "b022146cbbd2",
+      "docs": [
+        "platform-and-tooling.md"
+      ]
+    },
+    ".figma/make/install": {
+      "hash": "8a49c0aae0e0",
+      "docs": [
+        "platform-and-tooling.md"
+      ]
+    },
+    ".figma/make/langserver": {
+      "hash": "f198796d5c64",
+      "docs": [
+        "platform-and-tooling.md"
+      ]
+    },
+    ".figma/make/site.json": {
+      "hash": "9d0fdd39c5e8",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "known-issues.md",
+        "platform-and-tooling.md",
+        "product-overview.md"
+      ]
+    },
+    ".gitignore": {
+      "hash": "5899962591b2",
+      "docs": [
+        "architecture.md",
+        "platform-and-tooling.md"
+      ]
+    },
+    ".mise.toml": {
+      "hash": "34c6927f9875",
+      "docs": [
+        "architecture.md",
+        "known-issues.md",
+        "platform-and-tooling.md"
+      ]
+    },
+    "AGENTS.md": {
+      "hash": "dbfc83f1227b",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "code-conventions.md",
+        "known-issues.md",
+        "platform-and-tooling.md"
+      ]
+    },
+    "CLAUDE.md": {
+      "hash": "c140473a3a5f",
+      "docs": [
+        "architecture.md",
+        "platform-and-tooling.md"
+      ]
+    },
+    "index.html": {
+      "hash": "855f3ba9e2bb",
+      "docs": [
+        "architecture.md",
+        "pages/category.md",
+        "pages/product.md",
+        "platform-and-tooling.md",
+        "product-overview.md",
+        "shopify-integration.md"
+      ]
+    },
+    "package.json": {
+      "hash": "3e60c126f68a",
+      "docs": [
+        "architecture.md",
+        "code-conventions.md",
+        "known-issues.md",
+        "motion-and-interaction.md",
+        "platform-and-tooling.md",
+        "product-overview.md",
+        "shopify-integration.md"
+      ]
+    },
+    "public/favicon.svg": {
+      "hash": "8072f06f2c98",
+      "docs": [
+        "known-issues.md",
+        "platform-and-tooling.md"
+      ]
+    },
+    "src/App.tsx": {
+      "hash": "d27da207996e",
+      "docs": [
+        "architecture.md",
+        "components/global-and-shared.md",
+        "components/pdp-modules.md",
+        "features/virtual-try-on.md",
+        "known-issues.md",
+        "motion-and-interaction.md",
+        "pages/category.md",
+        "pages/home.md",
+        "pages/product.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/BackToTop.tsx": {
+      "hash": "c0b60d7a86bc",
+      "docs": [
+        "components/global-and-shared.md",
+        "motion-and-interaction.md"
+      ]
+    },
+    "src/components/CartDrawer.tsx": {
+      "hash": "b0c11f8113c1",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "commerce-logic.md",
+        "components/global-and-shared.md",
+        "design-system.md",
+        "motion-and-interaction.md",
+        "pages/cart-and-checkout.md",
+        "pages/category.md",
+        "pages/product.md",
+        "product-overview.md",
+        "shopify-integration.md",
+        "ux-patterns-and-accessibility.md"
+      ]
+    },
+    "src/components/Footer.tsx": {
+      "hash": "dce60917d749",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "components/global-and-shared.md",
+        "known-issues.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/Header.tsx": {
+      "hash": "b98e1a0b795d",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "commerce-logic.md",
+        "components/global-and-shared.md",
+        "data-model.md",
+        "design-system.md",
+        "motion-and-interaction.md",
+        "pages/cart-and-checkout.md",
+        "pages/home.md",
+        "product-overview.md",
+        "ux-patterns-and-accessibility.md"
+      ]
+    },
+    "src/components/HomeHero.tsx": {
+      "hash": "2904ade15982",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "known-issues.md",
+        "motion-and-interaction.md",
+        "pages/home.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/Price.tsx": {
+      "hash": "fcbf89319717",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "commerce-logic.md",
+        "components/global-and-shared.md",
+        "components/pdp-modules.md",
+        "data-model.md",
+        "pages/cart-and-checkout.md",
+        "pages/category.md",
+        "pages/home.md",
+        "pages/product.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/ProductCard.tsx": {
+      "hash": "38b87a2eb0dd",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "commerce-logic.md",
+        "components/global-and-shared.md",
+        "data-model.md",
+        "design-system.md",
+        "motion-and-interaction.md",
+        "pages/category.md",
+        "pages/home.md",
+        "pages/product.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/RecentlyViewed.tsx": {
+      "hash": "96e695aff85d",
+      "docs": [
+        "architecture.md",
+        "commerce-logic.md",
+        "components/global-and-shared.md",
+        "data-model.md",
+        "pages/account-and-wishlist.md",
+        "pages/cart-and-checkout.md",
+        "pages/category.md",
+        "pages/home.md",
+        "pages/product.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/SmoothScroll.tsx": {
+      "hash": "5354eb630948",
+      "docs": [
+        "architecture.md",
+        "components/global-and-shared.md",
+        "motion-and-interaction.md",
+        "pages/cart-and-checkout.md",
+        "pages/category.md",
+        "pages/home.md",
+        "pages/product.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/WishButton.tsx": {
+      "hash": "d9aa67f2f4fd",
+      "docs": [
+        "architecture.md",
+        "components/global-and-shared.md",
+        "motion-and-interaction.md",
+        "pages/category.md",
+        "pages/home.md",
+        "pages/product.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/cart/CartLineItem.tsx": {
+      "hash": "c926013df81d",
+      "docs": [
+        "architecture.md",
+        "commerce-logic.md",
+        "data-model.md",
+        "pages/cart-and-checkout.md",
+        "pages/category.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/cart/CartUpsell.tsx": {
+      "hash": "0fd97ea71e15",
+      "docs": [
+        "architecture.md",
+        "commerce-logic.md",
+        "data-model.md",
+        "pages/cart-and-checkout.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/cart/GiftOptions.tsx": {
+      "hash": "91f19611db41",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "commerce-logic.md",
+        "pages/cart-and-checkout.md",
+        "product-overview.md",
+        "shopify-integration.md"
+      ]
+    },
+    "src/components/cart/RewardProgress.tsx": {
+      "hash": "885fa645b556",
+      "docs": [
+        "brand-voice-and-copy.md",
+        "commerce-logic.md",
+        "pages/cart-and-checkout.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/cart/UndoToast.tsx": {
+      "hash": "666d0323ed2e",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "commerce-logic.md",
+        "data-model.md",
+        "pages/cart-and-checkout.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/cart/useCartTotals.ts": {
+      "hash": "6098a1fa081c",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "commerce-logic.md",
+        "pages/cart-and-checkout.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/giftcard/BalanceChecker.tsx": {
+      "hash": "77e015cf251b",
+      "docs": [
+        "brand-voice-and-copy.md",
+        "commerce-logic.md",
+        "data-model.md",
+        "pages/account-and-wishlist.md",
+        "pages/gift-cards.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/giftcard/GiftCardArt.tsx": {
+      "hash": "bd19e302067d",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "commerce-logic.md",
+        "data-model.md",
+        "pages/account-and-wishlist.md",
+        "pages/cart-and-checkout.md",
+        "pages/category.md",
+        "pages/gift-cards.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/home/CategoryIndex.tsx": {
+      "hash": "bf4db5f5de88",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "data-model.md",
+        "motion-and-interaction.md",
+        "pages/home.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/home/FourCs.tsx": {
+      "hash": "c726a9f41d13",
+      "docs": [
+        "brand-voice-and-copy.md",
+        "motion-and-interaction.md",
+        "pages/home.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/home/GiftFinder.tsx": {
+      "hash": "20045f2f239a",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "commerce-logic.md",
+        "data-model.md",
+        "motion-and-interaction.md",
+        "pages/category.md",
+        "pages/home.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/home/MakingScroll.tsx": {
+      "hash": "c8e2495eaa4d",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "motion-and-interaction.md",
+        "pages/home.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/home/PressStrip.tsx": {
+      "hash": "15b23adc82fd",
+      "docs": [
+        "brand-voice-and-copy.md",
+        "pages/home.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/home/SectionHeader.tsx": {
+      "hash": "1972366ce514",
+      "docs": [
+        "architecture.md",
+        "components/global-and-shared.md",
+        "components/pdp-modules.md",
+        "design-system.md",
+        "motion-and-interaction.md",
+        "pages/category.md",
+        "pages/home.md",
+        "pages/product.md"
+      ]
+    },
+    "src/components/home/Services.tsx": {
+      "hash": "11bf6df57391",
+      "docs": [
+        "brand-voice-and-copy.md",
+        "motion-and-interaction.md",
+        "pages/home.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/home/SocialGrid.tsx": {
+      "hash": "b468be49ce83",
+      "docs": [
+        "brand-voice-and-copy.md",
+        "motion-and-interaction.md",
+        "pages/home.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/home/Testimonials.tsx": {
+      "hash": "30f1b283aaac",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "motion-and-interaction.md",
+        "pages/home.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/home/Treasured.tsx": {
+      "hash": "d53814e9d42c",
+      "docs": [
+        "pages/category.md",
+        "pages/home.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/home/TryOnFeature.tsx": {
+      "hash": "b7ae7a9dd8ea",
+      "docs": [
+        "brand-voice-and-copy.md",
+        "data-model.md",
+        "motion-and-interaction.md",
+        "pages/home.md"
+      ]
+    },
+    "src/components/home/VisitSalon.tsx": {
+      "hash": "aaeef02582ba",
+      "docs": [
+        "brand-voice-and-copy.md",
+        "motion-and-interaction.md",
+        "pages/home.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/home/WatchSpotlight.tsx": {
+      "hash": "887fc675167d",
+      "docs": [
+        "brand-voice-and-copy.md",
+        "commerce-logic.md",
+        "data-model.md",
+        "motion-and-interaction.md",
+        "pages/home.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/lineDetails.ts": {
+      "hash": "51495c55acf8",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "code-conventions.md",
+        "commerce-logic.md",
+        "components/global-and-shared.md",
+        "components/pdp-modules.md",
+        "data-model.md",
+        "pages/cart-and-checkout.md",
+        "pages/gift-cards.md",
+        "pages/product.md",
+        "product-overview.md",
+        "shopify-integration.md"
+      ]
+    },
+    "src/components/pdp/Accordion.tsx": {
+      "hash": "55974efff2e5",
+      "docs": [
+        "architecture.md",
+        "components/pdp-modules.md",
+        "pages/product.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/pdp/CompleteTheLook.tsx": {
+      "hash": "c323eb13e327",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "commerce-logic.md",
+        "components/pdp-modules.md",
+        "data-model.md",
+        "motion-and-interaction.md",
+        "pages/cart-and-checkout.md",
+        "pages/home.md",
+        "pages/product.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/pdp/CraftStory.tsx": {
+      "hash": "701372c7300e",
+      "docs": [
+        "brand-voice-and-copy.md",
+        "components/pdp-modules.md",
+        "motion-and-interaction.md",
+        "pages/product.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/pdp/Gallery.tsx": {
+      "hash": "11a6651e5491",
+      "docs": [
+        "architecture.md",
+        "components/pdp-modules.md",
+        "data-model.md",
+        "motion-and-interaction.md",
+        "pages/category.md",
+        "pages/product.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/pdp/Personalizer.tsx": {
+      "hash": "9ff689947475",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "commerce-logic.md",
+        "components/pdp-modules.md",
+        "data-model.md",
+        "pages/cart-and-checkout.md",
+        "pages/product.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/pdp/PriceBreakdown.tsx": {
+      "hash": "b6d66650ac75",
+      "docs": [
+        "brand-voice-and-copy.md",
+        "commerce-logic.md",
+        "components/pdp-modules.md",
+        "data-model.md",
+        "motion-and-interaction.md",
+        "pages/home.md",
+        "pages/product.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/pdp/ProductFAQ.tsx": {
+      "hash": "21d095fd9474",
+      "docs": [
+        "brand-voice-and-copy.md",
+        "components/pdp-modules.md",
+        "motion-and-interaction.md",
+        "pages/home.md",
+        "pages/product.md",
+        "product-overview.md",
+        "shopify-integration.md"
+      ]
+    },
+    "src/components/pdp/RentalCalendar.tsx": {
+      "hash": "e0f3999fc572",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "commerce-logic.md",
+        "components/pdp-modules.md",
+        "data-model.md",
+        "pages/product.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/pdp/Reviews.tsx": {
+      "hash": "7cc947c55794",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "components/pdp-modules.md",
+        "data-model.md",
+        "motion-and-interaction.md",
+        "pages/home.md",
+        "pages/product.md",
+        "product-overview.md",
+        "shopify-integration.md"
+      ]
+    },
+    "src/components/pdp/RingSize.tsx": {
+      "hash": "7b79f0d7185e",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "commerce-logic.md",
+        "components/pdp-modules.md",
+        "pages/product.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/pdp/StickyBar.tsx": {
+      "hash": "df55f661b5eb",
+      "docs": [
+        "architecture.md",
+        "commerce-logic.md",
+        "components/pdp-modules.md",
+        "motion-and-interaction.md",
+        "pages/product.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/tryon/JewelryOverlay.tsx": {
+      "hash": "f0d80b275dba",
+      "docs": [
+        "components/pdp-modules.md",
+        "features/virtual-try-on.md"
+      ]
+    },
+    "src/components/tryon/TryOnButton.tsx": {
+      "hash": "7ddc89b4e3f1",
+      "docs": [
+        "architecture.md",
+        "design-system.md",
+        "features/virtual-try-on.md",
+        "pages/cart-and-checkout.md",
+        "pages/category.md",
+        "pages/home.md",
+        "pages/product.md"
+      ]
+    },
+    "src/components/tryon/TryOnProvider.tsx": {
+      "hash": "6bb9ad1be732",
+      "docs": [
+        "architecture.md",
+        "data-model.md",
+        "features/virtual-try-on.md",
+        "pages/category.md",
+        "pages/home.md",
+        "platform-and-tooling.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/tryon/TryOnStudio.tsx": {
+      "hash": "8771462a12db",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "commerce-logic.md",
+        "data-model.md",
+        "features/virtual-try-on.md",
+        "motion-and-interaction.md",
+        "pages/cart-and-checkout.md",
+        "product-overview.md",
+        "ux-patterns-and-accessibility.md"
+      ]
+    },
+    "src/components/useReveal.ts": {
+      "hash": "5178c30d5891",
+      "docs": [
+        "architecture.md",
+        "components/global-and-shared.md",
+        "components/pdp-modules.md",
+        "motion-and-interaction.md",
+        "pages/category.md",
+        "pages/home.md",
+        "pages/product.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/video/ShoppableVideos.tsx": {
+      "hash": "ba26d6f308a1",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "commerce-logic.md",
+        "data-model.md",
+        "features/shoppable-video-and-atelier.md",
+        "motion-and-interaction.md",
+        "pages/category.md",
+        "pages/home.md",
+        "pages/product.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/video/VideoViewer.tsx": {
+      "hash": "736fb3b00fe7",
+      "docs": [
+        "architecture.md",
+        "commerce-logic.md",
+        "data-model.md",
+        "features/shoppable-video-and-atelier.md",
+        "motion-and-interaction.md",
+        "pages/cart-and-checkout.md",
+        "pages/home.md",
+        "product-overview.md",
+        "ux-patterns-and-accessibility.md"
+      ]
+    },
+    "src/components/video/useInViewPlay.ts": {
+      "hash": "c4d96666b5c0",
+      "docs": [
+        "features/shoppable-video-and-atelier.md",
+        "motion-and-interaction.md",
+        "pages/category.md",
+        "pages/home.md"
+      ]
+    },
+    "src/data/catalog.ts": {
+      "hash": "61ea22b0a351",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "code-conventions.md",
+        "commerce-logic.md",
+        "components/pdp-modules.md",
+        "data-model.md",
+        "design-system.md",
+        "features/virtual-try-on.md",
+        "known-issues.md",
+        "pages/cart-and-checkout.md",
+        "pages/category.md",
+        "pages/home.md",
+        "pages/product.md",
+        "product-overview.md",
+        "shopify-integration.md"
+      ]
+    },
+    "src/data/costing.ts": {
+      "hash": "203348ded40a",
+      "docs": [
+        "brand-voice-and-copy.md",
+        "commerce-logic.md",
+        "components/pdp-modules.md",
+        "data-model.md",
+        "pages/product.md",
+        "product-overview.md",
+        "shopify-integration.md"
+      ]
+    },
+    "src/data/giftcards.ts": {
+      "hash": "19d657292fec",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "commerce-logic.md",
+        "data-model.md",
+        "design-system.md",
+        "known-issues.md",
+        "pages/account-and-wishlist.md",
+        "pages/cart-and-checkout.md",
+        "pages/category.md",
+        "pages/gift-cards.md",
+        "product-overview.md",
+        "shopify-integration.md"
+      ]
+    },
+    "src/data/media.ts": {
+      "hash": "8b3dd60ac278",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "components/pdp-modules.md",
+        "data-model.md",
+        "design-system.md",
+        "features/shoppable-video-and-atelier.md",
+        "pages/category.md",
+        "pages/home.md",
+        "pages/product.md",
+        "product-overview.md",
+        "shopify-integration.md"
+      ]
+    },
+    "src/data/tax.ts": {
+      "hash": "a4b4c3c06d77",
+      "docs": [
+        "brand-voice-and-copy.md",
+        "commerce-logic.md",
+        "components/pdp-modules.md",
+        "data-model.md",
+        "design-intent.md",
+        "known-issues.md",
+        "pages/cart-and-checkout.md",
+        "product-overview.md",
+        "shopify-integration.md"
+      ]
+    },
+    "src/index.css": {
+      "hash": "3c54904f6d4d",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "code-conventions.md",
+        "components/global-and-shared.md",
+        "components/pdp-modules.md",
+        "design-system.md",
+        "motion-and-interaction.md",
+        "pages/cart-and-checkout.md",
+        "pages/category.md",
+        "pages/home.md",
+        "pages/product.md",
+        "platform-and-tooling.md",
+        "product-overview.md"
+      ]
+    },
+    "src/lib/shopify.ts": {
+      "hash": "dd7bd01751ee",
+      "docs": [
+        "architecture.md",
+        "code-conventions.md",
+        "commerce-logic.md",
+        "data-model.md",
+        "design-intent.md",
+        "known-issues.md",
+        "pages/cart-and-checkout.md",
+        "pages/category.md",
+        "pages/gift-cards.md",
+        "pages/product.md",
+        "product-overview.md",
+        "shopify-integration.md"
+      ]
+    },
+    "src/main.tsx": {
+      "hash": "909f0fe30d04",
+      "docs": [
+        "architecture.md",
+        "commerce-logic.md",
+        "motion-and-interaction.md",
+        "platform-and-tooling.md",
+        "product-overview.md"
+      ]
+    },
+    "src/pages/Account.tsx": {
+      "hash": "33f0ecb5c2ee",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "commerce-logic.md",
+        "data-model.md",
+        "design-system.md",
+        "pages/account-and-wishlist.md",
+        "pages/category.md",
+        "product-overview.md",
+        "shopify-integration.md"
+      ]
+    },
+    "src/pages/Atelier.tsx": {
+      "hash": "a716e8532b07",
+      "docs": [
+        "brand-voice-and-copy.md",
+        "data-model.md",
+        "design-system.md",
+        "features/shoppable-video-and-atelier.md",
+        "motion-and-interaction.md",
+        "pages/home.md",
+        "product-overview.md"
+      ]
+    },
+    "src/pages/Cart.tsx": {
+      "hash": "b3021d77dd28",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "commerce-logic.md",
+        "components/pdp-modules.md",
+        "data-model.md",
+        "known-issues.md",
+        "pages/cart-and-checkout.md",
+        "pages/category.md",
+        "product-overview.md",
+        "shopify-integration.md"
+      ]
+    },
+    "src/pages/Category.tsx": {
+      "hash": "e3f0d2999ce2",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "commerce-logic.md",
+        "data-model.md",
+        "features/shoppable-video-and-atelier.md",
+        "motion-and-interaction.md",
+        "pages/category.md",
+        "pages/home.md",
+        "product-overview.md"
+      ]
+    },
+    "src/pages/Checkout.tsx": {
+      "hash": "f18578e9b5ec",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "commerce-logic.md",
+        "components/pdp-modules.md",
+        "data-model.md",
+        "known-issues.md",
+        "pages/cart-and-checkout.md",
+        "pages/category.md",
+        "product-overview.md",
+        "shopify-integration.md",
+        "ux-patterns-and-accessibility.md"
+      ]
+    },
+    "src/pages/GiftCards.tsx": {
+      "hash": "437fb0fa9153",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "commerce-logic.md",
+        "components/pdp-modules.md",
+        "data-model.md",
+        "design-system.md",
+        "motion-and-interaction.md",
+        "pages/cart-and-checkout.md",
+        "pages/gift-cards.md",
+        "pages/home.md",
+        "pages/product.md",
+        "product-overview.md",
+        "shopify-integration.md",
+        "ux-patterns-and-accessibility.md"
+      ]
+    },
+    "src/pages/Home.tsx": {
+      "hash": "ff15494545aa",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "data-model.md",
+        "features/shoppable-video-and-atelier.md",
+        "motion-and-interaction.md",
+        "pages/home.md",
+        "product-overview.md",
+        "shopify-integration.md"
+      ]
+    },
+    "src/pages/Product.tsx": {
+      "hash": "f2598cc97333",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "commerce-logic.md",
+        "components/pdp-modules.md",
+        "data-model.md",
+        "features/shoppable-video-and-atelier.md",
+        "motion-and-interaction.md",
+        "pages/cart-and-checkout.md",
+        "pages/category.md",
+        "pages/home.md",
+        "pages/product.md",
+        "product-overview.md",
+        "shopify-integration.md",
+        "ux-patterns-and-accessibility.md"
+      ]
+    },
+    "src/pages/Wishlist.tsx": {
+      "hash": "0b91e748c384",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "commerce-logic.md",
+        "data-model.md",
+        "motion-and-interaction.md",
+        "pages/account-and-wishlist.md",
+        "pages/cart-and-checkout.md",
+        "pages/category.md",
+        "product-overview.md"
+      ]
+    },
+    "src/store.tsx": {
+      "hash": "e6f4eb676b2e",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "code-conventions.md",
+        "commerce-logic.md",
+        "components/pdp-modules.md",
+        "data-model.md",
+        "known-issues.md",
+        "motion-and-interaction.md",
+        "pages/account-and-wishlist.md",
+        "pages/cart-and-checkout.md",
+        "pages/category.md",
+        "pages/gift-cards.md",
+        "pages/home.md",
+        "pages/product.md",
+        "platform-and-tooling.md",
+        "product-overview.md",
+        "README.md",
+        "shopify-integration.md"
+      ]
+    },
+    "src/vite-env.d.ts": {
+      "hash": "e2eac6bcc876",
+      "docs": [
+        "platform-and-tooling.md"
+      ]
+    },
+    "tsconfig.json": {
+      "hash": "84ccfebb4871",
+      "docs": [
+        "architecture.md",
+        "code-conventions.md",
+        "known-issues.md",
+        "platform-and-tooling.md"
+      ]
+    },
+    "vite.config.ts": {
+      "hash": "45b3a50b22c9",
+      "docs": [
+        "architecture.md",
+        "brand-voice-and-copy.md",
+        "known-issues.md",
+        "platform-and-tooling.md",
+        "shopify-integration.md"
+      ]
+    }
+  }
+}

@@ -73,7 +73,7 @@ export default function RentalCalendar({ slug, period, value, onChange, step, er
     <fieldset>
       <legend className={`${label} ${error ? 'text-red-700' : ''}`}>
         <span>
-          <span className="font-mono-spec mr-3 text-[10px] text-[var(--gold-vermeil)]">{step}</span>
+          <span className="font-spec mr-3 text-[10px] text-[var(--gold-vermeil)]">{step}</span>
           Dates & delivery {error && !value.start && <span className="normal-case tracking-normal">— choose a start date</span>}
         </span>
       </legend>
@@ -92,7 +92,7 @@ export default function RentalCalendar({ slug, period, value, onChange, step, er
 
         {/* Calendar grid */}
         <div className="px-3 pb-3 pt-2" onMouseLeave={() => setHover(null)}>
-          <div className="font-mono-spec grid grid-cols-7 py-2 text-center text-[9px] uppercase tracking-[0.16em] text-[var(--text-linen)]">
+          <div className="font-spec grid grid-cols-7 py-2 text-center text-[9px] uppercase tracking-[0.16em] text-[var(--text-linen)]">
             {WEEKDAYS.map((w) => <span key={w}>{w}</span>)}
           </div>
           <div className="grid grid-cols-7 gap-y-1" role="grid">
@@ -113,7 +113,7 @@ export default function RentalCalendar({ slug, period, value, onChange, step, er
                   onClick={() => onChange({ ...value, start: iso })}
                   aria-pressed={selected}
                   aria-label={`${formatDay(d, { weekday: 'long', day: 'numeric', month: 'long' })}${isBooked ? ', reserved' : available ? '' : ', unavailable'}`}
-                  className={`font-mono-spec relative h-10 text-xs transition-colors ${
+                  className={`font-spec relative h-10 text-xs transition-colors ${
                     selected || (ranged && iso === anchor)
                       ? 'bg-[var(--text-espresso)] text-[var(--bg-travertine)]'
                       : isEnd
@@ -131,7 +131,7 @@ export default function RentalCalendar({ slug, period, value, onChange, step, er
               )
             })}
           </div>
-          <div className="font-mono-spec mt-3 flex flex-wrap gap-x-5 gap-y-1 border-t border-[var(--border-hairline)] pt-3 text-[9px] uppercase tracking-[0.16em] text-[var(--text-linen)]">
+          <div className="font-spec mt-3 flex flex-wrap gap-x-5 gap-y-1 border-t border-[var(--border-hairline)] pt-3 text-[9px] uppercase tracking-[0.16em] text-[var(--text-linen)]">
             <span className="flex items-center gap-1.5"><span className="h-2 w-2 bg-[var(--text-espresso)]" /> Start</span>
             <span className="flex items-center gap-1.5"><span className="h-2 w-2 bg-[var(--gold-champagne)]/40" /> Your {days} days</span>
             <span className="flex items-center gap-1.5"><span className="line-through">12</span> Reserved</span>
@@ -173,7 +173,7 @@ export default function RentalCalendar({ slug, period, value, onChange, step, er
             key={s}
             disabled={!value.start}
             onClick={() => onChange({ ...value, slot: s })}
-            className={`font-mono-spec border py-2.5 text-[11px] transition-colors disabled:opacity-35 ${value.slot === s ? 'border-[var(--text-espresso)] bg-[var(--text-espresso)] text-[var(--bg-travertine)]' : 'border-[var(--border-hairline)] enabled:hover:border-[var(--text-espresso)]'}`}
+            className={`font-spec border py-2.5 text-[11px] transition-colors disabled:opacity-35 ${value.slot === s ? 'border-[var(--text-espresso)] bg-[var(--text-espresso)] text-[var(--bg-travertine)]' : 'border-[var(--border-hairline)] enabled:hover:border-[var(--text-espresso)]'}`}
           >
             {s}
           </button>
@@ -186,13 +186,13 @@ export default function RentalCalendar({ slug, period, value, onChange, step, er
           <div>
             <p className="text-[9px] uppercase tracking-[0.2em] text-[var(--text-linen)]">{(value.method ?? 'courier') === 'courier' ? 'Delivered' : 'Fitting'}</p>
             <p className="font-serif-editorial mt-1 text-lg leading-tight">{formatDay(start)}</p>
-            <p className="font-mono-spec text-[10px] text-[var(--text-taupe)]">{value.slot ?? 'Select a time'}</p>
+            <p className="font-spec text-[10px] text-[var(--text-taupe)]">{value.slot ?? 'Select a time'}</p>
           </div>
           <span className="h-px w-8 bg-[var(--gold-vermeil)]" />
           <div className="text-right">
             <p className="text-[9px] uppercase tracking-[0.2em] text-[var(--text-linen)]">Collected</p>
             <p className="font-serif-editorial mt-1 text-lg leading-tight">{formatDay(end)}</p>
-            <p className="font-mono-spec text-[10px] text-[var(--text-taupe)]">by 12:00</p>
+            <p className="font-spec text-[10px] text-[var(--text-taupe)]">by 12:00</p>
           </div>
           {conflict && <p className="col-span-3 text-xs text-red-700">This piece is reserved during part of a {period} rental from this date. Please choose another start date.</p>}
         </div>

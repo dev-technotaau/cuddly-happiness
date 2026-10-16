@@ -10,7 +10,7 @@ export default function TryOnFeature() {
     <section className="relative overflow-hidden bg-[var(--bg-vault)] text-[var(--bg-travertine)]">
       <div className="mx-auto grid max-w-[1600px] items-center gap-16 px-6 py-28 lg:grid-cols-12 lg:px-12 lg:py-36">
         <div className="lg:col-span-5">
-          <p data-reveal className="font-mono-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-champagne)]">
+          <p data-reveal className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-champagne)]">
             <span className="mr-4 text-white/45">—</span>Essayage virtuel
           </p>
           <h2 data-reveal="0.05" className="font-serif-editorial mt-8 text-[2.75rem] font-light leading-[0.98] tracking-[-0.02em] sm:text-6xl lg:text-[5rem]">
@@ -38,10 +38,10 @@ export default function TryOnFeature() {
                 <span key={c} className={`absolute h-8 w-8 border-[var(--gold-champagne)] ${c}`} />
               ))}
             </div>
-            <span className="font-mono-spec absolute left-8 top-8 flex items-center gap-2 text-[10px] uppercase tracking-[0.24em]">
+            <span className="font-spec absolute left-8 top-8 flex items-center gap-2 text-[10px] uppercase tracking-[0.24em]">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-500" /> Live
             </span>
-            <span className="font-mono-spec absolute bottom-8 right-8 bg-black/40 px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] backdrop-blur">18k Yellow · Vieux-Port</span>
+            <span className="font-spec absolute bottom-8 right-8 bg-black/40 px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] backdrop-blur">18k Yellow · Vieux-Port</span>
           </div>
         </div>
       </div>

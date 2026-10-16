@@ -21,7 +21,7 @@ export default function RingSize({ value, onChange, error, step }: { value?: str
     <fieldset>
       <div className="mb-4 flex items-center justify-between">
         <legend className={`text-[11px] uppercase tracking-[0.22em] ${error ? 'text-red-700' : ''}`}>
-          {step && <span className="font-mono-spec mr-3 text-[10px] text-[var(--gold-vermeil)]">{step}</span>}
+          {step && <span className="font-spec mr-3 text-[10px] text-[var(--gold-vermeil)]">{step}</span>}
           Ring size {value ? <span className="normal-case tracking-normal text-[var(--text-taupe)]">— {value}</span> : error && '— please select'}
         </legend>
         <button type="button" onClick={() => setGuide(true)} className="flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-[var(--text-taupe)] hover:text-[var(--gold-vermeil)]">
@@ -34,7 +34,7 @@ export default function RingSize({ value, onChange, error, step }: { value?: str
             type="button"
             key={s}
             onClick={() => onChange(s)}
-            className={`font-mono-spec border py-2.5 text-xs transition-colors ${value === s ? 'border-[var(--text-espresso)] bg-[var(--text-espresso)] text-[var(--bg-travertine)]' : 'border-[var(--border-hairline)] hover:border-[var(--text-espresso)]'}`}
+            className={`font-spec border py-2.5 text-xs transition-colors ${value === s ? 'border-[var(--text-espresso)] bg-[var(--text-espresso)] text-[var(--bg-travertine)]' : 'border-[var(--border-hairline)] hover:border-[var(--text-espresso)]'}`}
           >
             {s}
           </button>
@@ -47,17 +47,17 @@ export default function RingSize({ value, onChange, error, step }: { value?: str
           <div role="dialog" aria-modal="true" aria-label="Ring size guide" onClick={(e) => e.stopPropagation()} className="max-h-[90vh] w-full max-w-2xl overflow-y-auto bg-[var(--bg-travertine)] p-8 lg:p-12" data-lenis-prevent>
             <div className="flex items-start justify-between">
               <div>
-                <p className="font-mono-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">Guide des tailles</p>
+                <p className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">Guide des tailles</p>
                 <h3 className="font-serif-editorial mt-3 text-4xl font-light">Finding your size</h3>
               </div>
               <button onClick={() => setGuide(false)} aria-label="Close"><X size={20} strokeWidth={1.3} /></button>
             </div>
             <ol className="mt-8 grid gap-6 text-sm text-[var(--text-taupe)] sm:grid-cols-3">
-              <li><span className="font-mono-spec text-[var(--gold-vermeil)]">01</span><br />Wrap a thin strip of paper around the base of your finger.</li>
-              <li><span className="font-mono-spec text-[var(--gold-vermeil)]">02</span><br />Mark where it overlaps and measure the length in millimetres.</li>
-              <li><span className="font-mono-spec text-[var(--gold-vermeil)]">03</span><br />Match the circumference below. Between sizes? Choose the larger.</li>
+              <li><span className="font-spec text-[var(--gold-vermeil)]">01</span><br />Wrap a thin strip of paper around the base of your finger.</li>
+              <li><span className="font-spec text-[var(--gold-vermeil)]">02</span><br />Mark where it overlaps and measure the length in millimetres.</li>
+              <li><span className="font-spec text-[var(--gold-vermeil)]">03</span><br />Match the circumference below. Between sizes? Choose the larger.</li>
             </ol>
-            <table className="font-mono-spec mt-10 w-full text-left text-xs">
+            <table className="font-spec mt-10 w-full text-left text-xs">
               <thead className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-linen)]">
                 <tr className="border-b border-[var(--border-hairline)]"><th className="py-3">CA / US</th><th>Diameter</th><th>Circumference</th></tr>
               </thead>

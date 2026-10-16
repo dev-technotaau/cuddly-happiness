@@ -68,7 +68,7 @@ export default function Gallery({ product }: { product: Product }) {
             className={`relative aspect-[4/5] overflow-hidden transition-opacity duration-500 ${i === index ? 'opacity-100' : 'opacity-45 hover:opacity-80'}`}
           >
             <img src={v.src} alt="" className="h-full w-full object-cover" style={cropStyle(v)} />
-            {v.video && <span className="font-mono-spec absolute inset-0 flex items-center justify-center bg-black/25 text-[9px] uppercase tracking-[0.2em] text-white">Film</span>}
+            {v.video && <span className="font-spec absolute inset-0 flex items-center justify-center bg-black/25 text-[9px] uppercase tracking-[0.2em] text-white">Film</span>}
             <span className={`absolute inset-x-0 bottom-0 h-px origin-left bg-[var(--gold-vermeil)] transition-transform duration-700 ${i === index ? 'scale-x-100' : 'scale-x-0'}`} />
           </button>
         ))}
@@ -97,7 +97,7 @@ export default function Gallery({ product }: { product: Product }) {
           </div>
 
           {product.badges?.[0] && (
-            <span className="font-mono-spec absolute left-5 top-5 bg-[var(--bg-travertine)]/90 px-3 py-1.5 text-[10px] uppercase tracking-[0.22em] backdrop-blur">
+            <span className="font-spec absolute left-5 top-5 bg-[var(--bg-travertine)]/90 px-3 py-1.5 text-[10px] uppercase tracking-[0.22em] backdrop-blur">
               {product.badges[0]}
             </span>
           )}
@@ -109,7 +109,7 @@ export default function Gallery({ product }: { product: Product }) {
           </div>
 
           <div className="absolute inset-x-5 bottom-5 flex items-center justify-between" onClick={(e) => e.stopPropagation()}>
-            <span className="font-mono-spec bg-[var(--bg-travertine)]/90 px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] backdrop-blur">
+            <span className="font-spec bg-[var(--bg-travertine)]/90 px-3 py-1.5 text-[10px] uppercase tracking-[0.2em] backdrop-blur">
               {String(index + 1).padStart(2, '0')} / {String(views.length).padStart(2, '0')} · {view.label}
             </span>
             <div className="flex gap-2">
@@ -155,7 +155,7 @@ export default function Gallery({ product }: { product: Product }) {
             <button onClick={() => go(-1)} aria-label="Previous image" className="absolute left-4 flex h-12 w-12 items-center justify-center rounded-full border border-white/20 hover:border-[var(--gold-champagne)] lg:left-10"><ChevronLeft size={18} strokeWidth={1.3} /></button>
             <button onClick={() => go(1)} aria-label="Next image" className="absolute right-4 flex h-12 w-12 items-center justify-center rounded-full border border-white/20 hover:border-[var(--gold-champagne)] lg:right-10"><ChevronRight size={18} strokeWidth={1.3} /></button>
           </div>
-          <p className="font-mono-spec py-6 text-center text-[10px] uppercase tracking-[0.3em] text-white/50">
+          <p className="font-spec py-6 text-center text-[10px] uppercase tracking-[0.3em] text-white/50">
             {String(index + 1).padStart(2, '0')} / {String(views.length).padStart(2, '0')} · {view.label}
           </p>
         </div>

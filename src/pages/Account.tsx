@@ -74,7 +74,7 @@ export default function Account() {
     <section className="mx-auto max-w-[1400px] px-6 py-16 lg:px-12 lg:py-24">
       <div className="flex flex-col justify-between gap-6 border-b border-[var(--border-hairline)] pb-10 sm:flex-row sm:items-end">
         <div>
-          <p className="font-mono-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">Mon compte</p>
+          <p className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">Mon compte</p>
           <h1 className="font-serif-editorial mt-4 text-6xl font-light lg:text-7xl">Bonjour, <em className="text-[var(--gold-vermeil)]">{user.name}</em>.</h1>
           <p className="mt-3 text-sm text-[var(--text-taupe)]">{user.email}</p>
         </div>
@@ -105,7 +105,7 @@ export default function Account() {
                 {cards.map((c) => (
                   <li key={c.code}>
                     <GiftCardArt design={c.design} currency={c.currency} amount={c.initial} to={c.recipientName} />
-                    <p className="font-mono-spec mt-2 text-[10px] uppercase tracking-[0.14em] text-[var(--text-taupe)]">{maskCode(c.code)} · {formatPrice(c.balance, c.currency)} left</p>
+                    <p className="font-spec mt-2 text-[10px] uppercase tracking-[0.14em] text-[var(--text-taupe)]">{maskCode(c.code)} · {formatPrice(c.balance, c.currency)} left</p>
                   </li>
                 ))}
               </ul>

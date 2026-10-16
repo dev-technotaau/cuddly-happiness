@@ -18,7 +18,7 @@ export default function Wishlist() {
     <div ref={root} className="mx-auto max-w-[1600px] px-6 py-16 lg:px-12 lg:py-24">
       <div className="flex flex-col justify-between gap-8 border-b border-[var(--border-hairline)] pb-10 sm:flex-row sm:items-end">
         <div>
-          <p className="font-mono-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">Liste de souhaits</p>
+          <p className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">Liste de souhaits</p>
           <h1 className="font-serif-editorial mt-4 text-6xl font-light lg:text-8xl">
             Your <em className="text-[var(--gold-vermeil)]">Wishlist</em>
           </h1>
