@@ -20,7 +20,10 @@ These are standing product decisions the owner made or accepted. Don't reverse t
   - Adding to the bag opens the drawer; this happens inside `addToCart`.
   - The PDP CTA and the StickyBar switch to "Go to bag" when that exact configuration is already in the bag.
 - **Configuration first.** Never quick-add a piece that has required options (ring size, rental dates, personalization, commissions). Route to the PDP instead, with "Choose dates" / "Personalize this piece" / "Choose size & options" / "Select options".
-- **Header.** The desktop bar is Collections · Bridal · Rentals · Atelier. Gift Cards lives in the mega menu (plus the mobile menu and footer), not in the bar.
+- **Header.** The desktop bar is Shop · Bridal · Rentals · Atelier. "Shop" opens the category mega menu. Gift Cards lives in the mega menu (plus the mobile menu and footer), not in the bar.
+- **"Collection" means a curated collection, never a category (2026-10-16).**
+  - Categories are the shop's chapters (Necklaces, Rings…). A collection is a curated story that can hold one piece or pieces from several categories.
+  - Don't label category navigation "Collections". The curated-collections system is planned (`.claude/docs/todo.md` §11).
 - **Cross-cutting features go "where they suit".** Recently viewed, try-on CTAs and shoppable films appear wherever they help, and render nothing when empty. Consider them whenever you add a surface.
 - **Automatic section numbering.** Number conditional sections from the list that actually renders (`sectionOrder` / `num()`), never by hand.
 - **Shopify compatibility.**

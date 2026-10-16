@@ -328,7 +328,7 @@ Each slide therefore waits for 7 s of visible, unpaused progress, and the fill n
   - Button classes: `relative pb-2 text-[11px] uppercase tracking-[0.22em] transition-colors`, plus `text-[var(--text-linen)] hover:text-[var(--text-espresso)]` when inactive.
   - Underline: `<span className="absolute inset-x-0 bottom-0 h-px origin-left bg-[var(--gold-vermeil)] transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] scale-x-100|scale-x-0">`.
 - **Grid:** `<div key={tab} className="grid animate-[fadeUp_0.9s_cubic-bezier(0.16,1,0.3,1)] gap-x-8 gap-y-16 sm:grid-cols-2 lg:grid-cols-3">`. It has 1, 2 or 3 columns, and `key={tab}` remounts it so the CSS `fadeUp` keyframe (`src/index.css`: opacity 0 → 1, translateY 16 px → 0) replays on every tab change. Cards are `<ProductCard key={p.id} product={p} />` with no `index`, so each has `data-reveal="0"`.
-- **Footer link:** `<a href={href.category('necklaces')} className="link-line">Explore all collections</a>`, centred with `mt-20`. It targets `#/c/necklaces`.
+- **Footer link:** `<a href={href.category('necklaces')} className="link-line">Continue the discovery</a>`, centred with `mt-20`. It targets `#/c/necklaces`.
 - **Section:** `mx-auto max-w-[1600px] px-6 pb-32 lg:px-12 lg:pb-44`, with no top padding (CategoryIndex's bottom padding provides the gap).
 - **A11y:** `role="tablist"`/`role="tab"`/`aria-selected` only. There is no `tabpanel` role, no `aria-controls` and no arrow-key handling.
 
@@ -738,7 +738,7 @@ interface Props {
 | HomeHero | slide CTAs | `#/c/necklaces`, `#/c/bridal`, `#/c/rentals` |
 | CategoryIndex | rows and cards | `#/c/{slug}` for all 9 categories |
 | Treasured, GiftFinder, RecentlyViewed | ProductCards | `#/p/{slug}` (`#/p/gift-card` resolves to the gift-cards route) |
-| Treasured | "Explore all collections" | `#/c/necklaces` |
+| Treasured | "Continue the discovery" | `#/c/necklaces` |
 | TryOnFeature | "Start virtual try-on" | no navigation; opens the `TryOnStudio` overlay |
 | Bridal | "Explore bridal" / "Design your own" | `#/c/bridal` / `#/atelier` |
 | FourCs | "Shop certified diamonds" / "Book a diamond viewing" | `#/c/bridal` / `#/atelier` |
@@ -829,7 +829,7 @@ Strings are listed verbatim from source in render order. A ✓ in **UC** means C
 |---|---|---|
 | Index · eyebrow | 01 · Nine chapters | ✓ |
 | H2 | The *Index* | |
-| Aside | From everyday gold to GIA-certified bridal — each collection made or curated in Montreal. | |
+| Aside | From everyday gold to GIA-certified bridal — each piece made or curated in Montréal. | |
 | Rows (lg): numeral, name, French, count *(data)* | I Necklaces Colliers 3 pieces; II Earrings Boucles d'oreilles 3 pieces; III Bracelets Bracelets 3 pieces; IV Rings Bagues 3 pieces; V Bridal Jewelry Mariage 3 pieces; VI Watches Montres 3 pieces; VII Jewelry Rentals Location 3 pieces; VIII Gifts Cadeaux 3 pieces; IX Personalized & Custom Sur mesure 3 pieces | count ✓ |
 | Mobile cards: numeral + name *(data)*; image alt = name | e.g. "I Necklaces", alt "Necklaces" | |
 | Desktop preview image alts | all `""` | |
@@ -842,7 +842,7 @@ Strings are listed verbatim from source in render order. A ✓ in **UC** means C
 | H2 | Most *treasured* | |
 | Tabs | Bestsellers; New arrivals; Atelier exclusives | ✓ |
 | Cards *(data)* | badge (e.g. Bestseller), collection, name, price "$6,850 CAD"; rentals show "From" + weekend price; chip "Try on"; wish aria-label "Save to wishlist" / "Remove from wishlist"; image alt = product name. See 4.4 for the lists. | badge, collection, From, Try on ✓ |
-| Link | Explore all collections | ✓ |
+| Link | Continue the discovery | ✓ |
 
 ### 8.5 TryOnFeature
 
@@ -882,7 +882,7 @@ Strings are listed verbatim from source in render order. A ✓ in **UC** means C
 | Image overlay | active key: Cut / Color / Clarity / Carat | |
 | Tabs | 01 Cut; 02 Color; 03 Clarity; 04 Carat | |
 | Cut title / body | Cut — the fire / Cut determines how a diamond returns light. We only set stones graded Excellent or Very Good by the GIA, then hand-check each for symmetry. | |
-| Color title / body | Color — the purity / Graded from D (colourless) to Z. Our bridal collection begins at G, where a diamond appears icy-white to the eye. | |
+| Color title / body | Color — the purity / Graded from D (colourless) to Z. Our bridal stones begin at G, where a diamond appears icy-white to the eye. | |
 | Clarity title / body | Clarity — the character / Inclusions are nature’s fingerprints. We select VS2 or better, so nothing is visible without a 10× loupe. | |
 | Carat title / body | Carat — the presence / Weight, not size. A well-cut 1.00 ct can look larger than a poorly cut 1.20 ct — which is why we prioritise cut first. | |
 | Scale labels | see the table in 4.7 | ✓ |
@@ -1048,7 +1048,7 @@ Typographic characters in this copy: the apostrophe is ’ (U+2019) in "it’s",
 
 **Content and data consistency**
 
-- Treasured's "Explore all collections" goes to `#/c/necklaces` only.
+- Treasured's "Continue the discovery" goes to `#/c/necklaces` only, until the "Shop all" page exists (`todo.md` §11).
 - The hero mixes French "Chapitre V · Mariage" / "Chapitre VII · La Location" with the inline sections' English "Chapter V · Mariage" / "Chapter VII · La Location". Section index numbers ("01"–"09") and "Chapter" numerals are hard-coded per component.
 - Hero pieces come from the catalog (`getProduct`), so each slide's photo, name and facts match the product page it links to. Slide 2 shows the collar's second image (`jewelryFlat`), because its first is a chain.
 - The WatchSpotlight "Limited · 62 pieces" badge and the "Nine chapters" eyebrow are literals duplicating catalog facts.

@@ -323,7 +323,7 @@ Wrapper `py-24 text-center`:
 2. "Begin with something that will outlast the occasion." (`mt-3 text-[var(--text-taupe)]`)
 3. `UndoToast` inside `mx-auto mt-6 max-w-md`
 4. Two CTAs in `mt-10 flex flex-wrap justify-center gap-4`:
-   - **Shop the collections** goes to `href.category('necklaces')`. It is solid: `bg-[var(--text-espresso)] px-10 py-4 text-[11px] uppercase tracking-[0.24em] text-[var(--bg-travertine)] hover:bg-[var(--gold-vermeil)]`.
+   - **Find your piece** goes to `href.category('necklaces')`. It is solid: `bg-[var(--text-espresso)] px-10 py-4 text-[11px] uppercase tracking-[0.24em] text-[var(--bg-travertine)] hover:bg-[var(--gold-vermeil)]`.
    - **Gift cards** goes to `href.giftcards`. It is outlined: `border border-[var(--border-hairline)] px-10 py-4 text-[11px] uppercase tracking-[0.24em] hover:border-[var(--text-espresso)]`.
 5. `RecentlyViewedStrip` (defaults) in `mt-24 text-left`.
 
@@ -874,7 +874,7 @@ Dynamic parts appear as `{…}`. Text shown uppercase by CSS keeps its source ca
 | Confirm dialog | `Remove everything from your bag?` |
 | Empty title | `Your bag is empty.` |
 | Empty sub-line | `Begin with something that will outlast the occasion.` |
-| Empty CTAs | `Shop the collections` · `Gift cards` |
+| Empty CTAs | `Find your piece` · `Gift cards` |
 | Gifting heading | `Gifting & notes` |
 | Gifting intro | `Every order arrives in our signature box. Add finishing touches below at no charge.` |
 | Assurances | see the table in §6.5 |

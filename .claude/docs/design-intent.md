@@ -64,7 +64,7 @@ The look was spelled out in the owner's words:
 | Cost breakdown: invented rates, 12% margin floor, rental version | 19 | Must use real costs before launch |
 | Shared tax module | 18–19 | `src/data/tax.ts` |
 | Gift cards modelled on Shopify; demo card `TERESASONS1962MT` | 20 | — |
-| Gift Cards moved from the header bar into the mega menu | 21 | The bar is Collections · Bridal · Rentals · Atelier |
+| Gift Cards moved from the header bar into the mega menu | 21 | The bar is Collections · Bridal · Rentals · Atelier ("Collections" became "Shop" on 2026-10-16) |
 | Cart drawer animation moved from GSAP to CSS transitions | 22 | Fixed the drawer that never appeared |
 | Adding opens the drawer; PDP and sticky bar show "Go to bag" | 23 | — |
 | Back-to-top control: a progress bezel that expands on intent, lifts above `data-fab-avoid` bars and offers a return trip | After 23 (Claude Code) | `BackToTop.tsx`. Asked for a premium, smart button that never overlaps anything, with a smooth, never stepped, progress indicator |
@@ -72,6 +72,7 @@ The look was spelled out in the owner's words:
 | Hero refined: one catalog piece per slide (photo, name, GIA facts, link), per-slide progress controls with pause, autoplay that waits on hover, focus and off-screen, layered wipes, a smaller height-aware headline | After 23 (Claude Code, 2026-10-16) | The owner asked for a more polished, refined hero. The step 6–7 concept is unchanged; the duplicate slide numbers and the bouncing arrow were removed |
 | Hero title lockup and first-impression pass: flush-left lines with a gold hairline leading into the italic and a single glint, focus-pull reveals, the photo lighting up on load, a cursor key light, Try on and wishlist on the featured piece, a private-appointment link, swipe and arrow keys, a site-wide skip link | After 23 (Claude Code, 2026-10-16) | The owner asked for a better title layout and a "wow" first impression, prioritising retention, engagement and accessibility |
 | Sharing and gift hints: the device's share sheet with the photograph, a configured-piece message, "Drop a hint", tagged channel composers, and wishlist sharing with a link per piece | After 23 (Claude Code, 2026-10-16) | The owner asked for a top-notch, smart share system on the PDP and wherever it suits. Front-end only: every option hands off to the visitor's own apps |
+| Header "Collections" renamed "Shop"; "collection" is reserved for curated collections, which can span categories and are planned as their own system | After 23 (owner, 2026-10-16) | In jewellery a collection is a curated story, distinct from a category; the old label would confuse the two (`todo.md` §11) |
 
 ## 4. Open items from the history
 

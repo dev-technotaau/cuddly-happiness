@@ -77,7 +77,7 @@ Severity: **H** = breaks something real; **M** = wrong behaviour or significant 
 | KI-045 | M | Vermeil (2.8:1) and linen (2.6:1) text fail WCAG AA | Tokens on travertine | Fix: darken them for text, or keep them for decoration only. |
 | KI-046 | L | Missing `aria-pressed` (currency toggles, rental periods); missing `aria-live`/`aria-invalid` on PDP validation | Header, Account, Checkout, Product | |
 | KI-047 | L | Buttons nested in card `<a>`; the try-on chip is invisible on keyboard focus | ProductCard | |
-| KI-048 | L | `.link-line` (unlayered) overrides `hidden` | Category "Try this collection on" uses `hidden sm:inline-flex` | It likely shows on phones. Fix: `max-sm:!hidden`. |
+| KI-048 | L | `.link-line` (unlayered) overrides `hidden` | Category "Try these pieces on" uses `hidden sm:inline-flex` | It likely shows on phones. Fix: `max-sm:!hidden`. |
 | KI-049 | L | Several animations ignore reduced motion | WishButton pop, Gallery stage, mega menu, drawer, RewardProgress, UndoToast | |
 | KI-050 | N | `{n} pieces` has no singular; Category has no empty state for 0 products; the PDP not-found state has no way back | Category, Product | |
 

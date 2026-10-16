@@ -35,7 +35,7 @@ export default function CategoryIndex() {
         index="01"
         eyebrow="Nine chapters"
         title={<>The <em className="text-[var(--gold-vermeil)]">Index</em></>}
-        aside={<p className="max-w-xs text-sm leading-relaxed text-[var(--text-taupe)]">From everyday gold to GIA-certified bridal — each collection made or curated in Montreal.</p>}
+        aside={<p className="max-w-xs text-sm leading-relaxed text-[var(--text-taupe)]">From everyday gold to GIA-certified bridal — each piece made or curated in Montréal.</p>}
       />
 
       {/* Desktop: typographic list with a cursor-following preview */}

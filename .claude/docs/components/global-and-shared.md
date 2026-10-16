@@ -26,7 +26,7 @@ Scope: `src/components/Header.tsx`, `src/components/Footer.tsx`, `src/components
 │ COLLECTIONS  BRIDAL  RENTALS  ATELIER │        Teresa & Sons         │ [CA·CAD|US·USD] 👤 ♡³ 🛍² │
 │ (lg+; ☰ on mobile)                    │     MONTRÉAL · EST. 1962     │                            │
 └──────────────────────────────────────────────────────────────────────────────────────────────────┘
-  mega menu (lg+, hover/click "Collections"): [I–IX categories + Gift Cards] [Chapter text + 2 products] [hero 4/5 + feature 1/1]
+  mega menu (lg+, hover/click "Shop"): [I–IX categories + Gift Cards] [Chapter text + 2 products] [hero 4/5 + feature 1/1]
 ```
 
 **Announcement marquee.** `bg-[var(--bg-vault)] text-[var(--gold-champagne)] py-2` around `<Marquee speed={44}>` (see the shared components table), whose viewport fades out over the outer 4 % of each edge (`[mask-image:linear-gradient(90deg,transparent,#000_4%,#000_96%,transparent)]`). Each of the 4 messages is `font-spec flex items-center px-10 text-[10px] uppercase tracking-[0.28em]` followed by an `aria-hidden` vermeil `✦` (`&#10022;`, `ml-20`). Verbatim:
@@ -36,7 +36,7 @@ Scope: `src/components/Header.tsx`, `src/components/Footer.tsx`, `src/components
 - `Lifetime cleaning & inspection on every piece`
 
 **Main bar.** `relative border-b border-[var(--border-hairline)] bg-[var(--bg-travertine)]/95 backdrop-blur-md`; inner `mx-auto grid h-20 max-w-[1600px] grid-cols-[1fr_auto_1fr] items-center px-6 lg:px-12`.
-- Left nav (`hidden … lg:flex`, `gap-9 text-[11px] font-medium uppercase tracking-[0.22em]`): **Collections** button (`onMouseEnter=open`, `onMouseLeave=scheduleClose`, click toggles, `aria-expanded={megaOpen}`), then links **Bridal** (`href.category('bridal')`), **Rentals** (`href.category('rentals')`), **Atelier** (`href.atelier`). Hover colour `hover:text-[var(--gold-vermeil)]`.
+- Left nav (`hidden … lg:flex`, `gap-9 text-[11px] font-medium uppercase tracking-[0.22em]`): **Shop** button (renamed from "Collections" on 2026-10-16; it sets its own `uppercase` because a `<button>` doesn't inherit the nav's text-transform; `onMouseEnter=open`, `onMouseLeave=scheduleClose`, click toggles, `aria-expanded={megaOpen}`), then links **Bridal** (`href.category('bridal')`), **Rentals** (`href.category('rentals')`), **Atelier** (`href.atelier`). Hover colour `hover:text-[var(--gold-vermeil)]`.
 - Mobile trigger: `<button className="lg:hidden" aria-label="Open menu">` with `Menu` (20 / strokeWidth 1.4).
 - Wordmark (`href.home`, centred, `text-center leading-none`), tracked Baskervville capitals: `font-serif-editorial -mr-[0.12em] block whitespace-nowrap text-[17px] uppercase tracking-[0.12em] sm:-mr-[0.16em] sm:text-[22px] sm:tracking-[0.16em] lg:text-[25px]` — "Teresa <em class='text-[var(--gold-vermeil)]'>&amp;</em> Sons" (the ampersand is the vermeil italic). Sub-line `font-spec -mr-[0.28em] mt-1.5 block whitespace-nowrap text-[8px] uppercase tracking-[0.28em] text-[var(--text-taupe)] sm:-mr-[0.4em] sm:text-[9px] sm:tracking-[0.4em]` "Montréal · Est. 1962". Each negative right margin equals that line's tracking, cancelling the trailing letter-space so the capitals centre; `whitespace-nowrap` keeps the name on one line at 390 px.
 - Right cluster (`gap-4 lg:gap-7`):

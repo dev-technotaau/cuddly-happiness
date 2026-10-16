@@ -61,7 +61,7 @@ export default function Cart() {
           <p className="mt-3 text-[var(--text-taupe)]">Begin with something that will outlast the occasion.</p>
           <div className="mx-auto mt-6 max-w-md"><UndoToast /></div>
           <div className="mt-10 flex flex-wrap justify-center gap-4">
-            <a href={href.category('necklaces')} className="bg-[var(--text-espresso)] px-10 py-4 text-[11px] uppercase tracking-[0.24em] text-[var(--bg-travertine)] hover:bg-[var(--gold-vermeil)]">Shop the collections</a>
+            <a href={href.category('necklaces')} className="bg-[var(--text-espresso)] px-10 py-4 text-[11px] uppercase tracking-[0.24em] text-[var(--bg-travertine)] hover:bg-[var(--gold-vermeil)]">Find your piece</a>
             <a href={href.giftcards} className="border border-[var(--border-hairline)] px-10 py-4 text-[11px] uppercase tracking-[0.24em] hover:border-[var(--text-espresso)]">Gift cards</a>
           </div>
           <div className="mt-24 text-left"><RecentlyViewedStrip /></div>

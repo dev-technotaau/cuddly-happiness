@@ -1,7 +1,7 @@
 {
   "version": 1,
   "generatedAt": "2026-10-16",
-  "gitHead": "af05449",
+  "gitHead": "aa8467f",
   "files": {
     ".figma/make/analyze-routes": {
       "hash": "d51912b900af",
@@ -173,7 +173,7 @@
       ]
     },
     "src/components/Header.tsx": {
-      "hash": "f50bdb490656",
+      "hash": "6819aeff89e4",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -368,7 +368,7 @@
       ]
     },
     "src/components/home/CategoryIndex.tsx": {
-      "hash": "bf4db5f5de88",
+      "hash": "98dba6121e1d",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -379,7 +379,7 @@
       ]
     },
     "src/components/home/FourCs.tsx": {
-      "hash": "c726a9f41d13",
+      "hash": "700d33c294e6",
       "docs": [
         "brand-voice-and-copy.md",
         "motion-and-interaction.md",
@@ -460,7 +460,7 @@
       ]
     },
     "src/components/home/Treasured.tsx": {
-      "hash": "d53814e9d42c",
+      "hash": "f0f814ef2967",
       "docs": [
         "pages/category.md",
         "pages/home.md",
@@ -911,7 +911,7 @@
       ]
     },
     "src/pages/Cart.tsx": {
-      "hash": "b3021d77dd28",
+      "hash": "a01642403d10",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -926,7 +926,7 @@
       ]
     },
     "src/pages/Category.tsx": {
-      "hash": "e3f0d2999ce2",
+      "hash": "64bce0a5b8b1",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",

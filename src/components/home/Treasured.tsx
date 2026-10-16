@@ -41,7 +41,8 @@ export default function Treasured() {
         {items.map((p) => <ProductCard key={p.id} product={p} />)}
       </div>
       <div className="mt-20 flex justify-center">
-        <a href={href.category('necklaces')} className="link-line">Explore all collections</a>
+        {/* Opens Necklaces until the "Shop all" page exists (.claude/docs/todo.md §11). */}
+        <a href={href.category('necklaces')} className="link-line">Continue the discovery</a>
       </div>
     </section>
   )

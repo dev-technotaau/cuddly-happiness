@@ -120,7 +120,7 @@ The layout is mobile-first, with **`lg` (1024 px) as the main switch**: 284 `lg:
 | `aria-hidden` | 10 |
 | `aria-pressed` | 8 |
 | `aria-modal` | 7 |
-| `aria-expanded` | 3 (Header Collections, Accordion, GiftOptions) |
+| `aria-expanded` | 3 (Header Shop, Accordion, GiftOptions) |
 | `aria-selected` | 2 (tabs) |
 | `aria-live` | 2 (BalanceChecker, CartLineItem) |
 

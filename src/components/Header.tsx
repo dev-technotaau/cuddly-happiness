@@ -65,8 +65,9 @@ export default function Header() {
       <div className="relative border-b border-[var(--border-hairline)] bg-[var(--bg-travertine)]/95 backdrop-blur-md">
         <div className="mx-auto grid h-20 max-w-[1600px] grid-cols-[1fr_auto_1fr] items-center px-6 lg:px-12">
           <nav className="hidden items-center gap-9 text-[11px] font-medium uppercase tracking-[0.22em] lg:flex">
-            <button onMouseEnter={open} onMouseLeave={scheduleClose} onClick={() => setMegaOpen((o) => !o)} className="py-7 transition-colors hover:text-[var(--gold-vermeil)]" aria-expanded={megaOpen}>
-              Collections
+            <button onMouseEnter={open} onMouseLeave={scheduleClose} onClick={() => setMegaOpen((o) => !o)} className="py-7 uppercase transition-colors hover:text-[var(--gold-vermeil)]" aria-expanded={megaOpen}>
+              {/* "Shop", not "Collections": in jewellery a collection is a curated story that can span categories (planned, see todo). */}
+              Shop
             </button>
             <a href={href.category('bridal')} className="transition-colors hover:text-[var(--gold-vermeil)]">Bridal</a>
             <a href={href.category('rentals')} className="transition-colors hover:text-[var(--gold-vermeil)]">Rentals</a>

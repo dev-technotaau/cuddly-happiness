@@ -125,7 +125,7 @@ The swatch comes from `METALS[metal].swatch` (default `#D4B982`). Personalized t
 | Location | How it's used |
 |---|---|
 | `ProductCard` | Hover chip "Try on" |
-| Category | `link` "Try this collection on", first eligible product + list |
+| Category | `link` "Try these pieces on", first eligible product + list |
 | Wishlist | "Try your wishlist on" |
 | Product | Configurator; passes metal and personalization text |
 | Gallery | Button on the gallery |

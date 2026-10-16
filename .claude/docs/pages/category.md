@@ -182,11 +182,11 @@ Current sort results. High-to-low is the exact reverse of low-to-high, and the o
 
 The left `<span>` uses `font-spec text-[10px] uppercase tracking-[0.24em] text-[var(--text-taupe)]` and renders `{products.length} pieces · Prices in {currency}`. Every category currently has 3 products, so it always reads "3 pieces · Prices in CAD" or "… USD". The count does not handle a singular. It also never changes with sort, because nothing filters the list.
 
-### "Try this collection on"
+### "Try these pieces on"
 
 An inline IIFE computes `wearable = products.filter((p) => tryOnKind(p))` on every render, from the already sorted list. When `wearable[0]` exists it renders:
 
-`<TryOnButton product={wearable[0]} list={wearable} variant="link" label="Try this collection on" className="hidden sm:inline-flex" />`
+`<TryOnButton product={wearable[0]} list={wearable} variant="link" label="Try these pieces on" className="hidden sm:inline-flex" />`
 
 - **Look.** The `link` variant renders a `<button type="button">` with class `link-line` and no icon.
 - **Click.** It calls `e.preventDefault()` and `e.stopPropagation()`, then `openTryOn({ product, metal, text, list })` from `TryOnProvider`. That lazy-loads `TryOnStudio`, whose "try another" rail is this category's wearable list in the current sort order.
@@ -466,7 +466,7 @@ Signature: `{ exclude?, limit = 3, onNavigate?, title = 'Recently viewed' }`. It
 | WishButton | Click | GSAP `scale` 0.8 → 1, 0.6 s, `elastic.out(1, 0.4)` |
 | WishButton | Hover | Text colour changes to `--gold-vermeil` (`transition-colors`) |
 | Gifts band card art | `group-hover` on the band link | `-rotate-3` → `rotate-0` over 700 ms |
-| `.link-line` CTAs ("Send a gift card", "Try this collection on", "Clear history") | `:hover` on the `.link-line` element itself | A vermeil underline scales in from the left: `transform 0.7s cubic-bezier(0.16, 1, 0.3, 1)` |
+| `.link-line` CTAs ("Send a gift card", "Try these pieces on", "Clear history") | `:hover` on the `.link-line` element itself | A vermeil underline scales in from the left: `transform 0.7s cubic-bezier(0.16, 1, 0.3, 1)` |
 
 - **Sort change.** `sort` is in the `useReveal` deps, so changing the sort reverts and rebuilds every tween in the page scope. Each `[data-reveal]` element (cards, section headers, film tiles, recent cards) resets to `y: 40` / `opacity: 0` and animates in again. Elements whose trigger point is already passed animate immediately.
 - **Currency change.** It re-sorts and re-prices but does **not** replay the reveals, because `currency` is not in the deps.
@@ -506,9 +506,9 @@ The `.group:hover .editorial-zoom` rule is plain CSS with no hover media query.
 
 | Source | Target |
 | --- | --- |
-| Header | "Collections" mega menu (all nine `CATEGORIES`), nav links "Bridal" and "Rentals", mobile menu list |
+| Header | "Shop" mega menu (all nine `CATEGORIES`), nav links "Bridal" and "Rentals", mobile menu list |
 | Footer | List of every category |
-| Home | `CategoryIndex`, `HomeHero` CTAs (necklaces, bridal, rentals), page CTAs to bridal and rentals, `Treasured` "Explore all collections" (necklaces), `GiftFinder` (gifts), `FourCs` (bridal) |
+| Home | `CategoryIndex`, `HomeHero` CTAs (necklaces, bridal, rentals), page CTAs to bridal and rentals, `Treasured` "Continue the discovery" (necklaces), `GiftFinder` (gifts), `FourCs` (bridal) |
 | PDP | Breadcrumb category link and the related-section "View all" |
 | Cart page | Empty state: necklaces |
 | Cart drawer | Empty state: necklaces, earrings, rings |
@@ -523,7 +523,7 @@ The `.group:hover .editorial-zoom` rule is plain CSS with no hover media query.
 | "Maison" breadcrumb, not-found "Return home" | `#/` |
 | Product cards | `#/p/<slug>`; the gift card resolves to `#/gift-cards` |
 | Gifts band | `#/gift-cards` |
-| "Try this collection on" and card chips | Try-on studio overlay |
+| "Try these pieces on" and card chips | Try-on studio overlay |
 | Film tiles | Video viewer portal |
 | Recently viewed cards | PDPs |
 
@@ -546,7 +546,7 @@ All strings are verbatim. `·` is U+00B7 and `—` is U+2014. Where text shows i
 | Gifts CTA | `Send a gift card` | |
 | Rental steps | `01` `Reserve online or in salon` · `02` `Fitting & ID verification` · `03` `Insured courier delivery` · `04` `Collected the next morning` | |
 | Toolbar count | `{n} pieces · Prices in {currency}` | |
-| Collection try-on | `Try this collection on` | |
+| Category try-on | `Try these pieces on` | |
 | Sort label | `Sort` | |
 | Sort options | `Featured` · `Price, low to high` · `Price, high to low` | |
 | Films eyebrow | `{name} · in motion` | e.g. `Bridal Jewelry · in motion` |

@@ -13,7 +13,7 @@ const CS = [
   {
     key: 'Color',
     title: 'Color — the purity',
-    body: 'Graded from D (colourless) to Z. Our bridal collection begins at G, where a diamond appears icy-white to the eye.',
+    body: 'Graded from D (colourless) to Z. Our bridal stones begin at G, where a diamond appears icy-white to the eye.',
     scale: ['K', 'J', 'I', 'H', 'G', 'F', 'E', 'D'],
     ours: [4, 7],
   },

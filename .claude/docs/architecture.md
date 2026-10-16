@@ -248,7 +248,7 @@ Every use of the `href` map, by file:
 
 | File | Targets (`href.*`) and link text | Notes |
 |---|---|---|
-| `src/components/Header.tsx` | Desktop nav: `category('bridal')` "Bridal", `category('rentals')` "Rentals", `atelier` "Atelier". Logo: `home`. Icons: `account` (aria-label `Account, {name}` or `Sign in`), `wishlist`. Mega menu: `category(c.slug)` for all 9 categories, `giftcards` "Gift Cards", `product(p.slug)` for the first 2 products of the hovered category, `category(cat.slug)` image block "Shop {name} →". Mobile menu: `category(c.slug)` ×9, `atelier` "The Atelier", `giftcards` "Gift Cards", `account` ("My Account" / "Sign In"), `wishlist` "Wishlist ({n})" | "Collections" is a `<button>` that toggles the mega menu, not a link |
+| `src/components/Header.tsx` | Desktop nav: `category('bridal')` "Bridal", `category('rentals')` "Rentals", `atelier` "Atelier". Logo: `home`. Icons: `account` (aria-label `Account, {name}` or `Sign in`), `wishlist`. Mega menu: `category(c.slug)` for all 9 categories, `giftcards` "Gift Cards", `product(p.slug)` for the first 2 products of the hovered category, `category(cat.slug)` image block "Shop {name} →". Mobile menu: `category(c.slug)` ×9, `atelier` "The Atelier", `giftcards` "Gift Cards", `account` ("My Account" / "Sign In"), `wishlist` "Wishlist ({n})" | "Shop" is a `<button>` that toggles the mega menu, not a link |
 | `src/components/Footer.tsx` | `category(c.slug)` ×9; `atelier` "Our Story" and "Book an Appointment"; `giftcards` "Gift Cards & Balance" | "GIA & Certification", "Care & Repairs" and "Shipping & Returns" are plain `<li>` text, not links |
 | `src/components/CartDrawer.tsx` | Empty state: `category('necklaces')`, `category('earrings')`, `category('rings')`, `giftcards` "Gift cards". Footer: `checkout` "Secure checkout", `cart` "View full bag" | All use `onClick={close}`; this is the only use of `href.cart` |
 | `src/components/cart/CartLineItem.tsx` | `productHref` is `href.giftcards` for gift-card lines and `href.product(p.slug)` otherwise; used on the image, the name and "Edit" | `onClick={onNavigate}` |
@@ -256,14 +256,14 @@ Every use of the `href` map, by file:
 | `src/components/RecentlyViewed.tsx` | `RecentlyViewedStrip` rows: `product(p.slug)` | `onClick={onNavigate}` |
 | `src/components/ProductCard.tsx` | The whole card: `product(product.slug)` | Inner `WishButton` and `TryOnButton` call `preventDefault()` and `stopPropagation()` |
 | `src/components/HomeHero.tsx` | Slide CTAs: `category('necklaces')` "Discover necklaces", `category('bridal')` "Explore bridal", `category('rentals')` "View rentals" | Defined in the module-level `SLIDES` |
-| `src/components/home/*` | `CategoryIndex`: `category(c.slug)`. `FourCs`: `category('bridal')` "Shop certified diamonds", `atelier` "Book a diamond viewing". `GiftFinder`: `category('gifts')` "All gifts", `atelier` "Ask the concierge". `Services`: `atelier` "Speak with our concierge". `Treasured`: `category('necklaces')` "Explore all collections". `VisitSalon`: `atelier` "Book an appointment". `WatchSpotlight`: `product(w.slug)` | — |
+| `src/components/home/*` | `CategoryIndex`: `category(c.slug)`. `FourCs`: `category('bridal')` "Shop certified diamonds", `atelier` "Book a diamond viewing". `GiftFinder`: `category('gifts')` "All gifts", `atelier` "Ask the concierge". `Services`: `atelier` "Speak with our concierge". `Treasured`: `category('necklaces')` "Continue the discovery". `VisitSalon`: `atelier` "Book an appointment". `WatchSpotlight`: `product(w.slug)` | — |
 | `src/components/pdp/*` | `CompleteTheLook`: `product(p.slug)`. `ProductFAQ`: `atelier` "Contact concierge" | — |
 | `src/components/tryon/TryOnStudio.tsx` | `product(product.slug)` with label "Choose dates", "Personalize this piece" or "Choose size & options"; `atelier` "See it in person — book a viewing" | `onClick={onClose}` |
 | `src/components/video/VideoViewer.tsx` | `product(p.slug)` on the mobile product chips, the desktop product rows and "Select options" | `onClick={onClose}` |
 | `src/pages/Home.tsx` | `category('bridal')` "Explore bridal", `atelier` "Design your own" and "Commission a piece", `category('rentals')` "View the rental vault" | — |
 | `src/pages/Category.tsx` | `home` "Return home" (not-found state) and the "Maison" breadcrumb; `giftcards` (gifts-category banner, "Send a gift card") | — |
 | `src/pages/Product.tsx` | `home` (breadcrumb "Maison"), `category(category.slug)` (breadcrumb and "View all"), `atelier` "Book a viewing" and "Ask a jeweller" | — |
-| `src/pages/Cart.tsx` | `category('necklaces')` "Shop the collections", `giftcards` "Gift cards", `checkout` "Secure checkout", `atelier` "Book a private consultation" | — |
+| `src/pages/Cart.tsx` | `category('necklaces')` "Find your piece", `giftcards` "Gift cards", `checkout` "Secure checkout", `atelier` "Book a private consultation" | — |
 | `src/pages/Checkout.tsx` | `home` "Return to the maison" and "Continue shopping", `account` "View in your account" | — |
 | `src/pages/GiftCards.tsx` | `category('gifts')` (breadcrumb "Gifts"), `atelier` "Contact concierge" | — |
 | `src/pages/Wishlist.tsx` | `account` "Sign in", `category('rings')` "Explore Rings" | — |
@@ -560,7 +560,7 @@ interface Ctx {
   | `pdp/Gallery` | `chip`, default "View on you" |
   | `pages/Product` | `outline`, with `metal`, personalised `text` and `list={[product, ...related]}` |
   | `pdp/StickyBar` | `icon` |
-  | `pages/Category` | `link`, "Try this collection on" |
+  | `pages/Category` | `link`, "Try these pieces on" |
   | `pages/Wishlist` | default variant, "Try your wishlist on" |
   | `cart/CartLineItem` | `link`, "View on you" |
   | `video/VideoViewer` | `chip`, "Try on" |

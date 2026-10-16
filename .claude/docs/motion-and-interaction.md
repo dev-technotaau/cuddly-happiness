@@ -266,7 +266,7 @@ A `useEffect` with deps `[megaOpen]` runs these tweens. It has no context, no cl
 | `gsap.fromTo` (on open only) | the panel's `[data-mega-item]` elements: 9 category `li`s, the Gift Cards `li`, the description column and the image link (12 in total) | `{ y: 14, opacity: 0 }` → `{ y: 0, opacity: 1, stagger: 0.03, duration: 0.6, ease: 'expo.out', delay: 0.08 }` |
 
 - **Closed state.** The panel starts with inline `clipPath: 'inset(0 0 100% 0)'` and has the class `pointer-events-none` while closed. It is `hidden … lg:block`.
-- **Hover intent.** `open()` clears the pending close timer and sets `megaOpen`. `scheduleClose()` closes the menu after 140 ms. Both are wired to `onMouseEnter` / `onMouseLeave` on the "Collections" button and on the panel. Clicking the button toggles the menu.
+- **Hover intent.** `open()` clears the pending close timer and sets `megaOpen`. `scheduleClose()` closes the menu after 140 ms. Both are wired to `onMouseEnter` / `onMouseLeave` on the "Shop" button and on the panel. Clicking the button toggles the menu.
 - **Route changes.** Any `route` change closes both the mega menu and the mobile menu.
 
 ### 4.5 Category index cursor preview (`src/components/home/CategoryIndex.tsx`)
@@ -464,7 +464,7 @@ The rule is plain CSS, so it applies on every device. Tailwind v4 `hover:` and `
 
 Used by:
 - Home: "Design your own", "Commission a piece"
-- Treasured: "Explore all collections"
+- Treasured: "Continue the discovery"
 - SocialGrid: "Follow #PorteTeresa" (a `span`)
 - RecentlyViewed: "Clear history"
 - Category gift-card band: "Send a gift card" (a `span` inside a group link)
@@ -472,7 +472,7 @@ Used by:
 - ProductFAQ and GiftCards: "Contact concierge"
 - Reviews: "Show more reviews"
 - Checkout: "Return to the maison", "View in your account"
-- `TryOnButton` with `variant="link"`: Category "Try this collection on" and CartLineItem "View on you"
+- `TryOnButton` with `variant="link"`: Category "Try these pieces on" and CartLineItem "View on you"
 
 ### 6.4 Transition inventory (Tailwind)
 

@@ -88,7 +88,7 @@ export default function Category({ slug }: { slug: string }) {
           <div className="flex items-center gap-8">
           {(() => {
             const wearable = products.filter((p) => tryOnKind(p))
-            return wearable[0] ? <TryOnButton product={wearable[0]} list={wearable} variant="link" label="Try this collection on" className="hidden sm:inline-flex" /> : null
+            return wearable[0] ? <TryOnButton product={wearable[0]} list={wearable} variant="link" label="Try these pieces on" className="hidden sm:inline-flex" /> : null
           })()}
           <label className="flex items-center gap-3 text-[11px] uppercase tracking-[0.2em]">
             Sort

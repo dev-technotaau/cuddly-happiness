@@ -29,7 +29,7 @@ Scope: compiled 2026-10-15 from `history/figma-make-log.md`, `design-intent.md`,
 3. Give the newsletter form a thank-you state (§1.4).
 4. ~~Use a fitting photo in the rentals hero slide (§1.5).~~ Done 2026-10-16.
 5. Set a real page title (§6.1). This edits a platform file, which asks for confirmation.
-6. Fix the "Try this collection on" link showing on phones (§4.9).
+6. Fix the "Try these pieces on" link showing on phones (§4.9).
 7. Add a visible keyboard focus style (§4.1).
 8. Fix the bag "+" lowering quantities above 10 (§3.4).
 9. Fix the rental availability hash so every rental piece has booked dates (§3.10).
@@ -116,7 +116,7 @@ Scope: compiled 2026-10-15 from `history/figma-make-log.md`, `design-intent.md`,
 6. [ ] **P3 · Buttons nested in card `<a>`s** (WishButton, the try-on chip). The chip stays invisible when it has keyboard focus. Source: KI-047.
 7. [ ] **P3 · The header rating row always renders 5 filled stars,** and its count excludes the shopper's own reviews.
 8. [ ] **P3 · Reduced motion is ignored** by the WishButton pop, the Gallery fade, the mega-menu tweens, the drawer slide, RewardProgress and UndoToast. Source: KI-049.
-9. [ ] **P2 · "Try this collection on" likely shows on phones.** `.link-line` is unlayered and beats `hidden`. Use `max-sm:!hidden`. File: `pages/Category.tsx`. Source: KI-048.
+9. [ ] **P2 · "Try these pieces on" likely shows on phones.** `.link-line` is unlayered and beats `hidden`. Use `max-sm:!hidden`. File: `pages/Category.tsx`. Source: KI-048.
 10. [ ] **P3 · Touch devices never see the card hover image,** and it still downloads. 1600 px images are served everywhere, with no `srcset`.
 11. [ ] **P3 · Copy and empty states.**
     - "{n} pieces" has no singular.
@@ -223,6 +223,7 @@ Work that was never on the list, logged so it isn't redone or undone:
 - [x] **Hero title and first impression (2026-10-16).** Changes, documented in `pages/home.md` §4.1:
 - [x] **Smooth marquees (2026-10-16).** Both strips now use one `Marquee` component on the Web Animations API (`motion-and-interaction.md` §6.6). It gives a constant speed, an exact seam, enough copies for any width, a start after fonts load, an eased hover stop, an off-screen pause and copies hidden from screen readers. The film-grain layer shrank from 200% to 124%.
 - [x] **Sharing and gift hints (2026-10-16).** "Share" and "Drop a hint" on the PDP, and "Share list" on the wishlist (`features/sharing.md`). Two fixes came with it:
+- [x] **Header "Collections" → "Shop" (2026-10-16).** The category mega-menu trigger is now "Shop". It also renders in capitals like the other nav links; as a `<button>` it had kept mixed case. Five more labels that meant a category followed: "Continue the discovery" (Treasured), "Find your piece" (empty bag), "Try these pieces on" (category toolbar), the Index aside and the 4Cs colour text. "Collection" is reserved for the curated system (§11).
   - KI-061: the wishlist's "Copy link" shared nothing useful;
   - "Complete the look" pushed every product page 388 px sideways on phones (`grid-cols-1`).
   - a flush-left lockup with a gold hairline into the italic, and a single glint;
@@ -231,6 +232,28 @@ Work that was never on the list, logged so it isn't redone or undone:
   - Try on and wishlist on the featured piece, and "Book a private appointment";
   - swipe and arrow keys, focus rings and stronger contrast;
   - a site-wide "Skip to content" link.
+
+## 11. Planned features (owner requests, 2026-10-16)
+
+- [ ] **P1 · PROTO · "Shop all" page: every piece in one place. Next up.**
+  - **Route.** `#/shop` (`href.shop`), added in all four routing places (`Route` union, `parseHash`, `href`, `Routes`). In the theme it maps to Shopify's built-in `/collections/all`.
+  - **Page.** In the Category page's style: a vault hero ("Every *piece*", with the French *Toutes les pièces*), the "N pieces · Prices in {currency}" toolbar and sort. Every piece across the nine categories, filterable by category, with try-on for the wearable pieces.
+  - **Entry points.** The header "Shop" mega menu (an "All pieces" row), the mobile menu and the footer's Shop column.
+  - **Re-point** two CTAs that open Necklaces for now: Treasured's "Continue the discovery" and the empty bag's "Find your piece". Their labels were already renamed with this page in mind (2026-10-16).
+- [ ] **P1 · PROTO · Curated collections: system and pages.** In jewellery, a *collection* is a curated story (Mont-Royal, Lumière), not a category. The header's category menu became "Shop" so the word is free for this.
+  - **Model.** Add a `Collection` entity: slug, name, optional French name, story, hero and feature images, season or year, and a curated order of pieces. Membership is many-to-many: a collection can hold a single piece or pieces from several categories, and a piece can sit in several collections.
+  - **Today.** `Product.collection` is one string per piece, and each of its 21 values maps to exactly one category (for example Mont-Royal → necklaces, Notre-Dame → bridal). The hero's "Collection Lumière · Automne" has no pieces at all. Keep a primary collection for card eyebrows, and add the membership list.
+  - **Pages.** A `#/collections` index and a `#/collection/:slug` page: the story, the imagery, and the collection's pieces across categories, filterable by category. Follow the four-place routing rule.
+  - **Navigation.** Add a "Collections" entry beside "Shop" (in the desktop bar or as a mega-menu column), plus the mobile menu and the footer. Link the card and PDP eyebrows (`product.collection`) to their collection, and add breadcrumbs.
+  - **Copy.** The category-meaning uses of "collection" were renamed on 2026-10-16:
+    - "Explore all collections" → "Continue the discovery";
+    - "Shop the collections" → "Find your piece";
+    - "Try this collection on" → "Try these pieces on";
+    - the Index aside's "each collection" → "each piece";
+    - the 4Cs colour text's "bridal collection" → "bridal stones".
+
+    Once collections exist, check the hero's `aria-label="Featured collections"`.
+  - **Shopify.** Categories and curated collections are both Shopify collections. Tell them apart with a collection metafield (for example `custom.kind`: `category` or `curated`) or a handle convention, and build the menus from it. Membership comes free, because a product can belong to many Shopify collections.
 
 ## Notes & gotchas
 
