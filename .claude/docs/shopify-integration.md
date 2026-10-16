@@ -396,7 +396,7 @@ The table follows the render order in `src/pages/Home.tsx`. The bridal editorial
 
 | # | Component | Proposed section | Settings / blocks | Data source |
 |---|---|---|---|---|
-| 1 | `HomeHero` | `hero-slideshow` | 3 `slide` blocks, each with eyebrow, three headline lines and an accent line (the code uses `italic: 1`), body, image, inset image and label, CTA label and link, and three spec values (Piece / Weight / Grade). Autoplay setting = 7 s (`DURATION`). | static, edited by the merchant |
+| 1 | `HomeHero` | `hero-slideshow` | 3 `slide` blocks, each with eyebrow, three headline lines and an accent line (the code uses `italic: 1`), body, background image, nav label, a featured product (a `product` setting, plus which of its images to show; the name and GIA facts come from the product), and CTA label and link. Autoplay setting = 7 s (`DURATION`), with pause controls. | static, edited by the merchant |
 | 2 | `PressStrip` | `press-marquee` | heading "As seen in"; 8 `publication` blocks | static |
 | 3 | `CategoryIndex` | `collection-index` | index "01", eyebrow "Nine chapters", title, aside text, `collection_list` setting | `collection.metafields.custom.chapter_numeral`, `custom.french_name`, `collection.products_count`, `collection.image` |
 | 4 | `Treasured` | `featured-collection-tabs` | 3 `tab` blocks (label + collection): Bestsellers / New arrivals / Atelier exclusives; limit 6; link "Explore all collections" | tag-based automated collections |

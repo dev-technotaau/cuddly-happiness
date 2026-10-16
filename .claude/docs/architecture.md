@@ -601,7 +601,7 @@ Studio internals are covered in [features/virtual-try-on.md](features/virtual-tr
 | `src/components/pdp/Gallery.tsx` | `keydown` (`Escape`, `ArrowLeft`, `ArrowRight`) | Lightbox open |
 | `src/components/pdp/Reviews.tsx` | `keydown` (`Escape`, arrows) | Media lightbox open |
 | `src/components/pdp/RingSize.tsx` | `keydown` (`Escape`) | Guide open |
-| `src/components/HomeHero.tsx` | `pointermove` on the hero section; 7 s auto-advance timeout (`DURATION = 7`) | `Home` mounted, without reduced motion |
+| `src/components/HomeHero.tsx` | `pointermove` on the hero section; `visibilitychange`; an `IntersectionObserver` on the hero; the 7 s progress tween that drives autoplay | `Home` mounted, without reduced motion |
 | `src/components/home/CategoryIndex.tsx` | `pointermove` on the desktop list | `Home` mounted |
 | `src/components/home/Testimonials.tsx` | `setInterval` every 6500 ms | `Home` mounted |
 | `src/components/Header.tsx` | 140 ms mega-menu close timeout | After the pointer leaves the trigger or panel |

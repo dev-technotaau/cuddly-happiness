@@ -22,7 +22,7 @@ Severity: **H** = breaks something real; **M** = wrong behaviour or significant 
 | KI-002 | M | Document title is "Figma Make App" on every route | `.figma/make/site.json` has no `title`; no `document.title` anywhere | Tab title and `og:title` show the platform default. Fix: set `title` in site.json, and optionally per-route titles. |
 | KI-003 | L | Favicon is Figma Make's default icon | `public/favicon.svg` | Fix: replace it with a brand mark, or set `icons.icon`. |
 | KI-004 | M | No typecheck in build or deploy | `build` = `vite build` | Type errors ship silently. Fix: run `npx tsc --noEmit -p .` before deploys, or add a script. |
-| KI-005 | L | Main JS chunk 618 kB (> 500 kB warning) | `src/App.tsx` eager page imports | Only TryOnStudio is lazy. Fix: `lazy()` the pages behind `Suspense`. |
+| KI-005 | L | Main JS chunk 622 kB (> 500 kB warning) | `src/App.tsx` eager page imports | Only TryOnStudio is lazy. Fix: `lazy()` the pages behind `Suspense`. |
 | KI-006 | L | `tsconfig` `lib: ES2020` is narrower than the runtime target; `types: ["node"]` leaks Node globals | `tsconfig.json` | Valid modern built-ins fail `tsc`. Fix: widen `lib` if needed. |
 | KI-007 | L | `addBypassLinks` would route to Home | `vite.config.ts` skip link `href="#root"` + `parseHash` | Enabling it makes "Skip to content" navigate home. Fix: retarget it before enabling. |
 | KI-008 | L | Toolchain drift | `.mise.toml` (Node 22 / pnpm 10.34.3) vs local Node 24.21 / pnpm 12.9.1; AGENTS.md says TS 5.7 but the lockfile has 5.9.3 | Fix: use the pinned versions for installs. |
@@ -96,7 +96,7 @@ Severity: **H** = breaks something real; **M** = wrong behaviour or significant 
 | ID | Sev | Issue | Where | Failure scenario → fix |
 |---|---|---|---|---|
 | KI-065 | L | Newsletter form gives no feedback | `src/components/Footer.tsx` | Submit only calls `preventDefault()`, although step 3 of the history described a thank-you. Fix: add a sent state ("Merci…"), as the Atelier form has. |
-| KI-066 | L | Rentals hero slide shows the wrong piece | `src/components/HomeHero.tsx` `SLIDES[2]` | `inset: IMG.necklace1` (the Mont-Royal pendant photo) is captioned "Gala Diamond Collar" (flagged in step 6). Fix: a real collar photo. |
+| KI-066 | — | **Fixed 2026-10-16.** Rentals hero slide showed the wrong piece | `src/components/HomeHero.tsx` | The hero now features catalog pieces; slide 2 frames the Gala Diamond Collar's boxed-strand photo (`jewelryFlat`). |
 | KI-067 | M | Catalog doesn't cover the brief's sub-types | `src/data/catalog.ts` | Missing from the brief (step 1): religious necklace, hoops, bangles, pinky ring, full eternity band, rental bracelet, wedding-day jewellery under Bridal. Fix: add products (skill `add-product`). |
 | KI-068 | L | Adding from the video viewer or try-on opens the drawer underneath | `addToCart` + z-index ladder | The drawer is `z-[90]`, below the viewer `z-[100]` and the studio `z-[110]`. In step 23 Figma Make offered "close the overlay, then Go to bag". |
 

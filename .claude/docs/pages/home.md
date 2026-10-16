@@ -15,16 +15,18 @@ The copy in this diagram is schematic. Section 8 (Copy deck) has the verbatim st
 ```
   [Header: App-level, sticky (~7rem). Not part of Home]
  +---------------------------------------------------------------------------+
- | 1  HomeHero           vault | h = calc(100svh - 7rem), min-h 680px        |
+ | 1  HomeHero           vault | h = calc(100svh - 7rem), min-h 540px        |
  |  :  3 stacked full-bleed bg images (wipe in from the right on change)     |
  |  :                                                          +---------+   |
- |  :   ---- EYEBROW                                           | inset   |   |
- |  :   (0n) Line one                                          | 3:4     |   |
+ |  :   ---- EYEBROW                                           | piece   |   |
+ |  :   Line one                                               | 3:4     |   |
  |  :          - line two (italic, champagne)                  +---------+   |
- |  :      Line three                                          LABEL     0n  |
- |  :   [body 4/12]    (O->) CTA 4/12       PIECE | WEIGHT | GRADE  4/12     |
- |  :   0n ===------ 03    TAB   TAB   TAB                       SCROLL v    |
- |  :.. vertical side label (rotated -90deg)                                 |
+ |  :      Line three                                          LA PIECE   -> |
+ |  :                                                          Piece name    |
+ |  :   [body]     (O->) CTA                                   CT . F . VS1  |
+ |  :   01 LABEL   02 LABEL   03 LABEL   (||)                  SCROLL |      |
+ |  :   ====----   --------   --------   (active fill = 7 s timer)           |
+ |  :.. vertical side label (centred, vertical writing mode)                 |
  +---------------------------------------------------------------------------+
  | 2  PressStrip    AS SEEN IN | name   name   name   name ...  (marquee <<<) |
  +---------------------------------------------------------------------------+
@@ -168,132 +170,78 @@ On dark sections the text is `text-[var(--bg-travertine)]`, accents are `--gold-
 
 ### 4.1 HomeHero (`src/components/HomeHero.tsx`)
 
-**Purpose.** A full-viewport, three-slide editorial carousel. Each slide has a background image, a framed inset image, a three-line serif headline, body copy, a CTA and a three-cell spec readout. It is the only `<h1>` source on the page.
+A three-slide editorial carousel on the vault background. Each slide pairs a cascading three-line headline with one featured catalog piece, shown in a gold-framed photo at the top right (`lg`). The hero was refined on 2026-10-16 (see the design-intent log); the owner's step 6–7 concept is unchanged.
 
-**Module constants.** `SLIDES` is an array of three object literals with no declared type. `DURATION = 7` is the seconds each slide is shown and also the length of the progress bar. The module also calls `gsap.registerPlugin(ScrollTrigger)`.
-
-```ts
-{
-  eyebrow: 'Collection Lumière · Automne',
-  lines: ['Light, set', 'by hand,', 'since 1962.'],
-  italic: 1,
-  body: 'Three generations of Montreal jewellers crafting GIA-certified diamonds and solid gold heirlooms on rue Sherbrooke.',
-  image: IMG.necklace2,
-  inset: IMG.earrings1,
-  insetLabel: 'Vieux-Port Studs',
-  cta: { label: 'Discover necklaces', to: href.category('necklaces') },
-  spec: ['Rivière Saint-Laurent', '12.40 ct', 'F–G / VS'],
-},
-```
+**Data.** `SLIDES` (module scope), one object per slide:
 
 | Field | Slide 0 | Slide 1 | Slide 2 |
 |---|---|---|---|
+| `nav` (control label) | Lumière | Mariage | Location |
 | `eyebrow` | Collection Lumière · Automne | Chapitre V · Mariage | Chapitre VII · La Location |
-| `lines[0]` | Light, set | A promise, | Borrow the |
-| `lines[1]` (accent; `italic: 1` on every slide) | by hand, | certified | vault |
-| `lines[2]` | since 1962. | to the facet. | for a night. |
-| `body` | Three generations of Montreal jewellers crafting GIA-certified diamonds and solid gold heirlooms on rue Sherbrooke. | Engagement rings with GIA-graded centre stones, hand-set in platinum by our master setter. | High jewelry for galas and premieres, insured and couriered across Canada and the United States. |
-| `image` (background) | `IMG.necklace2` | `IMG.bridal1` | `IMG.jewelryFlat` |
-| `inset` | `IMG.earrings1` | `IMG.bridal2` | `IMG.necklace1` |
-| `insetLabel` | Vieux-Port Studs | Basilique Three-Stone | Gala Diamond Collar |
-| `cta.label` → `cta.to` | Discover necklaces → `#/c/necklaces` | Explore bridal → `#/c/bridal` | View rentals → `#/c/rentals` |
-| `spec[0]` (Piece) | Rivière Saint-Laurent | Notre-Dame Oval | Gala Collar |
-| `spec[1]` (Weight) | 12.40 ct | 1.82 ct | 18.20 ct |
-| `spec[2]` (Grade) | F–G / VS | E / VS1 | From weekend |
-| Slide-button label (`eyebrow.split('·')[1]?.trim() ?? eyebrow`) | Automne | Mariage | La Location |
+| `lines` (`italic: 1`) | Light, set / by hand, / since 1962. | A promise, / certified / to the facet. | Borrow the / vault / for a night. |
+| `image` (background) | `IMG.necklace2` | `IMG.ring1` | `IMG.earrings2` |
+| `piece` (product slug) | `mont-royal-solitaire-pendant` | `notre-dame-oval-solitaire` | `gala-diamond-collar` |
+| `pieceImage` (index into the product's `images`) | 0 (`necklace1`) | 0 (`bridal1`) | 1 (`jewelryFlat`, a boxed strand; image 0 is a chain) |
+| `cta` | Discover necklaces → `href.category('necklaces')` | Explore bridal → `href.category('bridal')` | View rentals → `href.category('rentals')` |
 
-The `spec` values are literals. They match the catalog today (Rivière Saint-Laurent specs, Notre-Dame Oval Solitaire GIA spec, Gala Diamond Collar total carat weight) but are not derived from it.
+- `PIECES = SLIDES.map((s) => getProduct(s.piece))`. A missing product hides that slide's photo and caption instead of throwing.
+- `facts(p)` returns `[carat to 2 dp + ' ct', color, clarity]` from `p.gia`, or `[specs['Total carat weight']]` when there is no GIA report. Rental pieces add "Weekend" plus `<Price amount={p.rental.weekend[currency]} />`.
 
-**State and refs.** `root` (section ref), `index` (`useState(0)`), `busy` (a ref used as a transition lock), and `reduced`. `reduced` is computed during every render as `typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches`.
+**State and refs.** `index` (active slide), `paused` (the user's toggle), `busy` (a transition is running), `progress` (the active progress tween, which is also the autoplay timer), `pausedRef`, and `holds` `{ hover, focus, hidden, offscreen }`. `reduced` is read from `matchMedia` on every render. `sync()` pauses `progress` while `paused` or any hold is true, and resumes it otherwise.
 
-**Structure and layering** (bottom to top):
+**Layout.**
+- `<section aria-roledescription="carousel" aria-label="Featured collections">`: `relative h-[calc(100svh-7rem)] min-h-[540px] overflow-hidden` on the vault. The 540 px floor lets 1366 × 768 laptops (about 657 px of viewport) show the whole hero, controls included.
+- `[data-hero-frame]` holds the three background layers (`absolute -inset-[4%] overflow-hidden`, `data-bg={i}`, `data-hero-bg`) and two grade overlays (`z-[4]`, inline gradients):
+  - below `lg`: a vertical grade rising from the bottom, because the copy spans the full width;
+  - `lg`: ink from the left behind the headline, a floor for the controls, and a soft lid under the header.
+- Each layer's initial `zIndex`/`clipPath` is a constant derived from its *position* (slide 0 visible), never from `index`, so React never rewrites it. GSAP owns both after mount.
+- **The piece** (`<a data-hero-inset href={href.product(piece.slug)}>`, `hidden lg:block absolute right-[6%] top-[11%] z-[5]`):
+  - Width `min(17vw, 250px, (100svh − 26rem) × 0.72)`, so it shrinks on short screens instead of colliding with the controls.
+  - An `aspect-[3/4]` frame with a champagne `outline-offset-8` outline (35 %, 80 % on hover) stacks the three piece photos (`data-inset-img={i}`, `loading="lazy"`, so phones, where the piece is hidden, never fetch them).
+  - Below it, one caption per slide (`data-slide={i}`; inactive ones absolute and transparent): "La pièce" with an `ArrowUpRight` that nudges on hover, the product name (`font-serif-editorial text-[1.375rem]`), and the facts line (`font-spec text-[10px] uppercase tracking-[0.18em] text-white/55`).
+- **Side label** (`lg`): "Joailliers · Montréal · Est. 1962" in `[writing-mode:vertical-rl] rotate-180 whitespace-nowrap`, centred with `top-1/2 -translate-y-1/2` at `lg:left-7`, so it stays centred at any hero height.
+- **Copy** (`[data-hero-copy]`, `z-[6]`, bottom-aligned, `px-6 lg:px-16`, `pb-[clamp(1.25rem,3.5vh,2.5rem)]`): one container per slide (`data-slide={i}`, `role="group" aria-roledescription="slide" aria-label="{n} of 3: {nav}"`). Inactive slides are `aria-hidden`, `inert` and `pointer-events-none absolute opacity-0`.
+  - Eyebrow (`data-fade`): `font-spec text-[10px] uppercase tracking-[0.24em] sm:tracking-[0.34em]` in champagne, after a `w-10` rule.
+  - `<h1>`: `font-serif-editorial font-light leading-[0.86] tracking-[-0.03em] !oldstyle-nums lg:max-w-[72%]` with `fontSize: clamp(3.25rem, min(9.2vw, 14vh), 8.75rem)`. That is about 126 px at 1440 × 900, 92 px at 1366 × 657 and 52 px on phones.
+  - Each headline line is a mask span `block overflow-hidden pb-[0.24em] -mb-[0.16em]` holding a `[data-line]` span. The accent line is indented `pl-[0.8em] sm:pl-[1.4em]`, set `font-normal italic` in champagne and preceded (`sm+`) by a `w-[0.8em]` champagne rule. Line 3 is indented `pl-[0.32em] sm:pl-[0.52em]`.
+  - Body and CTA row (`mt-[clamp(1.5rem,4vh,2.5rem)]`, stacked on phones): the body (`max-w-sm text-sm leading-relaxed text-white/70`) and the CTA link, a 56 px champagne ring whose fill rises on hover, with its label.
+- **Controls** (`[data-hero-meta]`, `mt-[clamp(1.75rem,5vh,3rem)] border-t border-white/15 pt-5`):
+  - An `<ol>` of three buttons. Each shows `0n` (champagne when active) and, from `sm`, the `nav` label, over a 1 px track whose `[data-progress={i}]` fill is that slide's progress line. `aria-label` is "0n {nav}, slide n of 3"; the active one has `aria-current="true"`.
+  - A pause/play button (40 px on phones, 32 px from `sm`), not rendered under reduced motion.
+  - "Scroll" (`sm+`) beside a 28 px hairline with a champagne segment travelling down it (`animate-[scrollCue_2.6s_…_infinite]`, `motion-reduce:animate-none`).
+- A visually hidden live region reads "Slide n of 3: {headline}". It is `aria-live="polite"` only when paused or under reduced motion, and `off` while autoplaying.
 
-1. `<section ref={root}>`: `relative h-[calc(100svh-7rem)] min-h-[680px] overflow-hidden bg-[var(--bg-vault)] text-[var(--bg-travertine)]`. 7rem is 112 px. From the Header classes this works out to the sticky header's height: a 31 px announcement bar, the 80 px `h-20` bar and a 1 px border. That figure is computed from classes, not measured.
-2. `<div data-hero-frame className="absolute inset-0">` holds one background layer per slide: `<div data-bg={i} data-hero-bg className="absolute -inset-[4%] overflow-hidden">` (4 % overscan so the scale and parallax never expose edges). Each layer has inline `zIndex: i === index ? 2 : 1` and `clipPath: i === index ? 'inset(0 0 0 0%)' : 'inset(0 0 0 100%)'`, and wraps `<img alt="" className="h-full w-full object-cover" fetchPriority={i === 0 ? 'high' : 'auto'}>`. There is no `loading` attribute, so all three load eagerly. Two `z-[3]` overlays sit on top: `bg-[radial-gradient(ellipse_at_70%_40%,transparent_0%,rgba(18,17,16,0.55)_70%)]` and `bg-gradient-to-t from-[var(--bg-vault)] via-[var(--bg-vault)]/20 to-[var(--bg-vault)]/40`.
-3. `<figure data-hero-inset>`: `absolute right-[6%] top-[12%] z-[5] hidden w-[17vw] max-w-[260px] lg:block`. Its frame is `relative aspect-[3/4] overflow-hidden outline outline-1 outline-offset-8 outline-[var(--gold-champagne)]/40` and stacks three `<img data-inset-img={i} alt="">` with inline `zIndex` 2/1 and `clipPath` `inset(0% 0 0 0)` / `inset(100% 0 0 0)`. The `<figcaption>` (`font-spec mt-5 flex justify-between text-[9px] uppercase tracking-[0.24em] text-white/60`) shows `slide.insetLabel` and `0{index + 1}` in champagne.
-4. A vertical side label `<p data-hero-meta>`: `font-spec absolute left-6 top-1/2 z-[5] hidden origin-left -translate-y-1/2 -rotate-90 text-[9px] uppercase tracking-[0.5em] text-white/40 lg:block lg:left-10`.
-5. Copy `<div data-hero-copy>`: `relative z-[6] mx-auto flex h-full max-w-[1600px] flex-col justify-end px-6 pb-10 lg:px-16 lg:pb-12`, anchored to the bottom. It holds a `relative` wrapper containing **all three slide blocks**, followed by the controls row. The active slide block has class `relative`. Inactive blocks have `pointer-events-none absolute inset-x-0 bottom-0 opacity-0` and `aria-hidden={i !== index}`.
+**Effects.**
+1. **Intro, scroll-out and pointer parallax** (`useLayoutEffect` in a `gsap.context`, skipped under reduced motion):
+   - the frame opens from `inset(12%)` (1.8 s `expo.inOut`), `[data-hero-meta]` fades up (delay 1.1 s) and the piece fades in (delay 0.9 s);
+   - scrubbed to the hero's scroll: backgrounds `yPercent: 18, scale: 1.08`, copy `yPercent: -30, opacity: 0` (ends at `70% top`), piece `yPercent: -30`;
+   - pointer `quickTo`: the piece moves `x ±12 / y ±9` px (gentle, because it's a link) and the backgrounds `x ±9` px.
+2. **Per-slide reveal and timer** (`useLayoutEffect` on `[index, reduced, go, sync]`):
+   - It kills any tween still on the slide's lines. It then animates `[data-line]` from `{ yPercent: 115, rotate: 2 }` (1.4 s, stagger 0.1, `expo.out`) and the slide's `[data-fade]` elements, the piece caption included, from `{ opacity: 0, y: 14 }`.
+   - It then starts `progress`: the slide's fill goes `scaleX 0 → 1` over `DURATION` (7 s, linear), and `onComplete` calls `go(index + 1)`. `sync()` applies any active hold.
+   - Under reduced motion everything is set to its end state and the fill shows full.
+   - Cleanup kills the timeline and the progress tween.
+3. **Pause sync** (`useEffect` on `paused`) copies the toggle into `pausedRef` and calls `sync()`.
+4. **Holds** (`useEffect`, skipped under reduced motion):
+   - `visibilitychange` sets `hidden`, and an `IntersectionObserver` (threshold 0.2) sets `offscreen`;
+   - mouse enter and leave on the controls list and on the piece set `hover`;
+   - section `onFocus` sets `focus` when the focused element matches `:focus-visible`, and `onBlur` clears it when focus leaves the section.
 
-**Slide block.**
-
-- Eyebrow `<p data-fade>`: `font-spec mb-7 flex items-center gap-4 text-[10px] uppercase tracking-[0.34em] text-[var(--gold-champagne)]`, preceded by a `h-px w-10` champagne rule.
-- `<h1>`: `font-serif-editorial font-light leading-[0.84] tracking-[-0.035em] !oldstyle-nums lg:max-w-[72%]` (old-style figures, so "1962" sits in the line like lowercase) with inline `fontSize: 'clamp(3.4rem, min(10.5vw, 15.5vh), 10rem)'`. The source comment says the size tracks both viewport width and height "so three lines never crowd the controls".
-- Each line has an outer mask span `block overflow-hidden pb-[0.24em] -mb-[0.16em]` (room for Baskervville's descenders; the negative margin keeps the 0.84 leading) plus an indent: the accent line gets `pl-[0.9em] sm:pl-[1.6em]`, the third line `pl-[0.35em] sm:pl-[0.55em]`, the first none. Inside is `<span data-line className="relative inline-flex items-start">`, the element that slides.
-  - Line 0 is prefixed with `(0{i + 1})` (`font-spec mr-4 mt-[0.22em] hidden text-[10px] font-normal not-italic tracking-[0.2em] text-[var(--gold-champagne)] sm:inline`).
-  - The accent line (`li === s.italic`) is prefixed with a short rule (`mr-[0.25em] mt-[0.5em] hidden h-px w-[0.9em] bg-[var(--gold-champagne)]/70 sm:block`), and its text span gets `font-normal italic text-[var(--gold-champagne)]`.
-- Lower grid `mt-8 grid items-end gap-8 lg:mt-10 lg:grid-cols-12`:
-  - Body `<p data-fade>`: `max-w-sm text-sm leading-relaxed text-white/70 lg:col-span-4`.
-  - CTA `<a data-fade href={s.cta.to}>`: `group inline-flex items-center gap-5 justify-self-start text-[11px] font-medium uppercase tracking-[0.26em] lg:col-span-4`. It contains a 56 px circle (`h-14 w-14 rounded-full border border-[var(--gold-champagne)]`) whose champagne fill grows from the bottom on hover (`absolute inset-0 origin-bottom scale-y-0 … transition-transform duration-500 ease-out group-hover:scale-y-100`). `ArrowRight` (size 16, stroke 1.4) turns `--bg-vault` on hover, and the label follows.
-  - Spec `<dl data-fade>`: `font-spec hidden grid-cols-3 gap-6 border-l border-white/15 pl-6 text-[10px] uppercase tracking-[0.18em] lg:col-span-4 lg:grid`. The `dt`s "Piece"/"Weight"/"Grade" are `text-white/40`; the `dd`s come from `spec` (`mt-1.5 text-white/85`).
-
-**Controls row** (`<div data-hero-meta className="mt-12 flex items-center gap-8 border-t border-white/15 pt-6">`):
-
-- Counter (`font-spec flex items-center gap-3 text-[11px] tracking-[0.2em]`): `0{index + 1}` in champagne, then a progress track `relative h-px w-28 overflow-hidden bg-white/20` containing `<span data-progress className="absolute inset-0 origin-left bg-[var(--gold-champagne)]">`, then `0{SLIDES.length}` ("03") in `text-white/40`.
-- One `<button>` per slide: `onClick={() => go(i)}` and `aria-label={`Show slide ${i + 1}`}`. Classes: `font-spec px-2 py-1 text-[9px] uppercase tracking-[0.22em] transition-colors`, plus `text-white` when active or `text-white/35 hover:text-white/70` otherwise.
-- A non-interactive "Scroll" hint: `font-spec ml-auto hidden items-center gap-3 text-[9px] uppercase tracking-[0.3em] text-white/50 sm:flex`, with `ArrowDown` (size 12) using Tailwind `animate-bounce`.
-
-**Effect 1: intro, scroll-out and pointer parallax.** A `useLayoutEffect` with deps `[reduced]`, skipped entirely when `reduced` is true. Its tweens live in a `gsap.context` scoped to the section.
-
-| Target | Tween | Timing / trigger |
-|---|---|---|
-| `[data-hero-frame]` | `gsap.from({ clipPath: 'inset(12% 12% 12% 12%)' })`, an iris opening to the full frame | 1.8 s, `expo.inOut`, on mount |
-| `[data-hero-meta]` (side label and controls row) | `gsap.from({ opacity: 0, y: 16 })` | 1 s, `stagger: 0.08`, `delay: 1.1`, `expo.out` |
-| `[data-hero-bg]` (all 3 layers) | `gsap.to({ yPercent: 18, scale: 1.08, ease: 'none' })` | `scrollTrigger: { trigger: section, start: 'top top', end: 'bottom top', scrub: true }` |
-| `[data-hero-copy]` | `gsap.to({ yPercent: -30, opacity: 0, ease: 'none' })` | same trigger, but `end: '70% top'` |
-| `[data-hero-inset]` | `gsap.to({ yPercent: -40, ease: 'none' })` | same trigger as the backgrounds |
-
-Pointer parallax uses `gsap.quickTo`, created outside the context. The inset gets `x` and `y` (1.2 s, `power3.out`); all `[data-hero-bg]` layers get `x` (1.6 s, `power3.out`). A `pointermove` listener on the section computes `nx = clientX / innerWidth − 0.5` and `ny = clientY / innerHeight − 0.5`, then sets inset `x = nx × −40`, inset `y = ny × −30` and background `x = nx × 18` (pixels). Cleanup removes the listener and reverts the context.
-
-**Effect 2: per-slide headline reveal.** A `useLayoutEffect` with deps `[index]`. It is **not** gated by reduced motion. Inside a context scoped to the section:
-
-- It first calls `gsap.killTweensOf(lines)`. The exit tween from this slide's previous `go()` can still hold its lines; without this, a line could stay stuck above its mask (fixed 2026-10-16).
-- A timeline animates `[data-slide="{index}"] [data-line]` from `{ yPercent: 115, rotate: 2 }` to `{ yPercent: 0, rotate: 0 }` (1.4 s, `stagger: 0.1`, `expo.out`; with 3 lines it spans 1.6 s). It then animates `[data-slide="{index}"] [data-fade]` (eyebrow, body, CTA, spec: 4 elements) from `{ opacity: 0, y: 14 }` to `{ opacity: 1, y: 0 }` (1 s, `stagger: 0.08`, `expo.out`). The fade is positioned `'-=1'`, so it starts at 0.6 s.
-- `[data-progress]` runs `fromTo` `scaleX` 0 → 1 over `DURATION` (7 s) with `ease: 'none'`.
-- Cleanup calls `ctx.revert()`.
-
-**Slide change: `go(next)`** (`useCallback`, deps `[index]`).
-
-- Returns immediately if `busy.current` is set, if `next === index`, or if there is no root. Otherwise it sets `busy.current = true`, computes `target = (next + SLIDES.length) % SLIDES.length` (so `index + 1` wraps from the last slide to 0), creates `q = gsap.utils.selector(root)` and sets `linesOut = 0.7 + 0.05 * (lines − 1)`, the moment the last outgoing line has lifted out (0.8 s for the current 3-line headlines).
-
-```ts
-gsap
-  .timeline({ onComplete: () => { busy.current = false } })
-  .to(q(`[data-slide="${index}"] [data-line]`), { yPercent: -115, duration: 0.7, stagger: 0.05, ease: 'expo.in' })
-  .to(q(`[data-slide="${index}"] [data-fade]`), { opacity: 0, duration: 0.4 }, 0)
-  .fromTo(q(`[data-bg="${target}"]`), { clipPath: 'inset(0 0 0 100%)' }, { clipPath: 'inset(0 0 0 0%)', duration: 1.4, ease: 'expo.inOut' }, 0.1)
-  .fromTo(q(`[data-bg="${target}"] img`), { scale: 1.25 }, { scale: 1, duration: 2.2, ease: 'expo.out' }, 0.1)
-  .fromTo(q(`[data-inset-img="${target}"]`), { clipPath: 'inset(100% 0 0 0)' }, { clipPath: 'inset(0% 0 0 0)', duration: 1.2, ease: 'expo.inOut' }, 0.3)
-  .add(() => setIndex(target), linesOut)
-```
+**`go(next)`.** It wraps the target, then returns if `busy`, if the target is the current slide, or if there is no root.
+- It kills `progress` and puts the incoming background and photo at `zIndex 3` and the outgoing ones at 2 before anything moves, so the wipe always draws over the old image.
+- Under reduced motion it swaps the layers with `gsap.set` and calls `setIndex` at once.
+- Otherwise it sets `busy` and runs this timeline:
 
 | Time (s) | What happens |
 |---|---|
-| 0 | Outgoing headline lines exit upward (−115 %, 0.7 s, stagger 0.05, `expo.in`). Outgoing `data-fade` elements fade to 0 (0.4 s). |
-| 0.1 | The incoming background wipes in from the right edge (left inset 100 % → 0 %, 1.4 s, `expo.inOut`). Its image settles from scale 1.25 to 1 (2.2 s, `expo.out`). |
-| 0.3 | The incoming inset image reveals upward (top inset 100 % → 0 %, 1.2 s, `expo.inOut`). |
-| 0.8 (`linesOut`) | `setIndex(target)`, once every outgoing line is out. React re-renders: inline `zIndex`/`clipPath`, the slide classes and `aria-hidden` flip, Effect 2 replays the headline reveal and restarts the progress bar, and Effect 3 starts a new timer. |
-| 2.3 | The timeline completes and `busy` is released. Clicks on slide buttons between 0 and 2.3 s are ignored. |
+| 0 | Outgoing lines lift out (`yPercent: -115`, 0.7 s, stagger 0.05, `expo.in`), outgoing `[data-fade]` elements fade (0.4 s), and the outgoing fill retracts to the right (`scaleX 0`, 0.6 s, `expo.inOut`). |
+| 0.1 | The incoming background wipes in from the right (`inset(0 0 0 100%)` → `0%`, 1.4 s, `expo.inOut`) and settles from `scale 1.2` (2.2 s, `expo.out`). The outgoing image drifts `xPercent: -4` underneath. |
+| 0.3 | The incoming photo wipes up (`inset(100% 0 0 0)` → `0%`) and settles from `scale 1.12` (1.3 s, `expo.inOut`). |
+| `linesOut` = 0.7 + 0.05 × (lines − 1) = 0.8 | `setIndex(target)`: the new slide reveals and its timer starts. |
+| 1.6 | The outgoing background and photo are clipped away and dropped to `zIndex 1`, and the drift resets. |
+| about 2.3 | The timeline completes and `busy` clears. Clicks before then are ignored. |
 
-Until 0.8 s, React's inline z-index (1 vs 2) keeps the incoming layer underneath the outgoing one. Notes & gotchas covers the visual consequence.
-
-**Effect 3: autoplay** (`useEffect`, deps `[index, go, reduced]`). When `reduced` is false it calls `window.setTimeout(() => go(index + 1), DURATION * 1000)` and clears the timer on cleanup. Both the timer and the progress bar restart whenever `index` changes, which is `linesOut` (0.8 s) into a transition. Nothing pauses autoplay: not hovering, not focus, not the hero leaving the viewport, not a hidden tab.
-
-**Reduced motion summary.** There is no intro, no scroll or pointer parallax and no autoplay. The headline reveal and the 7 s progress fill still run on mount and on every change. A manual `go()` still plays the full wipe timeline.
-
-**Responsive behaviour.**
-
-| Element | < 640 px | ≥ 640 px (`sm`) | ≥ 1024 px (`lg`) |
-|---|---|---|---|
-| Section height | `calc(100svh − 7rem)`, min 680 px | same | same |
-| H1 size | `clamp(3.4rem, min(10.5vw, 15.5vh), 10rem)` | same | same, plus `max-w-[72%]` |
-| `(0n)` prefix and accent rule | hidden | shown | shown |
-| Line indents | accent 0.9em, line 3 0.35em | accent 1.6em, line 3 0.55em | as `sm` |
-| Body / CTA / spec | single column; spec `dl` hidden | same | 12-column grid, 4 + 4 + 4; spec shown |
-| Inset figure, vertical side label | hidden | hidden | shown |
-| Copy padding | `px-6 pb-10` | same | `px-16 pb-12`; lower grid `mt-10` |
-| "Scroll" hint | hidden | shown | shown |
-
-**Accessibility attributes.** Three `<h1>` elements are in the DOM, one per slide; inactive slides get `aria-hidden="true"` and the active one `aria-hidden="false"`. All background and inset images have `alt=""`. Slide buttons have `aria-label="Show slide N"`; there is no `aria-pressed`/`aria-current`, no carousel role or label, and no pause control.
+Each slide therefore waits for 7 s of visible, unpaused progress, and the fill never sits full while waiting.
 
 ### 4.2 PressStrip (`src/components/home/PressStrip.tsx`)
 
@@ -786,13 +734,14 @@ All `IMG` entries are Unsplash URLs built as `https://images.unsplash.com/{id}?a
 | `IMG` key | Where it appears on Home |
 |---|---|
 | `necklace2` | Hero slide 0 background |
-| `earrings1` | Hero slide 0 inset; CategoryIndex "Earrings" |
-| `bridal1` | Hero slide 1 background; CategoryIndex "Bridal Jewelry"; Bridal main image; MakingScroll step 04 |
-| `bridal2` | Hero slide 1 inset; Bridal overlap image; SocialGrid tile 5 |
-| `jewelryFlat` | Hero slide 2 background; CategoryIndex "Jewelry Rentals"; Rentals background; VisitSalon |
-| `necklace1` | Hero slide 2 inset; CategoryIndex "Necklaces"; MakingScroll step 05; SocialGrid tile 4 |
+| `earrings1` | CategoryIndex "Earrings" |
+| `earrings2` | Hero slide 2 background |
+| `bridal1` | Hero slide 1 piece photo (Notre-Dame Oval Solitaire); CategoryIndex "Bridal Jewelry"; Bridal main image; MakingScroll step 04 |
+| `bridal2` | Bridal overlap image; SocialGrid tile 5 |
+| `jewelryFlat` | Hero slide 2 piece photo (Gala Diamond Collar); CategoryIndex "Jewelry Rentals"; Rentals background; VisitSalon |
+| `necklace1` | Hero slide 0 piece photo (Mont-Royal Solitaire Pendant); CategoryIndex "Necklaces"; MakingScroll step 05; SocialGrid tile 4 |
 | `earrings3` | TryOnFeature; SocialGrid tile 1 |
-| `ring1` | FourCs; CategoryIndex "Rings"; MakingScroll step 02 |
+| `ring1` | Hero slide 1 background; FourCs; CategoryIndex "Rings"; MakingScroll step 02 |
 | `ring2` | Heritage (Signet ring); CategoryIndex "Personalized & Custom"; MakingScroll step 01 |
 | `rings` | Heritage (Stacked rings); MakingScroll step 03; SocialGrid tile 3 |
 | `watch1` | CategoryIndex "Watches"; WatchSpotlight row 01 thumb |
@@ -816,32 +765,24 @@ Strings are listed verbatim from source in render order. A ✓ in **UC** means C
 |---|---|---|
 | Vertical side label (lg) | Joailliers · Montréal · Est. 1962 | ✓ |
 | Slide 0 eyebrow | Collection Lumière · Automne | ✓ |
-| Slide 0 line-0 prefix (sm+) | (01) | |
-| Slide 0 H1 line 1 | Light, set | |
-| Slide 0 H1 line 2 | *by hand,* | |
-| Slide 0 H1 line 3 | since 1962. | |
-| Slide 0 body | Three generations of Montreal jewellers crafting GIA-certified diamonds and solid gold heirlooms on rue Sherbrooke. | |
+| Slide 0 H1 lines | Light, set / *by hand,* / since 1962. (the `/` separates the three line spans) | |
+| Slide 0 body | Three generations of Montréal jewellers crafting GIA-certified diamonds and solid gold heirlooms on rue Sherbrooke. | |
 | Slide 0 CTA | Discover necklaces | ✓ |
-| Slide 0 spec | Piece · Weight · Grade → Rivière Saint-Laurent · 12.40 ct · F–G / VS (the `·` and `→` here are only list separators in this doc) | ✓ |
-| Slide 0 inset caption | Vieux-Port Studs | ✓ |
 | Slide 1 eyebrow | Chapitre V · Mariage | ✓ |
-| Slide 1 prefix (sm+) | (02) | |
-| Slide 1 H1 lines | A promise, / *certified* / to the facet. (the `/` separates the three line spans) | |
+| Slide 1 H1 lines | A promise, / *certified* / to the facet. | |
 | Slide 1 body | Engagement rings with GIA-graded centre stones, hand-set in platinum by our master setter. | |
 | Slide 1 CTA | Explore bridal | ✓ |
-| Slide 1 spec values | Notre-Dame Oval / 1.82 ct / E / VS1 (Grade is "E / VS1") | ✓ |
-| Slide 1 inset caption | Basilique Three-Stone | ✓ |
 | Slide 2 eyebrow | Chapitre VII · La Location | ✓ |
-| Slide 2 prefix (sm+) | (03) | |
 | Slide 2 H1 lines | Borrow the / *vault* / for a night. | |
 | Slide 2 body | High jewelry for galas and premieres, insured and couriered across Canada and the United States. | |
 | Slide 2 CTA | View rentals | ✓ |
-| Slide 2 spec values | Gala Collar / 18.20 ct / From weekend | ✓ |
-| Slide 2 inset caption | Gala Diamond Collar | ✓ |
-| Spec labels (`dt`) | Piece; Weight; Grade | ✓ |
-| Inset counter, controls counter | 01 / 02 / 03 (current); 03 (total) | |
-| Slide buttons | Automne; Mariage; La Location | ✓ |
-| Slide button aria-labels | Show slide 1; Show slide 2; Show slide 3 | |
+| Piece label (lg) | La pièce | ✓ |
+| Piece names (lg, from the catalog) | Mont-Royal Solitaire Pendant; Notre-Dame Oval Solitaire; Gala Diamond Collar | |
+| Piece facts (lg, from the catalog) | 0.70 ct · F · VS1; 1.82 ct · E · VS1; 18.20 ct · Weekend {weekend rate in the active currency} | ✓ |
+| Slide controls | 01 Lumière; 02 Mariage; 03 Location (labels from `sm`; numbers only on phones) | ✓ |
+| Slide control aria-labels | 01 Lumière, slide 1 of 3 (and so on) | |
+| Pause control aria-label | Pause slideshow / Play slideshow | |
+| Live region (visually hidden) | Slide n of 3: {the three headline lines} | |
 | Scroll hint (sm+) | Scroll | ✓ |
 | Image alts | all `""` | |
 
@@ -1046,14 +987,14 @@ Typographic characters in this copy: the apostrophe is ’ (U+2019) in "it’s",
 
 **Behaviour and motion**
 
-- **Suspected hero transition glitch (inferred from code, not observed).** In `HomeHero`, inline `zIndex`/`clipPath` come from React state (`index`), which only flips at `linesOut` (0.8 s) inside `go()`. Until then the incoming background and inset animate *underneath* the outgoing ones (z-index 1 vs 2), so the first 0.7 s of the wipe is invisible. At the flip, React rewrites both layers' `clip-path`: the outgoing layer becomes fully clipped while GSAP is still mid-tween on the incoming one (about 50 % of the background wipe, about 16 % of the inset reveal). Expect a cut to a partly revealed image over the vault colour, possibly with a one-frame flash. Check this in a browser before restyling. Driving `zIndex` from GSAP at t = 0 would avoid it.
+- **Hero transition layering (fixed 2026-10-16).** GSAP puts the incoming background and photo above the outgoing ones before the wipe starts, so it always draws over the old image. React's inline layer styles are position constants that it never rewrites.
 - **Reduced motion is only partly honoured.**
-  - HomeHero Effect 2 (headline reveal plus the 7 s progress fill) and manual `go()` wipes ignore `prefers-reduced-motion`. With autoplay off, the progress bar still fills and then sits full.
+  - The hero has honoured it fully since 2026-10-16: no reveals, wipes, autoplay or scroll cue, and slides swap instantly.
   - `Testimonials` auto-rotates every 6.5 s regardless of the preference.
-  - Tailwind `animate-bounce` (hero Scroll arrow), `animate-pulse` (TryOnFeature "Live" dot) and the arbitrary `animate-[fadeUp_…]` (Treasured grid, Testimonials quote) are not covered: `src/index.css` disables only `.film-grain` and `.animate-marquee`.
+  - `animate-pulse` (TryOnFeature "Live" dot) and the arbitrary `animate-[fadeUp_…]` (Treasured grid, Testimonials quote) are not covered: `src/index.css` disables only `.film-grain` and `.animate-marquee`.
 - **MakingScroll with reduced motion on desktop.** At ≥ 1024 px with `prefers-reduced-motion: reduce`, the `gsap.matchMedia` branch does not run, but the track keeps `lg:overflow-visible` inside an `overflow-hidden` section. Cards beyond the viewport width (roughly from the third or fourth card on) are clipped and cannot be reached.
 - **`useReveal` runs once.** Home passes no `deps`. Content mounted later (the Treasured grid after a tab switch, GiftFinder cards for a new filter) gets no GSAP reveal. Any `data-reveal` added to dynamic content does nothing.
-- **Autoplay never pauses.** The hero timer (7 s) and the testimonial interval (6.5 s) keep running off-screen and in hidden tabs, with no pause control (WCAG 2.2.2 concern). A testimonial dot click does not reset the interval, so the next auto-advance can come almost immediately.
+- **Testimonials autoplay never pauses.** The 6.5 s interval keeps running off-screen and in hidden tabs, with no pause control (WCAG 2.2.2 concern). The hero has paused correctly since 2026-10-16. A testimonial dot click does not reset the interval, so the next auto-advance can come almost immediately.
 - **FourCs bar transition never runs.** The scale bar's `transition-all duration-700` has no effect because the panel `<div key={c.key}>` remounts on every tab change. The bar jumps.
 
 **Header-height coupling**
@@ -1062,10 +1003,7 @@ Typographic characters in this copy: the apostrophe is ’ (U+2019) in "it’s",
 
 **Accessibility**
 
-- **Hero:**
-  - The DOM holds three `<h1>`s. The inactive slides are `aria-hidden` but their CTA links stay keyboard-focusable (`pointer-events-none` and `opacity-0` do not remove them from the tab order).
-  - Slide buttons expose "Show slide N" instead of their visible labels ("Automne"…), a WCAG 2.5.3 label-in-name mismatch, and have no selected state.
-  - The `(0n)` prefix is read as part of the H1 at `sm+`.
+- **Hero:** the DOM still holds three `<h1>`s, but since 2026-10-16 the inactive slides are `aria-hidden` and `inert`, so only the active headline and CTA can be reached.
 - **Tabs:** Treasured and FourCs tablists have no `tabpanel`, no `aria-controls` and no arrow-key support. GiftFinder chips have no `aria-pressed`.
 - **SocialGrid:** tiles are `<a href="#/">` with `preventDefault` and no accessible name (`alt=""` plus an icon), so screen readers announce unnamed dead links. "Follow #PorteTeresa" looks like a link but is a span.
 - **PressStrip:** the visible label is "As seen in" but the landmark label is "As featured in". The doubled list is not `aria-hidden`, so every name is read twice.
@@ -1083,8 +1021,8 @@ Typographic characters in this copy: the apostrophe is ’ (U+2019) in "it’s",
 
 - Treasured's "Explore all collections" goes to `#/c/necklaces` only.
 - The hero mixes French "Chapitre V · Mariage" / "Chapitre VII · La Location" with the inline sections' English "Chapter V · Mariage" / "Chapter VII · La Location". Section index numbers ("01"–"09") and "Chapter" numerals are hard-coded per component.
-- Hero slide 2's inset (`IMG.necklace1`) is labelled "Gala Diamond Collar", but that product's images are `IMG.necklace2`/`IMG.jewelryFlat`; `necklace1` is the Mont-Royal pendant's primary image.
-- Hero `spec` values, the WatchSpotlight "Limited · 62 pieces" badge and the "Nine chapters" eyebrow are literals duplicating catalog facts.
+- Hero pieces come from the catalog (`getProduct`), so each slide's photo, name and facts match the product page it links to. Slide 2 shows the collar's second image (`jewelryFlat`), because its first is a chain.
+- The WatchSpotlight "Limited · 62 pieces" badge and the "Nine chapters" eyebrow are literals duplicating catalog facts.
 - The Bridal `SPECS` lists Cut "Excellent", while FourCs says stones are "Excellent or Very Good" and highlights Very Good–Excellent.
 - **GiftFinder:**
   - Budget thresholds are the same raw numbers in both currencies, so results change with currency (see the 4.9 matrix).
@@ -1092,15 +1030,15 @@ Typographic characters in this copy: the apostrophe is ’ (U+2019) in "it’s",
   - The empty state appears for Anniversary + Under $1,000 (both currencies) and For myself + Under $1,000 (CAD).
   - The gift card can appear as a result.
 - **Treasured:** "Bestsellers" has 7 matches but shows 6, dropping Initial Disc Pendant, and includes a rental (Bridal Tiara & Drops Set, "From $480 CAD").
-- **Reused imagery:** `IMG.jewelryFlat` is the hero slide 2 background, the CategoryIndex rentals image, the Rentals background and the VisitSalon "salon" photo.
+- **Reused imagery:** `IMG.jewelryFlat` is the hero slide 2 piece photo, the CategoryIndex rentals image, the Rentals background and the VisitSalon "salon" photo.
 - **VisitSalon:** the Google Maps query omits the street number "1420".
 - **Home ShoppableVideos call:** it passes `eyebrow` and `title` identical to the component defaults.
 
 **Performance**
 
 - All `IMG` URLs request `w=1600`, including the 56 × 64 px WatchSpotlight thumbnails and small tiles.
-- The 3 hero backgrounds, 3 hero insets (even below `lg`, where the figure is hidden) and the 9 CategoryIndex preview images have no `loading="lazy"`.
-- The hero keeps animating and swapping slides while off-screen.
+- The 3 hero backgrounds and the 9 CategoryIndex preview images have no `loading="lazy"`. The hero piece photos are lazy, so phones skip them.
+- The hero pauses its autoplay off-screen and in hidden tabs; only its scroll-linked tweens keep updating.
 
 **Implementation details worth knowing**
 

@@ -176,13 +176,13 @@ All URLs have the form `https://images.unsplash.com/<photo id>?auto=format&fit=c
 | `jewelryFlat` | `photo-1515562141207-7a88fb7ce338` | `rentals.hero`; `tns-nk-002`[1], `tns-rn-001`[1]; `REVIEW_MEDIA.necklace` | `HomeHero`, `Home`, `VisitSalon` |
 | `necklace1` | `photo-1599643478518-a784e5dc4c8f` | `necklaces.hero`; `tns-nk-001`[0], `tns-nk-003`[0], `tns-gf-001`[1], `tns-cs-003`[0]; `REVIEW_MEDIA.necklace` | `HomeHero`, `MakingScroll`, `SocialGrid` |
 | `necklace2` | `photo-1602173574767-37ac01994b2a` | `necklaces.feature`, `rentals.feature`; `tns-nk-001`[1], `tns-nk-002`[0], `tns-rn-001`[0]; `REVIEW_MEDIA.necklace` | `HomeHero` |
-| `ring1` | `photo-1605100804763-247f67b3557e` | `rings.hero`; `tns-rg-002`[0], `tns-bd-001`[1]; `REVIEW_MEDIA.ring` | `FourCs`, `MakingScroll` |
+| `ring1` | `photo-1605100804763-247f67b3557e` | `rings.hero`; `tns-rg-002`[0], `tns-bd-001`[1]; `REVIEW_MEDIA.ring` | `HomeHero`, `FourCs`, `MakingScroll` |
 | `ring2` | `photo-1603561591411-07134e71a2a9` | `custom.hero`; `tns-rg-001`[0], `tns-cs-001`[0]; `REVIEW_MEDIA.ring` | `Atelier`, `Home`, `MakingScroll` |
 | `rings` | `photo-1600721391776-b5cd0e0048f9` | `rings.feature`, `custom.feature`; `tns-rg-001`[1], `tns-rg-003`[0], `tns-bd-002`[1], `tns-cs-002`[0]; `REVIEW_MEDIA.ring` | `Home`, `MakingScroll`, `SocialGrid` |
 | `bracelet1` | `photo-1611591437281-460bfbe1220a` | `bracelets.hero`; `tns-br-001`[0], `tns-br-003`[0]; `REVIEW_MEDIA.bracelet` | — |
 | `bracelet2` | `photo-1611652022419-a9419f74343d` | `bracelets.feature`; `tns-br-001`[1], `tns-br-002`[0]; `REVIEW_MEDIA.bracelet` | `SocialGrid` |
-| `earrings1` | `photo-1535632066927-ab7c9ab60908` | `earrings.hero`; `tns-er-001`[0], `tns-er-002`[1]; `REVIEW_MEDIA.earrings` | `HomeHero` |
-| `earrings2` | `photo-1617038220319-276d3cfab638` | `tns-er-002`[0], `tns-rn-002`[0], `tns-gf-002`[1]; `REVIEW_MEDIA.earrings` | — |
+| `earrings1` | `photo-1535632066927-ab7c9ab60908` | `earrings.hero`; `tns-er-001`[0], `tns-er-002`[1]; `REVIEW_MEDIA.earrings` | — |
+| `earrings2` | `photo-1617038220319-276d3cfab638` | `tns-er-002`[0], `tns-rn-002`[0], `tns-gf-002`[1]; `REVIEW_MEDIA.earrings` | `HomeHero` |
 | `earrings3` | `photo-1630019852942-f89202989a59` | `earrings.feature`; `tns-er-001`[1], `tns-er-003`[0]; `REVIEW_MEDIA.earrings` | `SocialGrid`, `TryOnFeature` |
 | `bridal1` | `photo-1596944924616-7b38e7cfac36` | `bridal.hero`; `tns-bd-001`[0], `tns-rn-003`[0] | `HomeHero`, `Home`, `MakingScroll` |
 | `bridal2` | `photo-1515934751635-c81c6bc9a2d8` | `bridal.feature`; `tns-bd-002`[0], `tns-bd-003`[0], `tns-cs-001`[1]; `REVIEW_MEDIA.ring` | `HomeHero`, `Account`, `Home`, `SocialGrid` |

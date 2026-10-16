@@ -37,7 +37,7 @@ This repo is a Shopify-store **theme design prototype** for Teresa & Sons, a Mon
 | Task | Command | Notes |
 |---|---|---|
 | Typecheck | `npx tsc --noEmit -p .` | Baseline is 0 errors. `pnpm run build` does **not** typecheck. |
-| Build | `pnpm run build` | Main chunk baseline: 618 kB (187 kB gzip), measured 2026-10-16 after BackToTop. |
+| Build | `pnpm run build` | Main chunk baseline: 622 kB (188 kB gzip), measured 2026-10-16 after the hero refinement. |
 | Dev server | `pnpm dev`, then open `http://localhost:8443/#/` | Figma Make already runs it on `$PORT` (8443). Locally you start it yourself. `strictPort` is on; set `PORT` to change the port. |
 
 No tests and no linter exist.

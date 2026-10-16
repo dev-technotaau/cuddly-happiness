@@ -27,7 +27,7 @@ Scope: compiled 2026-10-15 from `history/figma-make-log.md`, `design-intent.md`,
 1. Unify the "needs configuration" rule across all quick-add buttons (§3.1).
 2. Make card, rail and PDP opening prices agree (§3.2).
 3. Give the newsletter form a thank-you state (§1.4).
-4. Use a fitting photo in the rentals hero slide (§1.5).
+4. ~~Use a fitting photo in the rentals hero slide (§1.5).~~ Done 2026-10-16.
 5. Set a real page title (§6.1). This edits a platform file, which asks for confirmation.
 6. Fix the "Try this collection on" link showing on phones (§4.9).
 7. Add a visible keyboard focus style (§4.1).
@@ -41,7 +41,7 @@ Scope: compiled 2026-10-15 from `history/figma-make-log.md`, `design-intent.md`,
 - [ ] ✗ **P3 · PROTO · Face/hand tracking for try-on.** Offered in step 16 and never requested. It would need a large tracking library, which goes against the minimal-dependency rule, so **ask the owner before starting**. Today placement is manual.
 - [ ] ◐ **P2 · PROTO · Home chapter numbering.** Step 9 numbered the home page 01–09. Sections added later (TryOnFeature, ShoppableVideos, RecentlyViewed "—") sit outside that sequence, and the indexes are hand-typed. Renumber them, or compute them as the PDP does with `sectionOrder`. Files: `pages/Home.tsx`, `components/home/*`.
 - [ ] ✗ **P1 · PROTO · Newsletter thank-you.** Step 3 said it shows a thank-you. Today `Footer.tsx` only calls `preventDefault()`. Add a sent state ("Merci…"), mirroring the Atelier form. Source: KI-065.
-- [ ] ✗ **P1 · PROTO · Rentals hero slide photo.** Step 6 flagged this. `SLIDES[2]` shows the pendant photo (`IMG.necklace1`) captioned "Gala Diamond Collar". Pick a better-matching existing image, or mark it a placeholder. File: `HomeHero.tsx`. Source: KI-066.
+- [x] ✗ **P1 · PROTO · Rentals hero slide photo.** Done 2026-10-16: the hero now features catalog pieces, and slide 2 frames the Gala Diamond Collar's boxed-strand photo (`jewelryFlat`). Real photography is still a placeholder (§7).
 - [ ] ◐ **P3 · PROTO · GIA details on more diamond pieces.** Step 2 claimed 8 pieces had them; only 4 do. Add sample `gia` specs to other diamond pieces (e.g. Rivière Saint-Laurent, Westmount Tennis) so the GIA card and cost breakdown appear more widely. File: `data/catalog.ts`.
 - [ ] ◐ **P3 · PROTO · Rental periods.** The plan said 4-day / 8-day rates; weekend / week / month (3 / 7 / 30 days) was built. **Confirm with the owner**; there is no action unless they want different periods.
 - [ ] ◐ **P3 · PROTO · Real close-ups for the gallery "Detail" view.** Step 14 noted it is only a tighter crop of the main photo. Needs content (see §7).
@@ -150,7 +150,7 @@ Scope: compiled 2026-10-15 from `history/figma-make-log.md`, `design-intent.md`,
 1. [ ] **P1 · Site title.** The tab and `og:title` say "Figma Make App". Set `title` (and optionally `language`) in `.figma/make/site.json`, and consider per-route `document.title`. Source: KI-002.
 2. [ ] **P2 · Formatter.** `pnpm run format` (oxfmt 0.2.0) corrupts the code and is denied in settings. Add a config matching the house style (single quotes, no semicolons, wide lines) and verify it on a copy, or leave it denied. Source: KI-001.
 3. [ ] **P2 · No typecheck in build or deploy.** Consider a `typecheck` script. Source: KI-004.
-4. [ ] **P3 · 618 kB main chunk** is over the 500 kB warning. `lazy()` the pages. Source: KI-005.
+4. [ ] **P3 · 622 kB main chunk** is over the 500 kB warning. `lazy()` the pages. Source: KI-005.
 5. [ ] **P3 · Favicon** is the Figma Make default. Source: KI-003.
 6. [ ] **P3 · tsconfig.** `lib: ES2020` is narrower than the runtime target, and `types: ["node"]` leaks Node globals into browser code. Source: KI-006.
 7. [ ] **P3 · Platform flags.**
@@ -176,7 +176,7 @@ Replace these only when real content exists. They are listed so they never ship 
 - [ ] **Brand facts.** Salon address, phone and hours. Family names (Teresa, Antonio and Marco Moretti) and the heritage quote. Note the story mentions rue Sainte-Catherine while the salon is on rue Sherbrooke.
 - [ ] **Press and social proof.** "As seen in" press names (real publications could mislead). Testimonials and "4.9 / 5 · 1,200+ reviews". PDP reviews, ratings and client media.
 - [ ] **Social handles.** Instagram handle `@teresaandsons`, the grid photos, and the film handles such as `@claire.weds`.
-- [ ] **Imagery.** Product photography (18 Unsplash images reused across 27 products). The gallery "Detail" crop needs real close-ups. The rentals hero inset is mismatched (§1).
+- [ ] **Imagery.** Product photography (18 Unsplash images reused across 27 products). The gallery "Detail" crop needs real close-ups.
 - [ ] **Films.** Mixkit stock; they don't show the actual pieces (e.g. "The oval, up close").
 - [ ] **Product data.** GIA report numbers, specs, prices, collection-story stats and FAQ answers.
 - [ ] **Cost breakdown.** Gram rates, bench rate, stone values and margins. Showing these is a public claim, so use real costs before anything is shown to customers.
@@ -213,6 +213,13 @@ Work that was never on the list, logged so it isn't redone or undone:
 - [x] **Typography (2026-10-16).** Baskervville display, Jost for text and figures, caps wordmark; `font-spec` renamed `font-spec`. Docs: `design-system.md` §2.
 - [x] **Phones at 390 px (2026-10-16).** The wordmark stays on one line, the currency switch moved into the mobile menu below `sm`, and product cards stack name over price (this removed a 23 px horizontal overflow).
 - [x] **Hero headline (2026-10-16).** A line could stay stuck above its mask when a slide returned while its exit tween still ran; fixed with `killTweensOf` and `setIndex` at `linesOut`. The line masks no longer clip descenders.
+- [x] **Hero refined (2026-10-16).** Changes, documented in `pages/home.md` §4.1:
+  - a catalog-driven featured piece (photo, name, GIA facts, link);
+  - per-slide progress controls with a pause button;
+  - autoplay that pauses on hover, keyboard focus, hidden tabs and off-screen;
+  - full reduced-motion support, and carousel semantics with `inert` slides;
+  - layered wipes without the mid-transition cut;
+  - height-aware sizing for short laptops, plus a phone grade and phone controls.
 
 ## Notes & gotchas
 

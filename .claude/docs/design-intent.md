@@ -69,6 +69,7 @@ The look was spelled out in the owner's words:
 | Adding opens the drawer; PDP and sticky bar show "Go to bag" | 23 | — |
 | Back-to-top control: a progress bezel that expands on intent, lifts above `data-fab-avoid` bars and offers a return trip | After 23 (Claude Code) | `BackToTop.tsx`. Asked for a premium, smart button that never overlaps anything, with a smooth, never stepped, progress indicator |
 | Typography: Baskervville display; Jost for text, labels and figures (`font-spec`); Pinyon Script only for engraving; caps wordmark with a gold italic ampersand | After 23 (Claude Code, 2026-10-16) | Replaced Cormorant Garamond, Plus Jakarta Sans and JetBrains Mono, which the owner found irritating. Asked for calm, premium, memorable faces that carry the legacy, without aggressive curves |
+| Hero refined: one catalog piece per slide (photo, name, GIA facts, link), per-slide progress controls with pause, autoplay that waits on hover, focus and off-screen, layered wipes, a smaller height-aware headline | After 23 (Claude Code, 2026-10-16) | The owner asked for a more polished, refined hero. The step 6–7 concept is unchanged; the duplicate slide numbers and the bouncing arrow were removed |
 
 ## 4. Open items from the history
 
@@ -79,7 +80,7 @@ The look was spelled out in the owner's words:
 | Face/hand tracking for try-on | 16 | Offered, not built |
 | "Go to bag" from the video viewer and try-on (close the overlay first) | 23 | Offered, not built. The drawer still opens underneath the overlay (KI-068) |
 | Newsletter thank-you | 3 | ✗ The form does nothing on submit (KI-065) |
-| Real photo for the rentals hero slide | 6 | ✗ Still the pendant photo (KI-066) |
+| Real photo for the rentals hero slide | 6 | ✓ 2026-10-16: the slide frames the Gala Diamond Collar's own catalog photo (`jewelryFlat`, a boxed strand). Real photography is still a placeholder |
 | GIA details on 8 pieces | 2 | ~ 4 pieces today |
 | Shopify wiring | 3, 5, 10, 15, 17, 20, 22 | Simulated by design. Out of scope for this prototype; belongs to the future theme build |
 

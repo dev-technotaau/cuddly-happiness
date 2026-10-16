@@ -124,7 +124,7 @@ Deep dives: [Home page](pages/home.md), [Category page & product card](pages/cat
 
 **Home (`#/`)**, top to bottom (section index → heading → primary links):
 
-1. `HomeHero` — 3 slides, auto-advancing every 7 s (`DURATION = 7`; no autoplay under `prefers-reduced-motion`): "Collection Lumière · Automne" ("Light, set / by hand, / since 1962." → "Discover necklaces"), "Chapitre V · Mariage" ("A promise, / certified / to the facet." → "Explore bridal"), "Chapitre VII · La Location" ("Borrow the / vault / for a night." → "View rentals"). Slide buttons read "Automne", "Mariage", "La Location".
+1. `HomeHero` — 3 slides, auto-advancing after 7 s of visible playback (`DURATION = 7`; it pauses on hover, keyboard focus, hidden tabs and off-screen, has a pause button, and does not autoplay under `prefers-reduced-motion`): "Collection Lumière · Automne" ("Light, set / by hand, / since 1962." → "Discover necklaces"), "Chapitre V · Mariage" ("A promise, / certified / to the facet." → "Explore bridal"), "Chapitre VII · La Location" ("Borrow the / vault / for a night." → "View rentals"). Slide controls read "01 Lumière", "02 Mariage" and "03 Location". On `lg` each slide features a catalog piece: Mont-Royal Solitaire Pendant, Notre-Dame Oval Solitaire, Gala Diamond Collar.
 2. `PressStrip` — "As seen in": Vogue, ELLE Québec, The Globe and Mail, Harper’s Bazaar, La Presse, Town & Country, Montreal Gazette, Brides (marquee, text only).
 3. `CategoryIndex` — "01 · Nine chapters · The Index"; desktop typographic list with a cursor-following hero preview and "{n} pieces" per chapter; mobile/tablet image cards.
 4. `Treasured` — "02 · The selection · Most treasured"; tabs "Bestsellers" / "New arrivals" / "Atelier exclusives" (up to 6 cards); "Explore all collections" → `#/c/necklaces`.
@@ -183,7 +183,7 @@ Routes: **All** = global chrome; Home, Category, PDP, Cart, Checkout, Gift cards
 
 | Feature | What it does | Files | Routes | Persistence |
 |---|---|---|---|---|
-| Hero carousel | 3 slides with clip-path transitions, progress bar, slide buttons, pointer parallax; spec strip (Piece / Weight / Grade) on `lg` | `src/components/HomeHero.tsx` | Home | none |
+| Hero carousel | 3 slides with layered clip-path wipes, per-slide progress controls with a pause button, and pointer parallax; on `lg`, a featured catalog piece (photo, name, GIA facts, link) | `src/components/HomeHero.tsx` | Home | none |
 | Press strip | "As seen in" marquee of 8 publication names | `src/components/home/PressStrip.tsx` | Home | none |
 | Chapters index | 9 categories with product counts; cursor-following image preview on desktop | `src/components/home/CategoryIndex.tsx` | Home | none |
 | Most treasured | Tabs by badge: "Bestsellers" (`Bestseller`), "New arrivals" (`New`), "Atelier exclusives" (`Atelier Exclusive`); first 6 matches | `src/components/home/Treasured.tsx` | Home | none |

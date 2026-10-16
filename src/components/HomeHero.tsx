@@ -1,55 +1,75 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { ArrowDown, ArrowRight } from 'lucide-react'
-import { IMG } from '../data/catalog'
-import { href } from '../store'
+import { ArrowRight, ArrowUpRight, Pause, Play } from 'lucide-react'
+import { getProduct, IMG, type Product } from '../data/catalog'
+import { href, useStore } from '../store'
+import Price from './Price'
 
 gsap.registerPlugin(ScrollTrigger)
 
 const SLIDES = [
   {
+    nav: 'Lumière',
     eyebrow: 'Collection Lumière · Automne',
     lines: ['Light, set', 'by hand,', 'since 1962.'],
     italic: 1,
-    body: 'Three generations of Montreal jewellers crafting GIA-certified diamonds and solid gold heirlooms on rue Sherbrooke.',
+    body: 'Three generations of Montréal jewellers crafting GIA-certified diamonds and solid gold heirlooms on rue Sherbrooke.',
     image: IMG.necklace2,
-    inset: IMG.earrings1,
-    insetLabel: 'Vieux-Port Studs',
+    piece: 'mont-royal-solitaire-pendant',
+    pieceImage: 0,
     cta: { label: 'Discover necklaces', to: href.category('necklaces') },
-    spec: ['Rivière Saint-Laurent', '12.40 ct', 'F–G / VS'],
   },
   {
+    nav: 'Mariage',
     eyebrow: 'Chapitre V · Mariage',
     lines: ['A promise,', 'certified', 'to the facet.'],
     italic: 1,
     body: 'Engagement rings with GIA-graded centre stones, hand-set in platinum by our master setter.',
-    image: IMG.bridal1,
-    inset: IMG.bridal2,
-    insetLabel: 'Basilique Three-Stone',
+    image: IMG.ring1,
+    piece: 'notre-dame-oval-solitaire',
+    pieceImage: 0,
     cta: { label: 'Explore bridal', to: href.category('bridal') },
-    spec: ['Notre-Dame Oval', '1.82 ct', 'E / VS1'],
   },
   {
+    nav: 'Location',
     eyebrow: 'Chapitre VII · La Location',
     lines: ['Borrow the', 'vault', 'for a night.'],
     italic: 1,
     body: 'High jewelry for galas and premieres, insured and couriered across Canada and the United States.',
-    image: IMG.jewelryFlat,
-    inset: IMG.necklace1,
-    insetLabel: 'Gala Diamond Collar',
+    image: IMG.earrings2,
+    // The collar's boxed-strand photo; its first image is a chain that reads nothing like a collar.
+    piece: 'gala-diamond-collar',
+    pieceImage: 1,
     cta: { label: 'View rentals', to: href.category('rentals') },
-    spec: ['Gala Collar', '18.20 ct', 'From weekend'],
   },
 ]
 
+const PIECES = SLIDES.map((s) => getProduct(s.piece))
 const DURATION = 7
 
+/** Carat, colour and clarity from the GIA report, or the total weight for pieces without one. */
+const facts = (p: Product) => (p.gia ? [`${p.gia.carat.toFixed(2)} ct`, p.gia.color, p.gia.clarity] : [p.specs['Total carat weight']].filter(Boolean))
+
 export default function HomeHero() {
+  const { currency } = useStore()
   const root = useRef<HTMLElement>(null)
   const [index, setIndex] = useState(0)
+  const [paused, setPaused] = useState(false)
   const busy = useRef(false)
+  const progress = useRef<gsap.core.Tween | null>(null)
+  const pausedRef = useRef(false)
+  // Autoplay also waits while the controls or the piece are hovered, while keyboard focus is inside, and while the hero is hidden or off-screen.
+  const holds = useRef({ hover: false, focus: false, hidden: false, offscreen: false })
   const reduced = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+  const sync = useCallback(() => {
+    const t = progress.current
+    if (!t) return
+    const h = holds.current
+    if (pausedRef.current || h.hover || h.focus || h.hidden || h.offscreen) t.pause()
+    else t.resume()
+  }, [])
 
   // Intro + scroll-out + pointer parallax
   useLayoutEffect(() => {
@@ -57,11 +77,12 @@ export default function HomeHero() {
     const ctx = gsap.context(() => {
       gsap.from('[data-hero-frame]', { clipPath: 'inset(12% 12% 12% 12%)', duration: 1.8, ease: 'expo.inOut' })
       gsap.from('[data-hero-meta]', { opacity: 0, y: 16, duration: 1, stagger: 0.08, delay: 1.1, ease: 'expo.out' })
+      gsap.from('[data-hero-inset]', { opacity: 0, duration: 1.4, delay: 0.9, ease: 'expo.out' })
 
       const st = { trigger: root.current, start: 'top top', end: 'bottom top', scrub: true }
       gsap.to('[data-hero-bg]', { yPercent: 18, scale: 1.08, ease: 'none', scrollTrigger: st })
       gsap.to('[data-hero-copy]', { yPercent: -30, opacity: 0, ease: 'none', scrollTrigger: { ...st, end: '70% top' } })
-      gsap.to('[data-hero-inset]', { yPercent: -40, ease: 'none', scrollTrigger: st })
+      gsap.to('[data-hero-inset]', { yPercent: -30, ease: 'none', scrollTrigger: st })
     }, root)
 
     const el = root.current
@@ -71,8 +92,9 @@ export default function HomeHero() {
     const onMove = (e: PointerEvent) => {
       const nx = e.clientX / window.innerWidth - 0.5
       const ny = e.clientY / window.innerHeight - 0.5
-      qx(nx * -40)
-      qy(ny * -30)
+      // Gentle on the piece: it's a link, so it shouldn't run from the cursor.
+      qx(nx * -24)
+      qy(ny * -18)
       bx(nx * 18)
     }
     el.addEventListener('pointermove', onMove)
@@ -82,53 +104,122 @@ export default function HomeHero() {
     }
   }, [reduced])
 
-  // Headline reveal per slide
-  useLayoutEffect(() => {
-    if (!root.current) return
-    const el = root.current
-    const ctx = gsap.context(() => {
-      const lines = el.querySelectorAll(`[data-slide="${index}"] [data-line]`)
-      // A tween from this slide's previous exit may still hold its lines; take them over cleanly.
-      gsap.killTweensOf(lines)
-      const tl = gsap.timeline()
-      tl.fromTo(lines, { yPercent: 115, rotate: 2 }, { yPercent: 0, rotate: 0, duration: 1.4, stagger: 0.1, ease: 'expo.out' })
-        .fromTo(`[data-slide="${index}"] [data-fade]`, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 1, stagger: 0.08, ease: 'expo.out' }, '-=1')
-      gsap.fromTo('[data-progress]', { scaleX: 0 }, { scaleX: 1, duration: DURATION, ease: 'none' })
-    }, root)
-    return () => ctx.revert()
-  }, [index])
-
   const go = useCallback(
     (next: number) => {
-      if (busy.current || next === index || !root.current) return
-      busy.current = true
       const target = (next + SLIDES.length) % SLIDES.length
+      if (busy.current || target === index || !root.current) return
+      progress.current?.kill()
+      progress.current = null
       const q = gsap.utils.selector(root)
+      const inBg = q(`[data-bg="${target}"]`)
+      const outBg = q(`[data-bg="${index}"]`)
+      const inInset = q(`[data-inset-img="${target}"]`)
+      const outInset = q(`[data-inset-img="${index}"]`)
+      // The incoming layers sit above the outgoing ones from the first frame, so the wipe always reveals over the old image.
+      gsap.set([outBg, outInset], { zIndex: 2 })
+      gsap.set([inBg, inInset], { zIndex: 3 })
+      if (reduced) {
+        gsap.set(inBg, { clipPath: 'inset(0 0 0 0%)' })
+        gsap.set(inInset, { clipPath: 'inset(0% 0 0 0)' })
+        gsap.set(outBg, { clipPath: 'inset(0 0 0 100%)', zIndex: 1 })
+        gsap.set(outInset, { clipPath: 'inset(100% 0 0 0)', zIndex: 1 })
+        setIndex(target)
+        return
+      }
+      busy.current = true
       // Swap slides only after every line of the old headline has lifted out (0.7 s + 0.05 s stagger per extra line).
       const linesOut = 0.7 + 0.05 * (SLIDES[index].lines.length - 1)
       gsap
         .timeline({ onComplete: () => { busy.current = false } })
         .to(q(`[data-slide="${index}"] [data-line]`), { yPercent: -115, duration: 0.7, stagger: 0.05, ease: 'expo.in' })
         .to(q(`[data-slide="${index}"] [data-fade]`), { opacity: 0, duration: 0.4 }, 0)
-        .fromTo(q(`[data-bg="${target}"]`), { clipPath: 'inset(0 0 0 100%)' }, { clipPath: 'inset(0 0 0 0%)', duration: 1.4, ease: 'expo.inOut' }, 0.1)
-        .fromTo(q(`[data-bg="${target}"] img`), { scale: 1.25 }, { scale: 1, duration: 2.2, ease: 'expo.out' }, 0.1)
-        .fromTo(q(`[data-inset-img="${target}"]`), { clipPath: 'inset(100% 0 0 0)' }, { clipPath: 'inset(0% 0 0 0)', duration: 1.2, ease: 'expo.inOut' }, 0.3)
+        .to(q(`[data-progress="${index}"]`), { scaleX: 0, transformOrigin: 'right center', duration: 0.6, ease: 'expo.inOut' }, 0)
+        .fromTo(inBg, { clipPath: 'inset(0 0 0 100%)' }, { clipPath: 'inset(0 0 0 0%)', duration: 1.4, ease: 'expo.inOut' }, 0.1)
+        .fromTo(q(`[data-bg="${target}"] img`), { scale: 1.2, xPercent: 0 }, { scale: 1, duration: 2.2, ease: 'expo.out' }, 0.1)
+        // The old image drifts left as the new one draws across it.
+        .to(q(`[data-bg="${index}"] img`), { xPercent: -4, duration: 1.4, ease: 'expo.inOut' }, 0.1)
+        .fromTo(inInset, { clipPath: 'inset(100% 0 0 0)', scale: 1.12 }, { clipPath: 'inset(0% 0 0 0)', scale: 1, duration: 1.3, ease: 'expo.inOut' }, 0.3)
         .add(() => setIndex(target), linesOut)
+        .set(outBg, { clipPath: 'inset(0 0 0 100%)', zIndex: 1 }, 1.6)
+        .set(q(`[data-bg="${index}"] img`), { xPercent: 0 }, 1.6)
+        .set(outInset, { clipPath: 'inset(100% 0 0 0)', zIndex: 1 }, 1.6)
     },
-    [index],
+    [index, reduced],
   )
 
+  // Headline reveal per slide; the progress line doubles as the autoplay timer, so pausing it pauses the slideshow.
+  useLayoutEffect(() => {
+    if (!root.current) return
+    const el = root.current
+    const lines = el.querySelectorAll(`[data-slide="${index}"] [data-line]`)
+    const fades = el.querySelectorAll(`[data-slide="${index}"] [data-fade]`)
+    const bar = el.querySelector(`[data-progress="${index}"]`)
+    // A tween from this slide's previous exit may still hold its lines; take them over cleanly.
+    gsap.killTweensOf(lines)
+    let tl: gsap.core.Timeline | null = null
+    if (reduced) {
+      gsap.set(lines, { yPercent: 0, rotate: 0 })
+      gsap.set(fades, { opacity: 1, y: 0 })
+      gsap.set(bar, { scaleX: 1, transformOrigin: 'left center' })
+    } else {
+      tl = gsap
+        .timeline()
+        .fromTo(lines, { yPercent: 115, rotate: 2 }, { yPercent: 0, rotate: 0, duration: 1.4, stagger: 0.1, ease: 'expo.out' })
+        .fromTo(fades, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 1, stagger: 0.08, ease: 'expo.out' }, '-=1')
+      progress.current = gsap.fromTo(bar, { scaleX: 0, transformOrigin: 'left center' }, { scaleX: 1, duration: DURATION, ease: 'none', onComplete: () => go(index + 1) })
+      sync()
+    }
+    return () => {
+      tl?.kill()
+      progress.current?.kill()
+      progress.current = null
+      if (reduced) gsap.set(bar, { scaleX: 0 })
+    }
+  }, [index, reduced, go, sync])
+
   useEffect(() => {
-    if (reduced) return
-    const id = window.setTimeout(() => go(index + 1), DURATION * 1000)
-    return () => window.clearTimeout(id)
-  }, [index, go, reduced])
+    pausedRef.current = paused
+    sync()
+  }, [paused, sync])
+
+  useEffect(() => {
+    const el = root.current
+    if (!el || reduced) return
+    const onVisibility = () => {
+      holds.current.hidden = document.hidden
+      sync()
+    }
+    const io = new IntersectionObserver(([entry]) => {
+      holds.current.offscreen = !entry.isIntersecting
+      sync()
+    }, { threshold: 0.2 })
+    io.observe(el)
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => {
+      io.disconnect()
+      document.removeEventListener('visibilitychange', onVisibility)
+    }
+  }, [reduced, sync])
+
+  const hold = (on: boolean) => (e: React.PointerEvent) => {
+    if (e.pointerType !== 'mouse') return
+    holds.current.hover = on
+    sync()
+  }
 
   const slide = SLIDES[index]
+  const piece = PIECES[index]
 
   return (
-    <section ref={root} className="relative h-[calc(100svh-7rem)] min-h-[680px] overflow-hidden bg-[var(--bg-vault)] text-[var(--bg-travertine)]">
-      {/* Background stack */}
+    <section
+      ref={root}
+      aria-roledescription="carousel"
+      aria-label="Featured collections"
+      onFocus={(e) => { holds.current.focus = e.target.matches(':focus-visible'); sync() }}
+      onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) { holds.current.focus = false; sync() } }}
+      className="relative h-[calc(100svh-7rem)] min-h-[540px] overflow-hidden bg-[var(--bg-vault)] text-[var(--bg-travertine)]"
+    >
+      {/* Background stack. Initial layering is fixed by slide position; after that GSAP owns zIndex and clipPath. */}
       <div data-hero-frame className="absolute inset-0">
         {SLIDES.map((s, i) => (
           <div
@@ -136,122 +227,170 @@ export default function HomeHero() {
             data-bg={i}
             data-hero-bg
             className="absolute -inset-[4%] overflow-hidden"
-            style={{ zIndex: i === index ? 2 : 1, clipPath: i === index ? 'inset(0 0 0 0%)' : 'inset(0 0 0 100%)' }}
+            style={{ zIndex: i === 0 ? 2 : 1, clipPath: i === 0 ? 'inset(0 0 0 0%)' : 'inset(0 0 0 100%)' }}
           >
             <img src={s.image} alt="" className="h-full w-full object-cover" fetchPriority={i === 0 ? 'high' : 'auto'} />
           </div>
         ))}
-        <div className="absolute inset-0 z-[3] bg-[radial-gradient(ellipse_at_70%_40%,transparent_0%,rgba(18,17,16,0.55)_70%)]" />
-        <div className="absolute inset-0 z-[3] bg-gradient-to-t from-[var(--bg-vault)] via-[var(--bg-vault)]/20 to-[var(--bg-vault)]/40" />
+        {/* Grade: ink from the left for the headline, a floor for the controls, a soft lid under the header.
+            Phones stack the copy over the whole image, so their grade rises from the bottom instead. */}
+        <div
+          className="absolute inset-0 z-[4] lg:hidden"
+          style={{ background: 'linear-gradient(0deg, #121110 0%, rgba(18,17,16,0.86) 30%, rgba(18,17,16,0.5) 58%, rgba(18,17,16,0.28) 100%)' }}
+        />
+        <div
+          className="absolute inset-0 z-[4] hidden lg:block"
+          style={{ background: 'linear-gradient(90deg, rgba(18,17,16,0.8) 0%, rgba(18,17,16,0.42) 46%, rgba(18,17,16,0.16) 100%), linear-gradient(0deg, #121110 0%, rgba(18,17,16,0.6) 24%, rgba(18,17,16,0) 56%), linear-gradient(180deg, rgba(18,17,16,0.5) 0%, rgba(18,17,16,0) 22%)' }}
+        />
       </div>
 
-      {/* Inset framed image */}
-      <figure data-hero-inset className="absolute right-[6%] top-[12%] z-[5] hidden w-[17vw] max-w-[260px] lg:block">
-        <div className="relative aspect-[3/4] overflow-hidden outline outline-1 outline-offset-8 outline-[var(--gold-champagne)]/40">
-          {SLIDES.map((s, i) => (
-            <img
-              key={s.inset}
-              data-inset-img={i}
-              src={s.inset}
-              alt=""
-              className="absolute inset-0 h-full w-full object-cover"
-              style={{ zIndex: i === index ? 2 : 1, clipPath: i === index ? 'inset(0% 0 0 0)' : 'inset(100% 0 0 0)' }}
-            />
-          ))}
-        </div>
-        <figcaption className="font-spec mt-5 flex justify-between text-[9px] uppercase tracking-[0.24em] text-white/60">
-          <span>{slide.insetLabel}</span>
-          <span className="text-[var(--gold-champagne)]">0{index + 1}</span>
-        </figcaption>
-      </figure>
+      {/* The featured piece: framed photo, name and stones, linked to its page. Width also tracks height so short laptops keep it clear of the controls. */}
+      {piece && (
+        <a
+          data-hero-inset
+          href={href.product(piece.slug)}
+          onPointerEnter={hold(true)}
+          onPointerLeave={hold(false)}
+          className="group absolute right-[6%] top-[11%] z-[5] hidden w-[min(17vw,250px,calc((100svh_-_26rem)*0.72))] lg:block"
+        >
+          <div className="relative aspect-[3/4] overflow-hidden outline outline-offset-8 outline-[var(--gold-champagne)]/35 transition-[outline-color] duration-700 group-hover:outline-[var(--gold-champagne)]/80">
+            {SLIDES.map((s, i) => {
+              const p = PIECES[i]
+              return p ? (
+                <img
+                  key={s.piece}
+                  data-inset-img={i}
+                  src={p.images[s.pieceImage] ?? p.images[0]}
+                  alt=""
+                  loading="lazy"
+                  className="absolute inset-0 h-full w-full object-cover"
+                  style={{ zIndex: i === 0 ? 2 : 1, clipPath: i === 0 ? 'inset(0% 0 0 0)' : 'inset(100% 0 0 0)' }}
+                />
+              ) : null
+            })}
+          </div>
+          <div className="relative mt-7">
+            {SLIDES.map((s, i) => {
+              const p = PIECES[i]
+              if (!p) return null
+              return (
+                <div key={s.piece} data-slide={i} aria-hidden={i !== index} className={i === index ? 'relative' : 'pointer-events-none absolute inset-x-0 top-0 opacity-0'}>
+                  <p data-fade className="font-spec flex items-center justify-between text-[9px] uppercase tracking-[0.32em] text-[var(--gold-champagne)]">
+                    La pièce
+                    <ArrowUpRight size={14} strokeWidth={1.4} className="transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                  </p>
+                  <p data-fade className="font-serif-editorial mt-2.5 text-[1.375rem] leading-tight">{p.name}</p>
+                  <p data-fade className="font-spec mt-2 text-[10px] uppercase tracking-[0.18em] text-white/55">
+                    {facts(p).join(' · ')}
+                    {p.rental && <> · Weekend <Price amount={p.rental.weekend[currency]} className="[&_span]:text-white/40" /></>}
+                  </p>
+                </div>
+              )
+            })}
+          </div>
+        </a>
+      )}
 
-      {/* Vertical side label */}
-      <p data-hero-meta className="font-spec absolute left-6 top-1/2 z-[5] hidden origin-left -translate-y-1/2 -rotate-90 text-[9px] uppercase tracking-[0.5em] text-white/40 lg:block lg:left-10">
+      {/* Vertical side label, set in a vertical writing mode so it centres on the hero at any height */}
+      <p data-hero-meta className="font-spec absolute left-6 top-1/2 z-[5] hidden -translate-y-1/2 rotate-180 whitespace-nowrap text-[9px] uppercase tracking-[0.5em] text-white/40 [writing-mode:vertical-rl] lg:block lg:left-7">
         Joailliers · Montréal · Est. 1962
       </p>
 
       {/* Copy */}
-      <div data-hero-copy className="relative z-[6] mx-auto flex h-full max-w-[1600px] flex-col justify-end px-6 pb-10 lg:px-16 lg:pb-12">
+      <div data-hero-copy className="relative z-[6] mx-auto flex h-full max-w-[1600px] flex-col justify-end px-6 pb-[clamp(1.25rem,3.5vh,2.5rem)] lg:px-16">
         <div className="relative">
           {SLIDES.map((s, i) => (
-            <div key={s.eyebrow} data-slide={i} className={i === index ? 'relative' : 'pointer-events-none absolute inset-x-0 bottom-0 opacity-0'} aria-hidden={i !== index}>
-              <p data-fade className="font-spec mb-7 flex items-center gap-4 text-[10px] uppercase tracking-[0.34em] text-[var(--gold-champagne)]">
+            <div
+              key={s.nav}
+              data-slide={i}
+              role="group"
+              aria-roledescription="slide"
+              aria-label={`${i + 1} of ${SLIDES.length}: ${s.nav}`}
+              aria-hidden={i !== index}
+              inert={i !== index}
+              className={i === index ? 'relative' : 'pointer-events-none absolute inset-x-0 bottom-0 opacity-0'}
+            >
+              <p data-fade className="font-spec mb-[clamp(1rem,3vh,1.5rem)] flex items-center gap-4 text-[10px] uppercase tracking-[0.24em] sm:tracking-[0.34em] text-[var(--gold-champagne)]">
                 <span className="h-px w-10 bg-[var(--gold-champagne)]" />
                 {s.eyebrow}
               </p>
               {/* Size tracks both viewport width and height so three lines never crowd the controls. */}
               <h1
-                className="font-serif-editorial font-light leading-[0.84] tracking-[-0.035em] !oldstyle-nums lg:max-w-[72%]"
-                style={{ fontSize: 'clamp(3.4rem, min(10.5vw, 15.5vh), 10rem)' }}
+                className="font-serif-editorial font-light leading-[0.86] tracking-[-0.03em] !oldstyle-nums lg:max-w-[72%]"
+                style={{ fontSize: 'clamp(3.25rem, min(9.2vw, 14vh), 8.75rem)' }}
               >
                 {s.lines.map((l, li) => {
                   const accent = li === s.italic
                   return (
                     <span
                       key={l}
-                      className={`block overflow-hidden pb-[0.24em] -mb-[0.16em] ${accent ? 'pl-[0.9em] sm:pl-[1.6em]' : li === 2 ? 'pl-[0.35em] sm:pl-[0.55em]' : ''}`}
+                      className={`block overflow-hidden pb-[0.24em] -mb-[0.16em] ${accent ? 'pl-[0.8em] sm:pl-[1.4em]' : li === 2 ? 'pl-[0.32em] sm:pl-[0.52em]' : ''}`}
                     >
                       <span data-line className="relative inline-flex items-start">
-                        {li === 0 && (
-                          <span className="font-spec mr-4 mt-[0.22em] hidden text-[10px] font-normal not-italic tracking-[0.2em] text-[var(--gold-champagne)] sm:inline">
-                            (0{i + 1})
-                          </span>
-                        )}
-                        {accent && <span className="mr-[0.25em] mt-[0.5em] hidden h-px w-[0.9em] bg-[var(--gold-champagne)]/70 sm:block" />}
+                        {accent && <span className="mr-[0.24em] mt-[0.52em] hidden h-px w-[0.8em] bg-[var(--gold-champagne)]/70 sm:block" />}
                         <span className={accent ? 'font-normal italic text-[var(--gold-champagne)]' : ''}>{l}</span>
                       </span>
                     </span>
                   )
                 })}
               </h1>
-              <div className="mt-8 grid items-end gap-8 lg:mt-10 lg:grid-cols-12">
-                <p data-fade className="max-w-sm text-sm leading-relaxed text-white/70 lg:col-span-4">{s.body}</p>
-                <a data-fade href={s.cta.to} className="group inline-flex items-center gap-5 justify-self-start text-[11px] font-medium uppercase tracking-[0.26em] lg:col-span-4">
-                  <span className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-[var(--gold-champagne)]">
+              <div className="mt-[clamp(1.5rem,4vh,2.5rem)] flex flex-col gap-7 sm:flex-row sm:items-center sm:gap-14">
+                <p data-fade className="max-w-sm text-sm leading-relaxed text-white/70">{s.body}</p>
+                <a data-fade href={s.cta.to} className="group inline-flex shrink-0 items-center gap-5 self-start text-[11px] font-medium uppercase tracking-[0.26em] sm:self-auto">
+                  <span className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-[var(--gold-champagne)]/70">
                     <span className="absolute inset-0 origin-bottom scale-y-0 bg-[var(--gold-champagne)] transition-transform duration-500 ease-out group-hover:scale-y-100" />
                     <ArrowRight size={16} strokeWidth={1.4} className="relative transition-colors group-hover:text-[var(--bg-vault)]" />
                   </span>
                   {s.cta.label}
                 </a>
-                <dl data-fade className="font-spec hidden grid-cols-3 gap-6 border-l border-white/15 pl-6 text-[10px] uppercase tracking-[0.18em] lg:col-span-4 lg:grid">
-                  {['Piece', 'Weight', 'Grade'].map((k, ki) => (
-                    <div key={k}>
-                      <dt className="text-white/40">{k}</dt>
-                      <dd className="mt-1.5 text-white/85">{s.spec[ki]}</dd>
-                    </div>
-                  ))}
-                </dl>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Controls */}
-        <div data-hero-meta className="mt-12 flex items-center gap-8 border-t border-white/15 pt-6">
-          <div className="font-spec flex items-center gap-3 text-[11px] tracking-[0.2em]">
-            <span className="text-[var(--gold-champagne)]">0{index + 1}</span>
-            <span className="relative h-px w-28 overflow-hidden bg-white/20">
-              <span data-progress className="absolute inset-0 origin-left bg-[var(--gold-champagne)]" />
-            </span>
-            <span className="text-white/40">0{SLIDES.length}</span>
-          </div>
-          <div className="flex gap-1">
+        {/* Controls: one line per slide fills as it plays */}
+        <div data-hero-meta className="mt-[clamp(1.75rem,5vh,3rem)] flex items-end gap-5 border-t border-white/15 pt-5 sm:gap-10">
+          <ol className="flex min-w-0 flex-1 gap-4 sm:flex-none sm:gap-8" onPointerEnter={hold(true)} onPointerLeave={hold(false)}>
             {SLIDES.map((s, i) => (
-              <button
-                key={s.eyebrow}
-                onClick={() => go(i)}
-                aria-label={`Show slide ${i + 1}`}
-                className={`font-spec px-2 py-1 text-[9px] uppercase tracking-[0.22em] transition-colors ${i === index ? 'text-white' : 'text-white/35 hover:text-white/70'}`}
-              >
-                {s.eyebrow.split('·')[1]?.trim() ?? s.eyebrow}
-              </button>
+              <li key={s.nav} className="min-w-0 flex-1 sm:w-36 sm:flex-none">
+                <button
+                  type="button"
+                  onClick={() => go(i)}
+                  aria-label={`0${i + 1} ${s.nav}, slide ${i + 1} of ${SLIDES.length}`}
+                  aria-current={i === index ? 'true' : undefined}
+                  className="group block w-full py-1 text-left"
+                >
+                  <span className={`font-spec flex items-baseline gap-2.5 text-[10px] uppercase tracking-[0.24em] transition-colors duration-500 ${i === index ? 'text-white' : 'text-white/40 group-hover:text-white/75'}`}>
+                    <span className={i === index ? 'text-[var(--gold-champagne)]' : ''}>0{i + 1}</span>
+                    <span className="hidden truncate sm:inline">{s.nav}</span>
+                  </span>
+                  <span className="relative mt-3 block h-px w-full overflow-hidden bg-white/15">
+                    <span data-progress={i} className="absolute inset-0 bg-[var(--gold-champagne)]" style={{ transform: 'scaleX(0)', transformOrigin: 'left center' }} />
+                  </span>
+                </button>
+              </li>
             ))}
-          </div>
-          <span className="font-spec ml-auto hidden items-center gap-3 text-[9px] uppercase tracking-[0.3em] text-white/50 sm:flex">
-            Scroll <ArrowDown size={12} strokeWidth={1.4} className="animate-bounce" />
+          </ol>
+          {!reduced && (
+            <button
+              type="button"
+              onClick={() => setPaused((p) => !p)}
+              aria-label={paused ? 'Play slideshow' : 'Pause slideshow'}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/25 text-white/70 transition-colors sm:h-8 sm:w-8 hover:border-[var(--gold-champagne)] hover:text-[var(--gold-champagne)]"
+            >
+              {paused ? <Play size={11} strokeWidth={1.6} className="translate-x-px" /> : <Pause size={11} strokeWidth={1.6} />}
+            </button>
+          )}
+          <span className="font-spec ml-auto hidden items-center gap-4 text-[9px] uppercase tracking-[0.3em] text-white/50 sm:flex">
+            Scroll
+            <span className="relative h-7 w-px overflow-hidden bg-white/20">
+              <span className="absolute inset-x-0 top-0 h-1/2 animate-[scrollCue_2.6s_cubic-bezier(0.65,0,0.35,1)_infinite] bg-[var(--gold-champagne)] motion-reduce:animate-none" />
+            </span>
           </span>
         </div>
       </div>
+      {/* Screen readers hear the current slide, but only when it changes */}
+      <p className="sr-only" aria-live={paused || reduced ? 'polite' : 'off'}>{`Slide ${index + 1} of ${SLIDES.length}: ${slide.lines.join(' ')}`}</p>
     </section>
   )
 }

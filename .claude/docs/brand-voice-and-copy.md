@@ -52,7 +52,7 @@ The story, verbatim:
 
 - `src/pages/Atelier.tsx` eyebrow: `L'Atelier · Since 1962`. H1: `Made <em>for you</em>, by a family.` Body:
   > `Teresa Moretti opened a single bench on rue Sainte-Catherine in 1962. Today her sons and granddaughter continue the work — bespoke engagement rings, heirloom redesigns and personalized pieces, all made within these walls.`
-- `HomeHero.tsx` slide 1 headline lines: `Light, set` / `by hand,` / `since 1962.` Body: `Three generations of Montreal jewellers crafting GIA-certified diamonds and solid gold heirlooms on rue Sherbrooke.`
+- `HomeHero.tsx` slide 1 headline lines: `Light, set` / `by hand,` / `since 1962.` Body: `Three generations of Montréal jewellers crafting GIA-certified diamonds and solid gold heirlooms on rue Sherbrooke.`
 - `src/pages/Home.tsx` heritage block: eyebrow `08 Chapter IX · Sur Mesure`, then a decorative `“`, then `Teresa believed a jewel should <em>outlive</em> its maker.`, attributed `Antonio Moretti · Second generation`. CTA: `Commission a piece`.
 - `catalog.ts` `teresa-signet`: tagline `Our founder’s ring, recast.`; description `An oval signet modelled on Teresa’s 1962 original — ready for a monogram or crest.`
 - `catalog.ts` `chronographe-1962`: tagline `For the year we opened our doors.`; description `A limited chronograph of 62 pieces with a panda dial.`; spec `Edition: '62 pieces'`.
@@ -99,7 +99,7 @@ The story, verbatim:
 | Statement | Surface | File |
 |---|---|---|
 | `Light, set` / `by hand,` / `since 1962.` | Hero slide 1 | `HomeHero.tsx` |
-| `Three generations of Montreal jewellers crafting GIA-certified diamonds and solid gold heirlooms on rue Sherbrooke.` | Hero slide 1 body | `HomeHero.tsx` |
+| `Three generations of Montréal jewellers crafting GIA-certified diamonds and solid gold heirlooms on rue Sherbrooke.` | Hero slide 1 body | `HomeHero.tsx` |
 | `From everyday gold to GIA-certified bridal — each collection made or curated in Montreal.` | The Index aside | `src/components/home/CategoryIndex.tsx` |
 | `Made <em>for you</em>, by a family.` | Atelier H1 | `Atelier.tsx` |
 | `From <em>bench</em> to heirloom` | Making section | `MakingScroll.tsx` |
@@ -204,6 +204,7 @@ Where these fields render:
 | `08 Chapter IX · Sur Mesure` | `Home.tsx` (heritage) | Capital M (data has `Sur mesure`) |
 | `Chapitre V · Mariage` | `HomeHero.tsx` slide 2 | French "Chapitre" |
 | `Chapitre VII · La Location` | `HomeHero.tsx` slide 3 | "Chapitre" and "La Location" |
+| `La pièce` | `HomeHero.tsx` featured-piece label | French label |
 | `Nine chapters` | `CategoryIndex.tsx` | The count is written as a word, not computed |
 | `This chapter could not be found.` | `Category.tsx` (unknown slug) | — |
 
@@ -250,7 +251,7 @@ Each place-named collection holds exactly one product, all in the necklaces, ear
   - Watch with case size: `Heritage Automatic 38` (spec `Case: '38 mm'`).
   - Descriptive names for rentals, gifts and services: `Gala Diamond Collar`, `Chandelier Sapphire Earrings`, `Bridal Tiara & Drops Set`, `Initial Disc Pendant`, `Pearl Stud Gift Set`, `Teresa & Sons Gift Card`, `Bespoke Engagement Commission`, `Heirloom Redesign`, `Engraved Nameplate Necklace`.
 - **Slugs that differ from the name:** `teresa-signet`, `sherbrooke-emerald-cocktail` (no "ring"), `basilique-emerald-cut-three-stone`, `bridal-tiara-and-drops` (& becomes "and", no "set").
-- **Short forms used in copy:** `Vieux-Port Studs`, `Basilique Three-Stone` and `Gala Diamond Collar` (hero inset labels); `Notre-Dame Oval` and `Gala Collar` (hero spec "Piece"); `a Notre-Dame oval` and `the Gala Collar` (testimonials); `her Westmount line` (video); `18k Yellow · Vieux-Port` (try-on feature tag).
+- **Short forms used in copy:**  `a Notre-Dame oval` and `the Gala Collar` (testimonials); `her Westmount line` (video); `18k Yellow · Vieux-Port` (try-on feature tag).
 - **Taglines** (`product.tagline`) are sentence case and end with a period. They run 2–7 words and are often a fragment or a three-part list.
 - **Descriptions** are one or two factual sentences about setting, stones and metal.
 - **Spec keys** are sentence case (`Total carat weight`, `Water resistance`, `Hidden halo`). Spec values carry units (see §6).
@@ -280,7 +281,7 @@ Changing these strings changes how the app behaves, not just what it says:
 
   `stonesFor()` reads spec **keys** (`Pearl`, keys containing emerald, sapphire, total carat, diamond, halo, side or bezel) and only values that contain `ct`.
 - **`JewelryOverlay`** tests name and description against `/diamond|solitaire|tennis|rivi|collar|stud|pav/i` to decide whether to draw stones. It also uses `/pearl/i`; `/emerald/i` and `/sapphire/i` (gem colour); `/collar|rivi/i`, `/disc/i`, `/drop|chandelier|tiara/i`, `/huggie/i`, `/signet/i`, `/tennis/i`, `/cuff/i`; and `/pearl|lac/i` (watch dial).
-- **HomeHero slide buttons** take their label from the eyebrow: `s.eyebrow.split('·')[1]?.trim() ?? s.eyebrow`. That renders `Automne`, `Mariage` and `La Location`.
+- **HomeHero slide controls** use each slide's `nav` label: `01 Lumière`, `02 Mariage`, `03 Location` (numbers only below `sm`). The featured piece is captioned `La pièce`, with the product's full catalog name.
 - **`Product.tsx`** picks `ctaLabel` from the product: rental → `Reserve this piece`, category `custom` → `Begin commission`, otherwise `Add to bag`. `needsSize` is true for the rings and bridal categories.
 
 ### 2.6 Badge vocabulary
@@ -582,7 +583,7 @@ When the PDP rejects an add, it scrolls to `#step-dates`, `#step-personal` or `#
 | `CartUpsell.tsx` | `Add {name} to bag` |
 | `RecentlyViewed.tsx` | `Clear recently viewed` |
 | `WishButton.tsx` | `Remove from wishlist` or `Save to wishlist` (plus `aria-pressed`) |
-| `HomeHero.tsx` | `Show slide {n}` |
+| `HomeHero.tsx` | `0{n} {nav}, slide {n} of 3`; `Pause slideshow` / `Play slideshow`; carousel `Featured collections` |
 | `Testimonials.tsx` | `Testimonial {n}` |
 | `PressStrip.tsx` | section `As featured in` (the visible text says `As seen in`) |
 | `Product.tsx` | nav `Breadcrumb` |
@@ -620,7 +621,7 @@ Meaningful alt text exists for: product images (`{product.name}` on `ProductCard
 | ✦ (`&#10022;`) | Announcement separator | Header marquee | — |
 | • (U+2022) | Masked digits | `•••• •••• •••• 62MT`, the GiftCardArt placeholder `•••• •••• •••• ••••` | — |
 | & | Allowed in labels and names. In JSX text it appears both raw and as `&amp;`. | `Details & dimensions`, `Watch & shop`, `Worn &amp; filmed`, `Gift Cards &amp; Balance` | Both forms coexist (both render the same) |
-| Accented French | Accents kept in display copy; slugs, ids and URLs are ASCII | `Montréal`, `Québec`, `Rivière`, `Lumière`, `rivières`, `sélection`, `Élodie`, `pavé`, `micro-pavé` | `Montreal` without the accent: `Montreal-regulated`, `in Montreal, Toronto and New York`, `our Montreal salon`, `Old Montreal`, `Montreal jewellers`, `made or curated in Montreal`, `cast in Montreal`, `Montreal Gazette` (a proper name). Brand marks and addresses always use `Montréal`. |
+| Accented French | Accents kept in display copy; slugs, ids and URLs are ASCII | `Montréal`, `Québec`, `Rivière`, `Lumière`, `rivières`, `sélection`, `Élodie`, `pavé`, `micro-pavé` | `Montreal` without the accent: `Montreal-regulated`, `in Montreal, Toronto and New York`, `our Montreal salon`, `Old Montreal`, `made or curated in Montreal`, `cast in Montreal`, `Montreal Gazette` (a proper name). Brand marks and addresses always use `Montréal`. |
 | Others | `©`, `°`, `µ`, `∞`, `%`, `+` | `© {year}`, `{n}°`, `2.5µ`, `∞` / `Lifetime care`, `98%`, `40+`, `1,200+`, `3.00+` | `$15,000 +` has a space before the plus |
 
 **Serial comma.** It is generally omitted (`Pendants, rivières and chains`, `Annual cleaning, claw checks and rhodium refresh.`). It appears only twice: `…insured, couriered, and collected the morning after.` (Home) and `What your rental fee covers, the refundable deposit, and tax — before you reserve.` (PriceBreakdown).

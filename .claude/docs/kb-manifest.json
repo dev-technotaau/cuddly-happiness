@@ -1,7 +1,7 @@
 {
   "version": 1,
   "generatedAt": "2026-10-16",
-  "gitHead": "db22872",
+  "gitHead": "10eac3c",
   "files": {
     ".figma/make/analyze-routes": {
       "hash": "d51912b900af",
@@ -189,7 +189,7 @@
       ]
     },
     "src/components/HomeHero.tsx": {
-      "hash": "2904ade15982",
+      "hash": "a1cf2f7a1080",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -812,7 +812,7 @@
       ]
     },
     "src/index.css": {
-      "hash": "3c54904f6d4d",
+      "hash": "ef192fe27b55",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",

@@ -139,6 +139,12 @@ html.lenis body {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Hero scroll cue: a gold segment travels down a hairline */
+@keyframes scrollCue {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(200%); }
+}
+
 /* Animated hairline underline for editorial links */
 .link-line {
   position: relative;
