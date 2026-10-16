@@ -83,7 +83,8 @@ export default function CompleteTheLook({ product, index, period, onPeriodChange
           eyebrow={isRental ? 'Styled for the evening' : 'Styled by the atelier'}
           title={isRental ? <>Complete the <em className="text-[var(--gold-vermeil)]">ensemble</em></> : <>Complete the <em className="text-[var(--gold-vermeil)]">look</em></>}
         />
-        <div className="grid items-center gap-12 lg:grid-cols-12">
+        {/* grid-cols-1 bounds the phone column; an auto track would stretch to the cards' unwrapped names and push the page sideways. */}
+        <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12">
           <div className="flex items-center gap-3 lg:col-span-8">
             {look.map((p, i) => (
               <div key={p.id} className="contents">

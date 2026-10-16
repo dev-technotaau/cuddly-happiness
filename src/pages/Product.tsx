@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 import { ArrowRight, CalendarHeart, Check, Gift, MessageCircle, ShieldCheck, ShoppingBag, Star, Truck } from 'lucide-react'
-import { METALS, formatDay, getCategory, getProduct, getProductsByCategory, parseIso, personalizationPrice, priceFor, validatePersonalization, type Metal, type Personalization, type RentalBooking } from '../data/catalog'
+import { METALS, formatDay, formatPrice, getCategory, getProduct, getProductsByCategory, parseIso, personalizationPrice, priceFor, validatePersonalization, type Metal, type Personalization, type RentalBooking } from '../data/catalog'
 import { href, lineKey, useStore } from '../store'
 import Price from '../components/Price'
 import ProductCard from '../components/ProductCard'
@@ -24,6 +24,8 @@ import CompleteTheLook, { getLookPieces } from '../components/pdp/CompleteTheLoo
 import Reviews, { getRatingSummary } from '../components/pdp/Reviews'
 import ProductFAQ from '../components/pdp/ProductFAQ'
 import RecentlyViewed from '../components/RecentlyViewed'
+import ShareButton from '../components/share/ShareButton'
+import type { ShareSubject } from '../components/share/ShareSheet'
 
 type RentalPeriod = 'weekend' | 'week' | 'month'
 
@@ -93,6 +95,20 @@ export default function Product({ slug }: { slug: string }) {
     pcfg && personal.text.trim() && `“${personal.text.trim()}”`,
     size && `Size ${size}`,
   ].filter(Boolean).join(' · ')
+
+  // Shares carry the piece as configured right now; hints are for pieces one can buy, not rentals.
+  const share: ShareSubject = {
+    kind: 'piece',
+    id: product.slug,
+    title: product.name,
+    eyebrow: `${product.collection} · Chapter ${category.eyebrow}`,
+    image: product.images[0],
+    route: href.product(product.slug),
+    detail,
+    priceText: `${formatPrice(amount, currency)} ${currency}`,
+    tagline: product.tagline,
+    hint: rental ? undefined : { metal: metal && METALS[metal].label, size },
+  }
 
   // Films featuring this piece first, then others from its category.
   const films = [...videosForProduct(product.slug), ...videosForCategory(product.category).filter((v) => !v.products.includes(product.slug))]
@@ -214,10 +230,14 @@ export default function Product({ slug }: { slug: string }) {
 
         <div className="lg:col-span-5">
           {/* Header */}
-          <div data-pdp-in className="flex flex-wrap items-center gap-x-5 gap-y-2">
+          <div data-pdp-in className="flex flex-wrap items-center justify-between gap-x-5 gap-y-3">
             <span className="flex items-center gap-2 text-[10px] uppercase tracking-[0.22em] text-[var(--text-taupe)]">
               <span className="h-1.5 w-1.5 rounded-full bg-[var(--gold-vermeil)]" /> {availability}
             </span>
+            <div className="flex items-center gap-6">
+              {share.hint && <ShareButton subject={share} mode="hint" label="Drop a hint" icon={Gift} />}
+              <ShareButton subject={share} />
+            </div>
           </div>
           <p data-pdp-in className="font-spec mt-8 text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">
             {product.collection} · Chapter {category.eyebrow}

@@ -169,7 +169,7 @@ Routes: **All** = global chrome; Home, Category, PDP, Cart, Checkout, Gift cards
 
 | Feature | What it does | Files | Routes | Persistence |
 |---|---|---|---|---|
-| Announcement marquee | Four service messages duplicated into an infinite 38 s scroll, separated by ✦; pauses on hover; static under reduced motion | `src/components/Header.tsx`, `src/index.css` (`.animate-marquee`) | All | none |
+| Announcement marquee | Four service messages in a seamless `Marquee` loop at 44 px/s, separated by ✦; eases to a stop on hover; static under reduced motion | `src/components/Header.tsx`, `src/components/Marquee.tsx` | All | none |
 | Mega menu | "Collections" opens a clip-path panel: 9 chapters (eyebrow numeral, name, French name on hover) + "Gift Cards — From $100 · never expires"; middle column "Chapter {eyebrow}" + description + 2 featured products; right column hero/feature images + "Shop {name} →". Hovering a chapter sets the active one; hovering Gift Cards activates Gifts | `Header.tsx` | All (≥ `lg`) | none |
 | Mobile menu | Full-screen list: 9 chapters, "The Atelier", "Gift Cards", "My Account"/"Sign In", "Wishlist ({n})" | `Header.tsx` | All (< `lg`) | none |
 | CAD / USD currency switch | Header toggle "CA · CAD" / "US · USD"; also "Shopping in" on checkout (which also re-converts applied gift-card balances) and "Preferred market" on Account. Every `Price` re-renders; product USD prices are precomputed, deltas/accents/gift cards convert at `CAD_TO_USD = 0.73`; shipping, tax and trust copy switch per market | `src/store.tsx` (`setCurrency`), `Header.tsx`, `Checkout.tsx`, `Account.tsx`, `src/data/catalog.ts`, `src/data/giftcards.ts` (`convert`) | All | `tns-currency` |

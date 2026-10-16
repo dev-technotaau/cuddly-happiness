@@ -22,7 +22,7 @@ Severity: **H** = breaks something real; **M** = wrong behaviour or significant 
 | KI-002 | M | Document title is "Figma Make App" on every route | `.figma/make/site.json` has no `title`; no `document.title` anywhere | Tab title and `og:title` show the platform default. Fix: set `title` in site.json, and optionally per-route titles. |
 | KI-003 | L | Favicon is Figma Make's default icon | `public/favicon.svg` | Fix: replace it with a brand mark, or set `icons.icon`. |
 | KI-004 | M | No typecheck in build or deploy | `build` = `vite build` | Type errors ship silently. Fix: run `npx tsc --noEmit -p .` before deploys, or add a script. |
-| KI-005 | L | Main JS chunk 622 kB (> 500 kB warning) | `src/App.tsx` eager page imports | Only TryOnStudio is lazy. Fix: `lazy()` the pages behind `Suspense`. |
+| KI-005 | L | Initial JS is about 630 kB: an entry chunk of 463 kB plus a shared vendor chunk of 167 kB (> 500 kB warning on the entry until 2026-10-16) | `src/App.tsx` eager page imports | Only TryOnStudio and ShareSheet are lazy. Fix: `lazy()` the pages behind `Suspense`. |
 | KI-006 | L | `tsconfig` `lib: ES2020` is narrower than the runtime target; `types: ["node"]` leaks Node globals | `tsconfig.json` | Valid modern built-ins fail `tsc`. Fix: widen `lib` if needed. |
 | KI-007 | L | `addBypassLinks` would route to Home | `vite.config.ts` skip link `href="#root"` + `parseHash` | Enabling it makes "Skip to content" navigate home. Fix: retarget it before enabling. |
 | KI-008 | L | Toolchain drift | `.mise.toml` (Node 22 / pnpm 10.34.3) vs local Node 24.21 / pnpm 12.9.1; AGENTS.md says TS 5.7 but the lockfile has 5.9.3 | Fix: use the pinned versions for installs. |
@@ -86,7 +86,7 @@ Severity: **H** = breaks something real; **M** = wrong behaviour or significant 
 | ID | Sev | Issue | Where | Notes |
 |---|---|---|---|---|
 | KI-060 | L | Synthetic reviews carry "Verified purchase" badges; Testimonials hard-codes "4.9 / 5 · 1,200+ reviews" | Reviews, Testimonials | Replace with real data before launch. |
-| KI-061 | L | Wishlist "Copy link" shares `#/wishlist`, which shows the recipient's own list | Wishlist | |
+| KI-061 | — | **Fixed 2026-10-16.** Wishlist "Copy link" shared `#/wishlist`, which shows the recipient's own list | Wishlist | Replaced by "Share list", which sends every piece with its own link (`features/sharing.md`). |
 | KI-062 | L | Review storage `tns-reviews-<slug>` grows without bound and holds data-URL images | Reviews | |
 | KI-063 | N | Spelling varies: "Jewellery" on cart surfaces vs "Jewelry" in the catalog | Cart surfaces, catalog | Pick one per locale. |
 | KI-064 | N | tax.ts comment says "2024 rates" while listing NS at 14% (the 2025 rate) | `src/data/tax.ts` | Update the comment. |

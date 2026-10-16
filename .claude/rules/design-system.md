@@ -81,6 +81,7 @@ Place new layers inside this ladder:
 | Lightboxes | `z-[95]` |
 | Modals and viewers | `z-[100]` |
 | Try-on studio | `z-[110]` |
+| Skip link (while focused) | `z-[120]` |
 
 ## Motion
 

@@ -18,7 +18,8 @@ Scope: `src/components/SmoothScroll.tsx`, `src/components/useReveal.ts`, `src/co
 | Scroll-linked tweens | GSAP ScrollTrigger, the only registered plugin | `src/components/useReveal.ts`, `src/components/HomeHero.tsx`, `src/components/home/MakingScroll.tsx` | Home, Category, Product, Atelier, Wishlist, Gift cards |
 | Time-based tweens | `gsap.from` / `to` / `fromTo`, `gsap.timeline`, `gsap.quickTo` | `HomeHero`, `Header`, `Product`, `Gallery`, `CategoryIndex`, `WishButton` | — |
 | CSS transitions | Tailwind v4 `transition-*` / `duration-*` / `ease-*`, plus the `.editorial-zoom` and `.link-line` classes | component `className`s, `src/index.css` | Everywhere |
-| CSS keyframes | `marqueeScroll`, `grainShift`, `fadeUp`, `scrollCue`; Tailwind `animate-pulse` | `src/index.css`, Tailwind theme | Header, PressStrip, App, Testimonials, Treasured, UndoToast, TryOnFeature, HomeHero |
+| CSS keyframes | `grainShift`, `fadeUp`, `scrollCue`; Tailwind `animate-pulse` | `src/index.css`, Tailwind theme | Header, PressStrip, App, Testimonials, Treasured, UndoToast, TryOnFeature, HomeHero |
+| Web Animations API | `Element.animate()` on the track, compositor-driven, with `updatePlaybackRate` for eased stops | `src/components/Marquee.tsx` | Header, PressStrip (Home) |
 | Timers and observers | 7 timer sites (6 `setTimeout`, 1 `setInterval`), 3 `IntersectionObserver`s, 1 `requestAnimationFrame` | see §8 and §9 | — |
 
 ---
@@ -163,37 +164,45 @@ Layout, copy and the full `go()` timeline are in `pages/home.md` §4.1. This sec
 
 | Attribute | Element |
 |---|---|
-| `data-hero-frame` | Wrapper of the background stack and grade overlays (intro clip-path) |
+| `data-hero-frame` | Wrapper of the background stack, key light and grades (intro clip-path) |
 | `data-bg={i}` + `data-hero-bg` | One full-bleed background layer per slide (`absolute -inset-[4%]`) |
-| `data-hero-inset` | The featured-piece link (top right, `lg`) |
+| `data-hero-light` | The key light; `--hx`/`--hy` place its radial gradient |
+| `data-hero-inset` | The featured-piece block (top right, `lg`) |
 | `data-inset-img={i}` | One piece photo per slide inside the frame |
 | `data-hero-meta` | Side label and controls bar |
 | `data-hero-copy` | The copy column (scroll-out) |
 | `data-slide={i}` | A slide's copy container, and that slide's piece caption |
 | `data-line` | The inner span of each headline line, moved inside its `overflow-hidden` mask |
-| `data-fade` | Eyebrow, body, CTA and the three lines of the piece caption |
+| `data-fade` | Eyebrow, body, CTA group and the three lines of the piece caption |
+| `data-eyebrow-rule`, `data-rule` | The eyebrow's rule and the hairline leading into the italic (drawn with `scaleX`) |
+| `data-gleam` | The italic accent word; its `background-position` carries the glint |
 | `data-progress={i}` | The gold fill inside each slide control's 1 px track |
 
-Each mask is `block overflow-hidden pb-[0.24em] -mb-[0.16em]`. That is deep enough for Baskervville's descenders, and the negative margin keeps the 0.86 leading.
+- Each mask is `block overflow-hidden pb-[0.24em] -mb-[0.16em]`. That is deep enough for Baskervville's descenders, and the negative margin keeps the 0.88 leading.
+- A text-clipped element only paints inside its own box, so `[data-gleam]` carries `pb-[0.3em] -mb-[0.3em]`. Without it, the italic's descenders disappear ("by" reads "bv").
 
 **Ownership rule.** React sets each layer's initial `zIndex`/`clipPath`, and each fill's initial `scaleX(0)`, from the element's position as constants, never from `index`. React therefore never rewrites them on re-render, and GSAP owns them after mount. Keep it that way: deriving them from state brings back the old mid-wipe cut.
 
 **Effects.**
-- **Intro, scroll and pointer** (`useLayoutEffect`, `gsap.context`, skipped under reduced motion):
-  - Tweens: the frame `from clipPath inset(12%)` (1.8 s `expo.inOut`); `[data-hero-meta]` `from { opacity: 0, y: 16 }` (1 s, stagger 0.08, delay 1.1); the piece `from { opacity: 0 }` (1.4 s, delay 0.9).
+- **Intro, scroll, pointer and light** (`useLayoutEffect`, `gsap.context`, skipped under reduced motion):
+  - Tweens: the frame `from clipPath inset(12%)` (1.8 s `expo.inOut`); slide 0's photo `from filter brightness(0.3) saturate(0.6)` (2.6 s `power2.out`, `clearProps`); `[data-hero-meta]` `from { opacity: 0, y: 16 }` (1 s, stagger 0.08, delay 1.1); the piece `from { opacity: 0 }` (1.4 s, delay 0.9).
   - Scrubs (trigger the section, `top top` → `bottom top`): backgrounds `yPercent 18, scale 1.08`; copy `yPercent -30, opacity 0` (ends at `70% top`); piece `yPercent -30`.
-  - `quickTo` pointer followers, created outside the context: the piece `x`/`y` (1.2 s `power3.out`, ±12/±9 px) and the backgrounds `x` (1.6 s, ±9 px).
-- **Per-slide reveal** (`useLayoutEffect`, deps `[index, reduced, go, sync]`):
-  - `killTweensOf(lines)`, then a timeline: lines `fromTo { yPercent: 115, rotate: 2 } → { 0, 0 }` (1.4 s, stagger 0.1, `expo.out`); fades `fromTo { opacity: 0, y: 14 } → { 1, 0 }` (1 s, stagger 0.08, overlapping by 1 s).
+  - Created outside the context: `quickTo` pointer followers for the piece `x`/`y` (1.2 s `power3.out`, ±12/±9 px) and the backgrounds `x` (1.6 s, ±9 px). For a mouse, two `quickTo`s on a `{ x, y }` proxy (1.1 s `power3.out`) write `--hx`/`--hy` on the light in their `onUpdate`.
+- **Per-slide reveal** (`useLayoutEffect`, deps `[index, reduced, go, sync]`): `killTweensOf(lines)`, then a timeline:
+  - lines `fromTo { yPercent: 115, rotate: 2, filter: 'blur(10px)' } → { 0, 0, 'blur(0px)' }` (1.4 s, stagger 0.1, `expo.out`, `clearProps: 'filter'`);
+  - fades `fromTo { opacity: 0, y: 14 } → { 1, 0 }` (1 s, stagger 0.08) at 0.5 s;
+  - rules `fromTo scaleX 0 → 1` (origin left, 1.2 s, stagger 0.2, `expo.inOut`) at 0.15 s;
+  - the glint `fromTo backgroundPosition '100% 0%' → '0% 0%'` (1.8 s `power2.inOut`) at 1 s. On a 250 %-wide gradient that moves the pale band across the word from left to right.
   - Then the **progress tween**: the slide's fill goes `fromTo scaleX 0 → 1` (origin left) over 7 s linear, with `onComplete: go(index + 1)`. This tween is the autoplay timer, so pausing it pauses the slideshow.
   - Cleanup kills the timeline and the tween without reverting them.
-  - Under reduced motion: `gsap.set` to end states, the fill shown full, and no tween.
+  - Under reduced motion: `gsap.set` to end states, the rules and fill shown full, no glint and no tween.
 - **Holds** (`useEffect`): `sync()` pauses the progress tween while any of these is true, and resumes it when all clear:
   - the user's pause toggle is on;
   - a mouse is over the controls or the piece;
   - keyboard focus (`:focus-visible`) is inside the section;
   - the tab is hidden (`visibilitychange`);
   - less than 20 % of the hero is on screen (`IntersectionObserver`).
+- **Input:** a horizontal touch swipe (over 48 px and more than 1.4 × its height) and ←/→ on the slide controls both call `go`.
 
 **`go(next)`.** Key points:
 - It kills the progress tween first, so the outgoing fill retracts cleanly (`scaleX → 0`, origin right, 0.6 s `expo.inOut`) instead of fighting a running fill.
@@ -389,7 +398,7 @@ React runs child layout effects before the parent's. On Home, the `HomeHero` and
 
 | Animation | Definition (`src/index.css` unless noted) | Applied as | Where | Reduced motion |
 |---|---|---|---|---|
-| `marqueeScroll` | `translateX(0%)` → `translateX(-50%)` | `.animate-marquee { display: flex; width: max-content; animation: marqueeScroll 38s linear infinite; }` and `.animate-marquee:hover { animation-play-state: paused; }` | `Header` announcement bar and `PressStrip`. Both render their list twice (`[...items, ...items]`) so the −50% loop is seamless | disabled |
+| `Marquee` (Web Animations API, not a keyframe rule) | `translate3d(0, 0, 0)` → `translate3d(−{copy width}px, 0, 0)`, `duration = copy width / speed`, linear, infinite | `track.animate(…)` in `src/components/Marquee.tsx` | Header announcements (44 px/s), `PressStrip` (34 px/s) | not created, so the strip stands still |
 | `grainShift` | `translate` at 0/20/40/60/80/100%: `(0, 0)`, `(-4%, 3%)`, `(3%, -5%)`, `(-6%, -2%)`, `(5%, 4%)`, `(0, 0)` | `.film-grain { … animation: grainShift 0.9s steps(6) infinite; }`. The `steps(6)` timing applies within each keyframe interval | `<div className="film-grain" aria-hidden />`, the last child of the app shell in `src/App.tsx` | disabled |
 | `fadeUp` | `opacity: 0; transform: translateY(16px)` → `opacity: 1; transform: translateY(0)` | Tailwind arbitrary value `animate-[fadeUp_<dur>_cubic-bezier(0.16,1,0.3,1)]` | `UndoToast` (0.5s); `Treasured` product grid (0.9s, `key={tab}` remounts it per tab); `Testimonials` blockquote (1s, `key={i}` remounts it per quote) | **not** disabled |
 | Tailwind `animate-pulse` | `pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite` (opacity 0.5 at 50%) | class | `TryOnFeature` red "Live" dot | not disabled |
@@ -399,7 +408,7 @@ The reduced-motion block in `src/index.css`:
 
 ```css
 @media (prefers-reduced-motion: reduce) {
-  .film-grain, .animate-marquee { animation: none; }
+  .film-grain { animation: none; }
 }
 ```
 
@@ -513,6 +522,24 @@ Many hover states change instantly because they have no `transition-*` class. Ex
 - **Everything else** mounts and unmounts with no transition: the mobile menu, gallery lightbox, ring-size guide, client-media lightbox, write-a-review dialog, video viewer, try-on studio, the `GiftOptions` order note, and the `Treasured` / `FourCs` tab-content swaps.
 
 ---
+
+### 6.6 Marquees (`src/components/Marquee.tsx`)
+
+Both scrolling strips (the Header announcements and the home PressStrip) use one component built on the Web Animations API. It was rebuilt on 2026-10-16 because the CSS version (`.animate-marquee`, a 38 s `translateX(-50%)` loop) felt jerky:
+- it froze abruptly on hover;
+- it ran at different speeds per strip;
+- it could open a gap on screens wider than one copy;
+- it jumped when the web fonts arrived and changed the width.
+
+What the component guarantees:
+- **Compositor smoothness.** `Element.animate()` on `transform: translate3d(…)` is composited like a CSS animation, so main-thread work (Lenis, GSAP, React) cannot stall it. The track also has `will-change: transform` and `backface-visibility: hidden`, so it keeps its own layer from the start.
+- **Constant speed.** `speed` is in px/s and the duration is derived from the measured copy width (header 44 px/s, press 34 px/s).
+- **Exact seam.** The loop distance is the copy's fractional width (for example −2452.2 px), so the wrap is invisible.
+- **Always full.** It renders `ceil(viewport / copy) + 1` copies, at least 2. A 3440 px screen gets 3 header copies.
+- **No jumps.** It starts after `document.fonts.ready`. A `ResizeObserver` rebuilds the animation at the same fractional progress.
+- **Eased stop.** A mouse hover eases the playback rate to 0 and back with `updatePlaybackRate`. Measured: 1 → 0.14 after 0.3 s → 0 after 1 s, then back to 1.
+- **Idle when unseen.** An `IntersectionObserver` pauses it off-screen; the press strip waits paused below the fold.
+- **Reduced motion and assistive tech.** No animation is created under reduced motion. Copies after the first are `aria-hidden`, so names are read once.
 
 ## 7. Video motion
 
@@ -688,7 +715,7 @@ Lenis animates these scrolls over 1.25 s with the expo-out easing. For the last 
 | `HomeHero`: intro, scroll-out scrubs, pointer parallax, autoplay, headline reveals, slide wipes (slides swap instantly) and the scroll cue | `Gallery` stage fade/scale, `Gallery` "Film" autoplay, lightbox and viewer video autoplay |
 | `MakingScroll` pin, horizontal scroll and progress line | `WishButton` elastic pop |
 | Film-tile autoplay (`useInViewPlay`) | Every Tailwind/CSS transition: drawer, sticky bar, accordion, `.editorial-zoom`, `.link-line`, the PriceBreakdown and RewardProgress bars, GiftCards tilt |
-| The `.film-grain` and `.animate-marquee` keyframes | `fadeUp` (Testimonials, Treasured, UndoToast), `animate-pulse`, the Testimonials 6.5 s auto-advance |
+| The `.film-grain` keyframes, and both marquees (`Marquee` creates no animation) | `fadeUp` (Testimonials, Treasured, UndoToast), `animate-pulse`, the Testimonials 6.5 s auto-advance |
 | | Native smooth scrolling: the rail arrows (smooth `scrollBy`) and Product's `scrollIntoView({ behavior: 'smooth' })` fallback, which is exactly the path taken when Lenis is absent |
 
 ---
@@ -696,7 +723,7 @@ Lenis animates these scrolls over 1.25 s with the expo-out easing. For the last 
 ## 13. Performance notes
 
 - **Continuous frame loop.** While Lenis is active, `gsap.ticker` has two listeners: GSAP's root update and Lenis's `tick`. GSAP only auto-sleeps when there are fewer than two *(library source)*, so `requestAnimationFrame` runs every frame for the whole session.
-- **Always-on CSS animations.** The header marquee and the film grain (a fixed 200% × 200% layer) run on every page. The PressStrip marquee runs on Home. The hero scroll cue and `animate-pulse` also run continuously. The hero's progress tween runs only while the hero is visible and unpaused.
+- **Always-on CSS animations.** The header marquee and the film grain run on every page. The grain is a fixed 124% × 124% layer; it was 200% × 200% (four viewports of texture) until 2026-10-16. The PressStrip marquee runs on Home and pauses off-screen. The hero scroll cue and `animate-pulse` also run continuously. The hero's progress tween runs only while the hero is visible and unpaused.
 - **Animated properties.** GSAP and CSS mostly animate transform, opacity and clip-path.
   - Layout-affecting exceptions: `width` (PriceBreakdown segments, RewardProgress, and the Gallery mobile dots and Testimonials dots via `transition-all`), `grid-template-rows` (Accordion), and `left` / `right` (the FourCs bar via `transition-all`).
   - Clip-path tweens: the hero frame and slide wipes, `data-reveal-img`, the mega menu.

@@ -22,7 +22,8 @@ export default function WishButton({ slug, className = '', size = 'sm' }: { slug
         toggleWishlist(slug)
         gsap.fromTo(ref.current, { scale: 0.8 }, { scale: 1, duration: 0.6, ease: 'elastic.out(1, 0.4)' })
       }}
-      className={`${dim} flex items-center justify-center rounded-full bg-[var(--bg-travertine)]/90 backdrop-blur transition-colors hover:text-[var(--gold-vermeil)] ${className}`}
+      // Ink is set here rather than inherited: the chip is always travertine, even on dark surfaces like the home hero.
+      className={`${dim} flex items-center justify-center rounded-full bg-[var(--bg-travertine)]/90 text-[var(--text-espresso)] backdrop-blur transition-colors hover:text-[var(--gold-vermeil)] ${className}`}
     >
       <Heart
         size={size === 'lg' ? 20 : 16}

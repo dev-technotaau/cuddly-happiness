@@ -222,7 +222,7 @@ The root `<div ref={root}>` holds everything below. Blocks marked **pdp-in** car
 | 2 | Main grid | `<section className="mx-auto grid max-w-[1600px] gap-12 px-6 py-10 lg:grid-cols-12 lg:gap-16 lg:px-12 lg:py-14">` | always | Two columns from `lg` |
 | 2a | Gallery column | `div.lg:col-span-7` > `div.lg:sticky.lg:top-32` > `<Gallery product={product} />` | always | Inside the stage: `badges[0]` chip (top-left), `WishButton size="lg"` (top-right), `TryOnButton variant="chip"` (left, `top-16`), counter and arrows. Details in the PDP-modules doc |
 | 2b | Info column | `div.lg:col-span-5` | always | Rows 3–13 |
-| 3 | Availability (pdp-in) | `div.flex.flex-wrap…` > `span` with a 1.5×1.5 gold dot + `{availability}` | always | `text-[10px] uppercase tracking-[0.22em] text-[var(--text-taupe)]` |
+| 3 | Availability and sharing (pdp-in) | `div.flex.flex-wrap.items-center.justify-between…` > `span` with a 1.5×1.5 gold dot + `{availability}`, then "Drop a hint" (not for rentals) and "Share" `ShareButton`s on the right (`features/sharing.md`) | always | `text-[10px] uppercase tracking-[0.22em] text-[var(--text-taupe)]` |
 | 4 | Collection line (pdp-in) | `<p className="font-spec mt-8 text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">` | always | `{product.collection} · Chapter {category.eyebrow}` |
 | 5 | Title (pdp-in) | `<h1 className="font-serif-editorial mt-4 text-[3rem] font-light leading-[0.95] tracking-[-0.025em] sm:text-[3.75rem] lg:text-[4.25rem]">` | always | `{product.name}` |
 | 6 | Tagline (pdp-in) | `p.font-serif-editorial.mt-4.text-2xl.italic` taupe | always | `{product.tagline}` |

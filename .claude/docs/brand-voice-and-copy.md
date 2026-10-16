@@ -159,7 +159,7 @@ The story, verbatim:
 
 ### 1.7 Social proof
 
-- **Press** (`src/components/home/PressStrip.tsx`, marquee titled `As seen in`): `Vogue`, `ELLE Québec`, `The Globe and Mail`, `Harper’s Bazaar`, `La Presse`, `Town & Country`, `Montreal Gazette`, `Brides`. The section's `aria-label` is `As featured in`.
+- **Press** (`src/components/home/PressStrip.tsx`, marquee titled `As seen in`): `Vogue`, `ELLE Québec`, `The Globe and Mail`, `Harper’s Bazaar`, `La Presse`, `Town & Country`, `Montreal Gazette`, `Brides`. The section's `aria-label` is `As seen in`, matching the visible label.
 - **Aggregate claim**: `4.9 / 5 · 1,200+ reviews`, hard-coded in `Testimonials.tsx`.
 - **Testimonials** rotate every 6500 ms. Attributions are `Camille R.` · `Outremont, QC` · `Heirloom Redesign`; `Daniel K.` · `Brooklyn, NY` · `Notre-Dame Oval Solitaire`; `Priya S.` · `Toronto, ON` · `Gala Diamond Collar`.
 - **PDP reviews** (`Reviews.tsx`): a seven-entry `POOL`. Authors are named as first name plus last initial (`Élodie M.`), locations as `City, PROV`. The rating is seeded per slug: `getRatingSummary` returns `4.7`–`4.9` and a count of `18`–`157`. The sidebar also shows `Fit` / `True to size` and `Would gift` / `98%`.
@@ -205,6 +205,7 @@ Where these fields render:
 | `Chapitre V · Mariage` | `HomeHero.tsx` slide 2 | French "Chapitre" |
 | `Chapitre VII · La Location` | `HomeHero.tsx` slide 3 | "Chapitre" and "La Location" |
 | `La pièce` | `HomeHero.tsx` featured-piece label | French label |
+| `Partager` · `Un petit indice` | `ShareSheet.tsx` eyebrows (share and hint modes) | French labels |
 | `Nine chapters` | `CategoryIndex.tsx` | The count is written as a word, not computed |
 | `This chapter could not be found.` | `Category.tsx` (unknown slug) | — |
 
@@ -469,7 +470,7 @@ Some text is forced to upper case in code: the monogram input (`e.target.value.t
 | Needs configuration | `Options` (CartUpsell). `Select options` (VideoViewer). `Choose dates` / `Personalize this piece` / `Choose size & options` (TryOnStudio). |
 | Bag state | `Added to bag` (PDP for 2200 ms, gift-card builder for 2400 ms, TryOnStudio). `Added` (CartUpsell, VideoViewer). `Go to bag` (PDP and StickyBar once the exact configuration is in the bag; opens the drawer). |
 | Bag and checkout | `Secure checkout` (lock icon plus arrow; drawer and Cart). `View full bag` (drawer). `Clear bag` (Cart; asks `Remove everything from your bag?` via `window.confirm`). `Edit`. `Save for later` (moves the line to the wishlist). `Undo`. `Apply` (gift-card code). `Place order` / `Place order — no payment due` (Checkout). `Check` (balance). |
-| Explore and navigate | `Discover necklaces`, `Explore bridal`, `View rentals` (hero). `Explore bridal`, `Design your own` (bridal block). `View the rental vault`. `Explore all collections`. `All gifts`. `Shop certified diamonds`. `Shop {cat.name} →` (mega menu). `View all`. `Shop the collections`. `Gift cards`. `Explore Rings`. `Continue shopping`. `Return home`. `Return to the maison`. `View in your account`. `Start shopping`. `View wishlist`. `Send a gift card`. `Send one`. `Show more reviews`. `Clear history`. `What the fee covers`. `See full cost breakdown`. `Get directions`. `Copy link`. `Follow #PorteTeresa` (a styled span, not a link). |
+| Explore and navigate | `Discover necklaces`, `Explore bridal`, `View rentals` and `Book a private appointment` (hero). `Explore bridal`, `Design your own` (bridal block). `View the rental vault`. `Explore all collections`. `All gifts`. `Shop certified diamonds`. `Shop {cat.name} →` (mega menu). `View all`. `Shop the collections`. `Gift cards`. `Explore Rings`. `Continue shopping`. `Return home`. `Return to the maison`. `View in your account`. `Start shopping`. `View wishlist`. `Send a gift card`. `Send one`. `Show more reviews`. `Clear history`. `What the fee covers`. `See full cost breakdown`. `Get directions`. `Copy link`. `Follow #PorteTeresa` (a styled span, not a link). |
 | Talk to a person (all link to `#/atelier`) | `Book a viewing`, `Ask a jeweller` (PDP). `Book a diamond viewing` (FourCs). `Book an appointment` (VisitSalon, Account tile). `Book an Appointment` (Footer). `Book a sizing`. `Book a private consultation` (Cart). `Commission a piece`. `Contact concierge` (GiftCards, ProductFAQ). `Ask the concierge` (GiftFinder). `Speak with our concierge` (Services). `See it in person — book a viewing` (TryOnStudio). `Request appointment` submits the Atelier form. |
 | Try-on | `View on you` (default label, also the CartLineItem link). `Try on` (chips on cards and in the video viewer). `Try this collection on` (Category). `Try your wishlist on` (Wishlist). `Start virtual try-on` (TryOnFeature). `Start camera` / `Try camera again`. `Upload a photo`. `Retake`. `Save photo`. |
 | Account and reviews | `Sign in`, `Create account`, `Sign out`, `Subscribe` (Footer), `Write a review`, `Submit review` |
@@ -583,9 +584,11 @@ When the PDP rejects an add, it scrolls to `#step-dates`, `#step-personal` or `#
 | `CartUpsell.tsx` | `Add {name} to bag` |
 | `RecentlyViewed.tsx` | `Clear recently viewed` |
 | `WishButton.tsx` | `Remove from wishlist` or `Save to wishlist` (plus `aria-pressed`) |
-| `HomeHero.tsx` | `0{n} {nav}, slide {n} of 3`; `Pause slideshow` / `Play slideshow`; carousel `Featured collections` |
+| `HomeHero.tsx` | `0{n} {nav}, slide {n} of 3`; `Pause slideshow` / `Play slideshow`; carousel `Featured collections`; slide controls list `Slides`; piece link `La pièce: {name}, {facts}` |
+| `App.tsx` | `Skip to content` (skip link) |
+| `ShareSheet.tsx` | dialog named by its title; `Close`; `Link to this piece`; tabs `How to share`; live status `Link copied`, `List copied, with a link to each piece`, `Message copied, with the link`, `Text copied, with the link`, `Selected. Press Ctrl+C to copy.` |
 | `Testimonials.tsx` | `Testimonial {n}` |
-| `PressStrip.tsx` | section `As featured in` (the visible text says `As seen in`) |
+| `PressStrip.tsx` | section `As seen in` (matches the visible label) |
 | `Product.tsx` | nav `Breadcrumb` |
 | `Gallery.tsx` | `Show {label} view`, `Previous image`, `Next image`, `Full screen`, dialog `{name} gallery`, `Close gallery` |
 | `RentalCalendar.tsx` | `Previous month`, `Next month`, and day buttons `{weekday, day month}` followed by `, reserved` or `, unavailable` (for example `Thursday, October 15, reserved`) |
@@ -871,7 +874,7 @@ Everything in this section is observation, risk or recommendation, not a stateme
 - **Gift-card spec.** `Denominations: '$250 – $10,000'` contradicts the presets 100–5,000 and the custom range 50–10,000 CAD / 50–7,500 USD, and the Header's `From $100`. In practice it is dead copy, because `#/p/gift-card` routes to the gift-card page.
 - **Engraving and returns.** Engraving is labelled `complimentary`, but engraved pieces are final sale (FAQ, Cart). The PDP engraving field does not say so.
 - **Persona overlap.** Testimonial author `Daniel K.` "proposed in Paris", while the `@danielk` video is `A campfire proposal on Mont-Royal.`
-- **Labels.** PressStrip has `aria-label="As featured in"` but shows `As seen in`. The reviews lightbox says `Client image` where everything else says "photo".
+- **Labels.** The reviews lightbox says `Client image` where everything else says "photo".
 
 **Microcopy that doesn't match behaviour**
 

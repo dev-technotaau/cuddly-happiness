@@ -974,7 +974,7 @@ When there are no pieces the component returns `null`, and the page leaves the s
 
 ### 10.3 Layout
 
-- **Section:** `bg-[var(--bg-silk)]`, inner `mx-auto max-w-[1600px] px-6 py-28 lg:px-12 lg:py-36`, then `grid items-center gap-12 lg:grid-cols-12`.
+- **Section:** `bg-[var(--bg-silk)]`, inner `mx-auto max-w-[1600px] px-6 py-28 lg:px-12 lg:py-36`, then `grid grid-cols-1 items-center gap-12 lg:grid-cols-12` (`grid-cols-1` bounds the phone column. Without it, the cards' unwrapped names stretched the track and pushed the page 388 px past the screen edge, until 2026-10-16).
 - **Pieces row:** `flex items-center gap-3 lg:col-span-8`, with gold `Plus` icons between the pieces. Each piece:
   - is a link to `href.product(slug)` (`group block min-w-0 flex-1`, `data-reveal={i * 0.08}`);
   - has an `aspect-[4/5]` lazy `editorial-zoom` image;

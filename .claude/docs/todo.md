@@ -150,7 +150,7 @@ Scope: compiled 2026-10-15 from `history/figma-make-log.md`, `design-intent.md`,
 1. [ ] **P1 · Site title.** The tab and `og:title` say "Figma Make App". Set `title` (and optionally `language`) in `.figma/make/site.json`, and consider per-route `document.title`. Source: KI-002.
 2. [ ] **P2 · Formatter.** `pnpm run format` (oxfmt 0.2.0) corrupts the code and is denied in settings. Add a config matching the house style (single quotes, no semicolons, wide lines) and verify it on a copy, or leave it denied. Source: KI-001.
 3. [ ] **P2 · No typecheck in build or deploy.** Consider a `typecheck` script. Source: KI-004.
-4. [ ] **P3 · 622 kB main chunk** is over the 500 kB warning. `lazy()` the pages. Source: KI-005.
+4. [ ] **P3 · About 630 kB of initial JS** (entry 463 kB + shared vendor 167 kB). The pages are still eager. `lazy()` the pages. Source: KI-005.
 5. [ ] **P3 · Favicon** is the Figma Make default. Source: KI-003.
 6. [ ] **P3 · tsconfig.** `lib: ES2020` is narrower than the runtime target, and `types: ["node"]` leaks Node globals into browser code. Source: KI-006.
 7. [ ] **P3 · Platform flags.**
@@ -220,6 +220,17 @@ Work that was never on the list, logged so it isn't redone or undone:
   - full reduced-motion support, and carousel semantics with `inert` slides;
   - layered wipes without the mid-transition cut;
   - height-aware sizing for short laptops, plus a phone grade and phone controls.
+- [x] **Hero title and first impression (2026-10-16).** Changes, documented in `pages/home.md` §4.1:
+- [x] **Smooth marquees (2026-10-16).** Both strips now use one `Marquee` component on the Web Animations API (`motion-and-interaction.md` §6.6). It gives a constant speed, an exact seam, enough copies for any width, a start after fonts load, an eased hover stop, an off-screen pause and copies hidden from screen readers. The film-grain layer shrank from 200% to 124%.
+- [x] **Sharing and gift hints (2026-10-16).** "Share" and "Drop a hint" on the PDP, and "Share list" on the wishlist (`features/sharing.md`). Two fixes came with it:
+  - KI-061: the wishlist's "Copy link" shared nothing useful;
+  - "Complete the look" pushed every product page 388 px sideways on phones (`grid-cols-1`).
+  - a flush-left lockup with a gold hairline into the italic, and a single glint;
+  - focus-pull line reveals, and the photo lighting up on load;
+  - a cursor key light and a warm grade;
+  - Try on and wishlist on the featured piece, and "Book a private appointment";
+  - swipe and arrow keys, focus rings and stronger contrast;
+  - a site-wide "Skip to content" link.
 
 ## Notes & gotchas
 

@@ -1,16 +1,16 @@
 import { useRef } from 'react'
-import { Share2 } from 'lucide-react'
-import { PRODUCTS } from '../data/catalog'
+import { PRODUCTS, formatPrice, priceFor } from '../data/catalog'
 import { href, useStore } from '../store'
 import ProductCard from '../components/ProductCard'
 import useReveal from '../components/useReveal'
 import { RecentlyViewedStrip } from '../components/RecentlyViewed'
 import TryOnButton from '../components/tryon/TryOnButton'
 import { tryOnKind } from '../data/catalog'
+import ShareButton from '../components/share/ShareButton'
 
 export default function Wishlist() {
   const root = useRef<HTMLDivElement>(null)
-  const { wishlist, user, addToCart } = useStore()
+  const { wishlist, user, addToCart, currency } = useStore()
   const items = wishlist.map((s) => PRODUCTS.find((p) => p.slug === s)).filter((p) => p !== undefined)
   useReveal(root, [items.length])
 
@@ -31,12 +31,22 @@ export default function Wishlist() {
                 <TryOnButton product={wearable[0]} list={wearable} label="Try your wishlist on" className="!w-auto px-5 !py-3 !text-[11px]" />
               ) : null
             })()}
-            <button
-              onClick={() => navigator.clipboard?.writeText(`${location.origin}${location.pathname}#/wishlist`)}
-              className="flex items-center gap-2 border border-[var(--border-hairline)] px-5 py-3 text-[11px] uppercase tracking-[0.2em] hover:border-[var(--text-espresso)]"
-            >
-              <Share2 size={14} strokeWidth={1.4} /> Copy link
-            </button>
+            {/* The wishlist lives on this device, so a link to it would open the recipient's own list: share the pieces instead. */}
+            <ShareButton
+              variant="outline"
+              label="Share list"
+              subject={{
+                kind: 'list',
+                id: 'wishlist',
+                title: 'Your wishlist',
+                items: items.map((p) => ({
+                  name: p.name,
+                  route: href.product(p.slug),
+                  image: p.images[0],
+                  priceText: p.rental ? `from ${formatPrice(p.rental.weekend[currency], currency)} ${currency} a weekend` : `${formatPrice(priceFor(p, currency), currency)} ${currency}`,
+                })),
+              }}
+            />
             <button
               onClick={() => items.filter((p) => p.category !== 'rentals' && !p.personalization && p.slug !== 'gift-card').forEach((p) => addToCart({ slug: p.slug, metal: p.metals[0] }))}
               className="bg-[var(--text-espresso)] px-6 py-3 text-[11px] uppercase tracking-[0.2em] text-[var(--bg-travertine)] hover:bg-[var(--gold-vermeil)]"

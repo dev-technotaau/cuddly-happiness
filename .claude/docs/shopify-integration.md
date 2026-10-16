@@ -421,7 +421,7 @@ The hard-coded section numbers ("01"–"09", "—") become text settings.
 
 | Component | Theme home | Notes |
 |---|---|---|
-| `Header` announcements (4 strings) | `sections/announcement-bar.liquid` in `sections/header-group.json` | Keep the marquee CSS (`.animate-marquee`, 38 s). |
+| `Header` announcements (4 strings) | `sections/announcement-bar.liquid` in `sections/header-group.json` | Port the `Marquee` behaviour: a Web Animations API loop at a constant px/s, an eased hover stop, an off-screen pause, and no movement under reduced motion. |
 | `Header` navigation and mega menu | `sections/header.liquid` (header group) | The menu comes from a `linklist`. Mega-menu columns use the collection description, the `chapter_numeral` / `french_name` metafields, the first 2 products and collection images. Add a "Gift Cards" item with the caption "From $100 · never expires". |
 | Currency toggle "CA · CAD" / "US · USD" | `{% form 'localization' %}` country/market selector | Switching changes currency, tax and shipping together. |
 | Account, wishlist and bag icons | `customer`, `routes.account_url`, app count, `cart.item_count` | The bag icon opens the drawer. |
@@ -561,6 +561,15 @@ Read them back in Liquid with `cart.attributes['Gift wrap']` and `cart.note`. Th
 | `PROVINCES`, `US_STATES` | tax tables | not needed at checkout; keep only for estimates | theme JS |
 
 ---
+
+## Sharing and hints
+
+`src/lib/share.ts` and `src/components/share/` (`features/sharing.md`) are shaped for the theme:
+- **URLs:** build share URLs from `{{ shop.url }}{{ product.url }}` with the same `?utm_source={channel}&utm_medium=share`, which Shopify analytics reads. The prototype uses its own origin and hash routes.
+- **Device share:** keep the device's share sheet with a copy-link fallback, as in Dawn's `share-button`. Prefetch the featured image as a `File` so it can be attached.
+- **Analytics:** forward the `tns:share` window event with `Shopify.analytics.publish('tns_share', detail)` to a custom pixel.
+- **Link previews:** they come from the theme's Open Graph tags (the `meta-tags` snippet), which the single-page prototype lacks.
+- **Hints:** they stay client-side, sent by the visitor's own apps. Emailing a hint on the visitor's behalf would need an app or backend and is out of scope.
 
 ## Notes & gotchas
 

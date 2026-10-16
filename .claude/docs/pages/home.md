@@ -17,13 +17,13 @@ The copy in this diagram is schematic. Section 8 (Copy deck) has the verbatim st
  +---------------------------------------------------------------------------+
  | 1  HomeHero           vault | h = calc(100svh - 7rem), min-h 540px        |
  |  :  3 stacked full-bleed bg images (wipe in from the right on change)     |
- |  :                                                          +---------+   |
+ |  :  key light follows the cursor; warm grade                +---------+   |
  |  :   ---- EYEBROW                                           | piece   |   |
  |  :   Line one                                               | 3:4     |   |
- |  :          - line two (italic, champagne)                  +---------+   |
- |  :      Line three                                          LA PIECE   -> |
+ |  :   ------- line two (italic, champagne, one glint)        +---------+   |
+ |  :   Line three                                             LA PIECE   -> |
  |  :                                                          Piece name    |
- |  :   [body]     (O->) CTA                                   CT . F . VS1  |
+ |  :   [body]   (O->) CTA   BOOK A PRIVATE APPT.              CT . F . VS1  |
  |  :   01 LABEL   02 LABEL   03 LABEL   (||)                  SCROLL |      |
  |  :   ====----   --------   --------   (active fill = 7 s timer)           |
  |  :.. vertical side label (centred, vertical writing mode)                 |
@@ -87,7 +87,7 @@ The copy in this diagram is schematic. Section 8 (Copy deck) has the verbatim st
 | # | Section | Source (symbol) | Index · eyebrow shown | Surface | Data | Interaction |
 |---|---|---|---|---|---|---|
 | 1 | Hero carousel | `src/components/HomeHero.tsx` (`HomeHero`) | slide eyebrows, no index | `--bg-vault`, light text | `SLIDES`, `IMG`, `href` | 7 s autoplay, 3 slide buttons, pointer parallax, scroll-out |
-| 2 | Press strip | `src/components/home/PressStrip.tsx` (`PressStrip`) | "As seen in" | inherited travertine, bottom hairline | `PRESS` | CSS marquee (pauses on hover) |
+| 2 | Press strip | `src/components/home/PressStrip.tsx` (`PressStrip`) | "As seen in" | inherited travertine, bottom hairline | `PRESS` | `Marquee`, 34 px/s, eases to a stop on hover, pauses off-screen |
 | 3 | Category index | `src/components/home/CategoryIndex.tsx` (`CategoryIndex`) | 01 · Nine chapters | travertine | `CATEGORIES`, `getProductsByCategory` | cursor-following preview (lg) |
 | 4 | Most treasured | `src/components/home/Treasured.tsx` (`Treasured`) | 02 · The selection | travertine | `PRODUCTS` filtered by badge | 3 tabs |
 | 5 | Virtual try-on promo | `src/components/home/TryOnFeature.tsx` (`TryOnFeature`) | — Essayage virtuel | `--bg-vault` | `PRODUCTS` + `tryOnKind` | opens the try-on studio |
@@ -170,7 +170,7 @@ On dark sections the text is `text-[var(--bg-travertine)]`, accents are `--gold-
 
 ### 4.1 HomeHero (`src/components/HomeHero.tsx`)
 
-A three-slide editorial carousel on the vault background. Each slide pairs a cascading three-line headline with one featured catalog piece, shown in a gold-framed photo at the top right (`lg`). The hero was refined on 2026-10-16 (see the design-intent log); the owner's step 6–7 concept is unchanged.
+A three-slide editorial carousel on the vault background. Each slide pairs a three-line headline lockup with one featured catalog piece, shown in a gold-framed photo at the top right (`lg`). The owner's step 6–7 concept is unchanged. It was refined on 2026-10-16 in two passes (see the design-intent log): first execution and content, then the title lockup and the first impression.
 
 **Data.** `SLIDES` (module scope), one object per slide:
 
@@ -186,39 +186,62 @@ A three-slide editorial carousel on the vault background. Each slide pairs a cas
 
 - `PIECES = SLIDES.map((s) => getProduct(s.piece))`. A missing product hides that slide's photo and caption instead of throwing.
 - `facts(p)` returns `[carat to 2 dp + ' ct', color, clarity]` from `p.gia`, or `[specs['Total carat weight']]` when there is no GIA report. Rental pieces add "Weekend" plus `<Price amount={p.rental.weekend[currency]} />`.
+- `thumb(url)` swaps the catalog's `w=1600` for `w=640`, because the framed piece never shows more than 250 px.
+- `ring` is the shared focus style: `focus-visible:outline focus-visible:outline-offset-4 focus-visible:outline-[var(--gold-champagne)]`.
 
-**State and refs.** `index` (active slide), `paused` (the user's toggle), `busy` (a transition is running), `progress` (the active progress tween, which is also the autoplay timer), `pausedRef`, and `holds` `{ hover, focus, hidden, offscreen }`. `reduced` is read from `matchMedia` on every render. `sync()` pauses `progress` while `paused` or any hold is true, and resumes it otherwise.
+**State and refs.**
+- State: `index` (active slide) and `paused` (the user's toggle).
+- Refs: `busy` (a transition is running), `progress` (the active progress tween, which is also the autoplay timer), `pausedRef`, `holds` `{ hover, focus, hidden, offscreen }`, and `swipe` (the touch start point).
+- `reduced` is read from `matchMedia` on every render.
+- `sync()` pauses `progress` while `paused` or any hold is true, and resumes it otherwise.
 
 **Layout.**
-- `<section aria-roledescription="carousel" aria-label="Featured collections">`: `relative h-[calc(100svh-7rem)] min-h-[540px] overflow-hidden` on the vault. The 540 px floor lets 1366 × 768 laptops (about 657 px of viewport) show the whole hero, controls included.
-- `[data-hero-frame]` holds the three background layers (`absolute -inset-[4%] overflow-hidden`, `data-bg={i}`, `data-hero-bg`) and two grade overlays (`z-[4]`, inline gradients):
-  - below `lg`: a vertical grade rising from the bottom, because the copy spans the full width;
-  - `lg`: ink from the left behind the headline, a floor for the controls, and a soft lid under the header.
-- Each layer's initial `zIndex`/`clipPath` is a constant derived from its *position* (slide 0 visible), never from `index`, so React never rewrites it. GSAP owns both after mount.
-- **The piece** (`<a data-hero-inset href={href.product(piece.slug)}>`, `hidden lg:block absolute right-[6%] top-[11%] z-[5]`):
+- `<section aria-roledescription="carousel" aria-label="Featured collections">`:
+  - classes `relative h-[calc(100svh-7rem)] min-h-[540px] touch-pan-y overflow-hidden` on the vault;
+  - the 540 px floor lets 1366 × 768 laptops (about 657 px of viewport) show the whole hero, controls included;
+  - `touch-pan-y` leaves vertical drags to the page and hands horizontal swipes to the hero.
+- `[data-hero-frame]` holds, bottom to top:
+  - the three background layers (`absolute -inset-[4%] overflow-hidden`, `data-bg={i}`, `data-hero-bg`). Each layer's initial `zIndex`/`clipPath` is a constant derived from its *position* (slide 0 visible), never from `index`. React never rewrites them, and GSAP owns both after mount.
+  - `[data-hero-light]`: a key light (`z-[4]`, `mix-blend-screen`), a radial gradient of warm white at 16 % centred on `var(--hx, 68%) var(--hy, 42%)`.
+  - A warm grade (`z-[4]`, `bg-[var(--gold-champagne)]/10 mix-blend-soft-light`) so the three photographs read as one set.
+  - Two legibility grades (`z-[5]`, inline gradients). Below `lg`, a vertical grade rises from the bottom, because the copy spans the full width. At `lg`: ink from the left behind the headline, a floor for the controls, and a soft lid under the header.
+- **The piece** (`[data-hero-inset]`, a `group` div, `hidden lg:block absolute right-[6%] top-[11%] z-[7]`). It must sit above the copy column (`z-[6]`). That column's box spans the full hero height, so at `z-[5]` it swallowed every click and hover meant for the piece (fixed 2026-10-16):
   - Width `min(17vw, 250px, (100svh − 26rem) × 0.72)`, so it shrinks on short screens instead of colliding with the controls.
-  - An `aspect-[3/4]` frame with a champagne `outline-offset-8` outline (35 %, 80 % on hover) stacks the three piece photos (`data-inset-img={i}`, `loading="lazy"`, so phones, where the piece is hidden, never fetch them).
-  - Below it, one caption per slide (`data-slide={i}`; inactive ones absolute and transparent): "La pièce" with an `ArrowUpRight` that nudges on hover, the product name (`font-serif-editorial text-[1.375rem]`), and the facts line (`font-spec text-[10px] uppercase tracking-[0.18em] text-white/55`).
-- **Side label** (`lg`): "Joailliers · Montréal · Est. 1962" in `[writing-mode:vertical-rl] rotate-180 whitespace-nowrap`, centred with `top-1/2 -translate-y-1/2` at `lg:left-7`, so it stays centred at any hero height.
+  - The frame is `relative isolate aspect-[3/4] overflow-hidden` with a champagne `outline-offset-8` outline (35 %, 80 % on hover). It stacks the three photos (`data-inset-img={i}`, `thumb()` URLs, `loading="lazy"`, so phones, where the piece is hidden, never fetch them).
+  - Below it, one caption per slide (`aria-hidden`; `data-slide={i}`, inactive ones absolute and transparent): "La pièce" with an `ArrowUpRight` that nudges on hover, the product name (`font-serif-editorial text-[1.375rem]`), and the facts line (`font-spec text-[10px] uppercase tracking-[0.18em] text-white/60`).
+  - One link covers photo and caption (`absolute -inset-2 z-[1]`, `aria-label` "La pièce: {name}, {facts}", `ring` focus).
+  - Above it, an actions layer (`z-[2]`, shown on hover or `focus-within`) holds `WishButton` (top right) and `TryOnButton variant="chip" label="Try on"` (bottom left). The actions are siblings of the link, not nested inside it.
+- **Side label** (`lg`, `aria-hidden`): "Joailliers · Montréal · Est. 1962" in `[writing-mode:vertical-rl] rotate-180 whitespace-nowrap`, centred with `top-1/2 -translate-y-1/2` at `lg:left-7`.
 - **Copy** (`[data-hero-copy]`, `z-[6]`, bottom-aligned, `px-6 lg:px-16`, `pb-[clamp(1.25rem,3.5vh,2.5rem)]`): one container per slide (`data-slide={i}`, `role="group" aria-roledescription="slide" aria-label="{n} of 3: {nav}"`). Inactive slides are `aria-hidden`, `inert` and `pointer-events-none absolute opacity-0`.
-  - Eyebrow (`data-fade`): `font-spec text-[10px] uppercase tracking-[0.24em] sm:tracking-[0.34em]` in champagne, after a `w-10` rule.
-  - `<h1>`: `font-serif-editorial font-light leading-[0.86] tracking-[-0.03em] !oldstyle-nums lg:max-w-[72%]` with `fontSize: clamp(3.25rem, min(9.2vw, 14vh), 8.75rem)`. That is about 126 px at 1440 × 900, 92 px at 1366 × 657 and 52 px on phones.
-  - Each headline line is a mask span `block overflow-hidden pb-[0.24em] -mb-[0.16em]` holding a `[data-line]` span. The accent line is indented `pl-[0.8em] sm:pl-[1.4em]`, set `font-normal italic` in champagne and preceded (`sm+`) by a `w-[0.8em]` champagne rule. Line 3 is indented `pl-[0.32em] sm:pl-[0.52em]`.
-  - Body and CTA row (`mt-[clamp(1.5rem,4vh,2.5rem)]`, stacked on phones): the body (`max-w-sm text-sm leading-relaxed text-white/70`) and the CTA link, a 56 px champagne ring whose fill rises on hover, with its label.
+  - Eyebrow (`data-fade`): a `w-10` champagne rule (`[data-eyebrow-rule]`, drawn in on reveal) and `font-spec text-[10px] uppercase tracking-[0.24em] sm:tracking-[0.34em]` text in champagne.
+  - **Title lockup** (`<h1>`): `font-serif-editorial font-light leading-[0.88] tracking-[-0.03em] !oldstyle-nums [text-rendering:optimizeLegibility] lg:max-w-[72%]`, with `fontSize: clamp(3.25rem, min(9.2vw, 14vh), 8.75rem)`. That is about 126 px at 1440 × 900, 92 px at 1366 × 657 and 52 px on phones.
+    - Every line is flush left, giving one strong edge.
+    - Each line is a mask span `block overflow-hidden pb-[0.24em] -mb-[0.16em]` holding a `[data-line]` span.
+    - The accent line opens with a gold hairline (`[data-rule]`, `mr-[0.3em] mt-[0.56em] h-px w-[0.9em] sm:w-[1.5em]`, a gradient from transparent to champagne). It draws in from the left edge and leads into the italic.
+    - The italic (`[data-gleam]`, `text-[1.05em] font-normal italic`) is a text-clipped gradient: champagne with a pale band (`#fff4d8`) at 50 %, `bg-[length:250%_100%] bg-[position:100%_0%] bg-clip-text text-transparent`. It is padded `pb-[0.3em] -mb-[0.3em] pr-[0.08em] -mr-[0.08em]` so descenders and the italic overhang stay inside the painted box.
+  - Body (`data-fade`): `max-w-sm text-pretty text-sm leading-relaxed text-white/75`.
+  - CTA group (`data-fade`, stacked under the body on phones):
+    - The ring CTA: a 56 px champagne circle whose fill rises on hover while the arrow passes through (two `ArrowRight`s; one leaves right as its twin arrives from the left), plus the label.
+    - From `sm`, "Book a private appointment" (`href.atelier`, underlined spec caps).
 - **Controls** (`[data-hero-meta]`, `mt-[clamp(1.75rem,5vh,3rem)] border-t border-white/15 pt-5`):
-  - An `<ol>` of three buttons. Each shows `0n` (champagne when active) and, from `sm`, the `nav` label, over a 1 px track whose `[data-progress={i}]` fill is that slide's progress line. `aria-label` is "0n {nav}, slide n of 3"; the active one has `aria-current="true"`.
+  - `<ol aria-label="Slides">` with an arrow-key handler. It holds three buttons. Each shows `0n` (champagne when active) and, from `sm`, the `nav` label (`text-white/55` when inactive), over a 1 px track whose `[data-progress={i}]` fill is that slide's progress line.
+  - Each button's `aria-label` is "0n {nav}, slide n of 3", and the active one has `aria-current="true"`.
   - A pause/play button (40 px on phones, 32 px from `sm`), not rendered under reduced motion.
-  - "Scroll" (`sm+`) beside a 28 px hairline with a champagne segment travelling down it (`animate-[scrollCue_2.6s_…_infinite]`, `motion-reduce:animate-none`).
+  - "Scroll" (`sm+`, `aria-hidden`) beside a 28 px hairline with a champagne segment travelling down it (`animate-[scrollCue_2.6s_…_infinite]`, `motion-reduce:animate-none`).
 - A visually hidden live region reads "Slide n of 3: {headline}". It is `aria-live="polite"` only when paused or under reduced motion, and `off` while autoplaying.
 
 **Effects.**
-1. **Intro, scroll-out and pointer parallax** (`useLayoutEffect` in a `gsap.context`, skipped under reduced motion):
-   - the frame opens from `inset(12%)` (1.8 s `expo.inOut`), `[data-hero-meta]` fades up (delay 1.1 s) and the piece fades in (delay 0.9 s);
-   - scrubbed to the hero's scroll: backgrounds `yPercent: 18, scale: 1.08`, copy `yPercent: -30, opacity: 0` (ends at `70% top`), piece `yPercent: -30`;
-   - pointer `quickTo`: the piece moves `x ±12 / y ±9` px (gentle, because it's a link) and the backgrounds `x ±9` px.
+1. **Intro, scroll-out, pointer parallax and the key light** (`useLayoutEffect` in a `gsap.context`, skipped under reduced motion):
+   - The frame opens from `inset(12%)` (1.8 s `expo.inOut`). Slide 0's photo lights up from `brightness(0.3) saturate(0.6)` (2.6 s `power2.out`, `clearProps`). `[data-hero-meta]` fades up (delay 1.1 s) and the piece fades in (delay 0.9 s).
+   - Scrubbed to the hero's scroll: backgrounds `yPercent: 18, scale: 1.08`; copy `yPercent: -30, opacity: 0` (ends at `70% top`); piece `yPercent: -30`.
+   - Pointer `quickTo`: the piece moves `x ±12 / y ±9` px and the backgrounds `x ±9` px. For a mouse, a `{ x, y }` proxy eases (1.1 s `power3.out`) to the cursor's position in the hero and writes `--hx`/`--hy` on the light.
 2. **Per-slide reveal and timer** (`useLayoutEffect` on `[index, reduced, go, sync]`):
-   - It kills any tween still on the slide's lines. It then animates `[data-line]` from `{ yPercent: 115, rotate: 2 }` (1.4 s, stagger 0.1, `expo.out`) and the slide's `[data-fade]` elements, the piece caption included, from `{ opacity: 0, y: 14 }`.
-   - It then starts `progress`: the slide's fill goes `scaleX 0 → 1` over `DURATION` (7 s, linear), and `onComplete` calls `go(index + 1)`. `sync()` applies any active hold.
+   - It kills any tween still on the slide's lines.
+   - Lines rise into focus from `{ yPercent: 115, rotate: 2, filter: 'blur(10px)' }` (1.4 s, stagger 0.1, `expo.out`, `clearProps: 'filter'`).
+   - The slide's `[data-fade]` elements, the piece caption included, rise from `{ opacity: 0, y: 14 }` at 0.5 s.
+   - The two hairlines draw in from the left (`scaleX 0 → 1`, from 0.15 s, stagger 0.2, 1.2 s `expo.inOut`).
+   - At 1 s a single glint crosses the italic (`backgroundPosition 100% → 0%`, 1.8 s `power2.inOut`).
+   - It then starts `progress`: the slide's fill goes `scaleX 0 → 1` over `DURATION` (7 s, linear), with `onComplete: go(index + 1)`. `sync()` applies any active hold.
    - Under reduced motion everything is set to its end state and the fill shows full.
    - Cleanup kills the timeline and the progress tween.
 3. **Pause sync** (`useEffect` on `paused`) copies the toggle into `pausedRef` and calls `sync()`.
@@ -226,6 +249,9 @@ A three-slide editorial carousel on the vault background. Each slide pairs a cas
    - `visibilitychange` sets `hidden`, and an `IntersectionObserver` (threshold 0.2) sets `offscreen`;
    - mouse enter and leave on the controls list and on the piece set `hover`;
    - section `onFocus` sets `focus` when the focused element matches `:focus-visible`, and `onBlur` clears it when focus leaves the section.
+5. **Input.**
+   - Touch or pen: `pointerdown` records the start, and `pointerup` calls `go(index ± 1)` when the drag is wider than 48 px and more than 1.4 × its height.
+   - Keyboard: ←/→ on a slide control calls `go` and moves focus to the new control. It is ignored while `busy`.
 
 **`go(next)`.** It wraps the target, then returns if `busy`, if the target is the current slide, or if there is no root.
 - It kills `progress` and puts the incoming background and photo at `zIndex 3` and the outgoing ones at 2 before anything moves, so the wipe always draws over the old image.
@@ -239,19 +265,19 @@ A three-slide editorial carousel on the vault background. Each slide pairs a cas
 | 0.3 | The incoming photo wipes up (`inset(100% 0 0 0)` → `0%`) and settles from `scale 1.12` (1.3 s, `expo.inOut`). |
 | `linesOut` = 0.7 + 0.05 × (lines − 1) = 0.8 | `setIndex(target)`: the new slide reveals and its timer starts. |
 | 1.6 | The outgoing background and photo are clipped away and dropped to `zIndex 1`, and the drift resets. |
-| about 2.3 | The timeline completes and `busy` clears. Clicks before then are ignored. |
+| about 2.3 | The timeline completes and `busy` clears. Clicks, swipes and arrow keys before then are ignored. |
 
 Each slide therefore waits for 7 s of visible, unpaused progress, and the fill never sits full while waiting.
 
 ### 4.2 PressStrip (`src/components/home/PressStrip.tsx`)
 
 - **Purpose:** an "as seen in" trust strip of publication names.
-- **Markup:** `<section className="border-b border-[var(--border-hairline)] py-10" aria-label="As featured in">`. Inside is the container `mx-auto flex max-w-[1600px] items-center gap-10 px-6 lg:px-12` holding:
+- **Markup:** `<section className="border-b border-[var(--border-hairline)] py-10" aria-label="As seen in">` (it said "As featured in" until 2026-10-16). Inside is the container `mx-auto flex max-w-[1600px] items-center gap-10 px-6 lg:px-12` holding:
   - the label `<p>` "As seen in": `font-spec shrink-0 text-[10px] uppercase tracking-[0.3em] text-[var(--text-linen)]`;
-  - a marquee viewport `relative overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_8%,#000_92%,transparent)]` (both edges fade out);
-  - inside the viewport, `<div className="animate-marquee">` with `[...PRESS, ...PRESS]`: 16 `<span>`s keyed by array index, each `font-serif-editorial whitespace-nowrap px-10 text-3xl italic text-[var(--text-taupe)]`.
+  - `<Marquee speed={34} className="relative min-w-0 flex-1 [mask-image:linear-gradient(90deg,transparent,#000_8%,#000_92%,transparent)]">` (both edges fade out);
+  - its children: one `<span>` per `PRESS` name, keyed by name, each `font-serif-editorial whitespace-nowrap px-10 text-3xl italic text-[var(--text-taupe)]`. The component repeats them and hides the copies from assistive tech.
 - **Data:** `PRESS` = Vogue, ELLE Québec, The Globe and Mail, Harper’s Bazaar, La Presse, Town & Country, Montreal Gazette, Brides.
-- **Animation:** `.animate-marquee` in `src/index.css` is `display: flex; width: max-content; animation: marqueeScroll 38s linear infinite`. The keyframe runs `translateX(0%)` → `translateX(-50%)`, which is seamless because the list is doubled. Hover sets `animation-play-state: paused`, and `animation: none` applies under `prefers-reduced-motion: reduce`. The Header announcement bar uses the same class. No reveal attributes.
+- **Animation:** the shared `Marquee` component (`motion-and-interaction.md` §6.6). It moves at a constant 34 px/s on the compositor, eases to a stop under a mouse, pauses off-screen and stands still under reduced motion.
 - **Breakpoints:** identical layout everywhere; only the side padding changes (`px-6` → `lg:px-12`).
 - **A11y:** the `aria-label` makes the section a region landmark. Names are plain text with no links.
 
@@ -779,6 +805,9 @@ Strings are listed verbatim from source in render order. A ✓ in **UC** means C
 | Piece label (lg) | La pièce | ✓ |
 | Piece names (lg, from the catalog) | Mont-Royal Solitaire Pendant; Notre-Dame Oval Solitaire; Gala Diamond Collar | |
 | Piece facts (lg, from the catalog) | 0.70 ct · F · VS1; 1.82 ct · E · VS1; 18.20 ct · Weekend {weekend rate in the active currency} | ✓ |
+| Piece actions (lg, on hover or focus) | Save to wishlist / Remove from wishlist (heart, `aria-label`); Try on | Try on ✓ |
+| Piece link aria-label (lg) | La pièce: {name}, {facts} | |
+| Secondary link (sm+) | Book a private appointment | ✓ |
 | Slide controls | 01 Lumière; 02 Mariage; 03 Location (labels from `sm`; numbers only on phones) | ✓ |
 | Slide control aria-labels | 01 Lumière, slide 1 of 3 (and so on) | |
 | Pause control aria-label | Pause slideshow / Play slideshow | |
@@ -790,7 +819,7 @@ Strings are listed verbatim from source in render order. A ✓ in **UC** means C
 
 | Element | Text | UC |
 |---|---|---|
-| Section aria-label | As featured in | |
+| Section aria-label | As seen in | |
 | Label | As seen in | ✓ |
 | Names (rendered twice for the loop) | Vogue; ELLE Québec; The Globe and Mail; Harper’s Bazaar; La Presse; Town & Country; Montreal Gazette; Brides | |
 
@@ -991,7 +1020,7 @@ Typographic characters in this copy: the apostrophe is ’ (U+2019) in "it’s",
 - **Reduced motion is only partly honoured.**
   - The hero has honoured it fully since 2026-10-16: no reveals, wipes, autoplay or scroll cue, and slides swap instantly.
   - `Testimonials` auto-rotates every 6.5 s regardless of the preference.
-  - `animate-pulse` (TryOnFeature "Live" dot) and the arbitrary `animate-[fadeUp_…]` (Treasured grid, Testimonials quote) are not covered: `src/index.css` disables only `.film-grain` and `.animate-marquee`.
+  - `animate-pulse` (TryOnFeature "Live" dot) and the arbitrary `animate-[fadeUp_…]` (Treasured grid, Testimonials quote) are not covered: `src/index.css` disables only `.film-grain`; the marquees stop themselves.
 - **MakingScroll with reduced motion on desktop.** At ≥ 1024 px with `prefers-reduced-motion: reduce`, the `gsap.matchMedia` branch does not run, but the track keeps `lg:overflow-visible` inside an `overflow-hidden` section. Cards beyond the viewport width (roughly from the third or fourth card on) are clipped and cannot be reached.
 - **`useReveal` runs once.** Home passes no `deps`. Content mounted later (the Treasured grid after a tab switch, GiftFinder cards for a new filter) gets no GSAP reveal. Any `data-reveal` added to dynamic content does nothing.
 - **Testimonials autoplay never pauses.** The 6.5 s interval keeps running off-screen and in hidden tabs, with no pause control (WCAG 2.2.2 concern). The hero has paused correctly since 2026-10-16. A testimonial dot click does not reset the interval, so the next auto-advance can come almost immediately.
@@ -1006,7 +1035,7 @@ Typographic characters in this copy: the apostrophe is ’ (U+2019) in "it’s",
 - **Hero:** the DOM still holds three `<h1>`s, but since 2026-10-16 the inactive slides are `aria-hidden` and `inert`, so only the active headline and CTA can be reached.
 - **Tabs:** Treasured and FourCs tablists have no `tabpanel`, no `aria-controls` and no arrow-key support. GiftFinder chips have no `aria-pressed`.
 - **SocialGrid:** tiles are `<a href="#/">` with `preventDefault` and no accessible name (`alt=""` plus an icon), so screen readers announce unnamed dead links. "Follow #PorteTeresa" looks like a link but is a span.
-- **PressStrip:** the visible label is "As seen in" but the landmark label is "As featured in". The doubled list is not `aria-hidden`, so every name is read twice.
+- **PressStrip:** fixed 2026-10-16. The landmark label now matches the visible "As seen in", and the marquee's duplicate copies are `aria-hidden`, so each name is read once.
 - **Testimonials:** the dots are 1 px tall hit targets and the rotating quote has no `aria-live`.
 - **Headings:** `MakingScroll` puts its eyebrow inside the `<h2>`, so the heading name starts "06 · The making". `Services` has `<h3>`s but no section heading.
 - **CategoryIndex:**

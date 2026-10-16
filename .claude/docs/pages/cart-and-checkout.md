@@ -981,7 +981,7 @@ Dynamic parts appear as `{…}`. Text shown uppercase by CSS keeps its source ca
   - The drawer has no focus trap, does not restore focus, and leaves the page behind it focusable despite `aria-modal="true"`.
   - The checkout currency buttons lack `aria-pressed`.
   - Detail lines are uppercased by CSS, so engraving and personalization text is not shown in the case the customer typed.
-- **No reduced-motion handling for these animations.** The drawer slide, backdrop fade, reward bar and toast `fadeUp` all ignore `prefers-reduced-motion`; `src/index.css` only disables the film grain and the marquee. Under reduced motion Lenis is never created, so the drawer's lock falls back to `body { overflow: hidden }` alone.
+- **No reduced-motion handling for these animations.** The drawer slide, backdrop fade, reward bar and toast `fadeUp` all ignore `prefers-reduced-motion`; `src/index.css` only disables the film grain (the marquees stop themselves). Under reduced motion Lenis is never created, so the drawer's lock falls back to `body { overflow: hidden }` alone.
 - **Scroll locks are applied to different elements.** The drawer locks `document.body`, while the try-on studio, video viewer and review overlays lock `document.documentElement`.
 
 ## Related docs

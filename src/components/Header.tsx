@@ -3,6 +3,7 @@ import gsap from 'gsap'
 import { ArrowUpRight, Heart, Menu, ShoppingBag, User, X } from 'lucide-react'
 import { CATEGORIES, getProductsByCategory } from '../data/catalog'
 import { href, useStore } from '../store'
+import Marquee from './Marquee'
 
 const announcements = [
   'Complimentary insured shipping across Canada & the United States',
@@ -50,15 +51,15 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50">
-      <div className="overflow-hidden bg-[var(--bg-vault)] py-2 text-[var(--gold-champagne)]">
-        <div className="animate-marquee">
-          {[...announcements, ...announcements].map((a, i) => (
-            <span key={i} className="font-spec flex items-center px-10 text-[10px] uppercase tracking-[0.28em]">
+      <div className="bg-[var(--bg-vault)] py-2 text-[var(--gold-champagne)]">
+        <Marquee speed={44} className="[mask-image:linear-gradient(90deg,transparent,#000_4%,#000_96%,transparent)]">
+          {announcements.map((a) => (
+            <span key={a} className="font-spec flex items-center px-10 text-[10px] uppercase tracking-[0.28em]">
               {a}
-              <span className="ml-20 text-[var(--gold-vermeil)]">&#10022;</span>
+              <span aria-hidden="true" className="ml-20 text-[var(--gold-vermeil)]">&#10022;</span>
             </span>
           ))}
-        </div>
+        </Marquee>
       </div>
 
       <div className="relative border-b border-[var(--border-hairline)] bg-[var(--bg-travertine)]/95 backdrop-blur-md">

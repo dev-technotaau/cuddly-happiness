@@ -39,14 +39,26 @@ function Routes() {
   }
 }
 
+/** Keyboard users jump past the header. A `#main` link would be read as a route, so focus moves in code. */
+function skipToContent() {
+  document.querySelector<HTMLElement>('main')?.focus()
+}
+
 export default function App() {
   return (
     <StoreProvider>
       <TryOnProvider>
       <SmoothScroll>
         <div className="min-h-screen bg-[var(--bg-travertine)] text-[var(--text-espresso)]">
+          <button
+            type="button"
+            onClick={skipToContent}
+            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[120] focus:bg-[var(--text-espresso)] focus:px-5 focus:py-3 focus:text-[11px] focus:font-medium focus:uppercase focus:tracking-[0.22em] focus:text-[var(--bg-travertine)] focus:outline focus:outline-offset-2 focus:outline-[var(--gold-vermeil)]"
+          >
+            Skip to content
+          </button>
           <Header />
-          <main>
+          <main tabIndex={-1} className="outline-none">
             <Routes />
           </main>
           <Footer />

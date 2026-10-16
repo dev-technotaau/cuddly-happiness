@@ -341,7 +341,7 @@ Signature: `WishButton({ slug, className = '', size = 'sm' }: { slug: string; cl
 | State | `on = isWished(slug)` from the store. `isWished` is `wishlist.includes(slug)`. |
 | ARIA | `aria-pressed={on}`. `aria-label` is `'Remove from wishlist'` when on and `'Save to wishlist'` when off. |
 | Size | `sm`: `h-9 w-9` (36 px) with a `Heart` at size 16. `lg`: `h-12 w-12` (48 px) with a `Heart` at size 20. The stroke width is 1.4 for both. |
-| Classes | `` `${dim} flex items-center justify-center rounded-full bg-[var(--bg-travertine)]/90 backdrop-blur transition-colors hover:text-[var(--gold-vermeil)] ${className}` `` |
+| Classes | `` `${dim} flex items-center justify-center rounded-full bg-[var(--bg-travertine)]/90 text-[var(--text-espresso)] backdrop-blur transition-colors hover:text-[var(--gold-vermeil)] ${className}` `` |
 | Icon when on | `fill-[var(--gold-vermeil)] text-[var(--gold-vermeil)]` (filled vermeil heart). When off the icon has no extra classes. |
 
 ```tsx

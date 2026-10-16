@@ -116,8 +116,9 @@ data layer: giftcards.ts, media.ts, costing.ts ─► catalog.ts ;  catalog.ts a
       <TryOnProvider>                                     src/components/tryon/TryOnProvider.tsx → TryOnContext
         <SmoothScroll>                                    src/components/SmoothScroll.tsx → returns <>{children}</>
           <div className="min-h-screen bg-[var(--bg-travertine)] text-[var(--text-espresso)]">
+            <button onClick={skipToContent}>              "Skip to content": sr-only until focused; focuses <main>
             <Header />
-            <main><Routes /></main>                       Routes: switch (route.name), defined in App.tsx, not exported
+            <main tabIndex={-1}><Routes /></main>         Routes: switch (route.name), defined in App.tsx, not exported
             <Footer />
             <CartDrawer />                                always mounted; slides in when cartOpen
             <div className="film-grain" aria-hidden />

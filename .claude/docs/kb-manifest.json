@@ -1,7 +1,7 @@
 {
   "version": 1,
   "generatedAt": "2026-10-16",
-  "gitHead": "10eac3c",
+  "gitHead": "af05449",
   "files": {
     ".figma/make/analyze-routes": {
       "hash": "d51912b900af",
@@ -124,7 +124,7 @@
       ]
     },
     "src/App.tsx": {
-      "hash": "d27da207996e",
+      "hash": "9da496d08df3",
       "docs": [
         "architecture.md",
         "components/global-and-shared.md",
@@ -173,7 +173,7 @@
       ]
     },
     "src/components/Header.tsx": {
-      "hash": "b98e1a0b795d",
+      "hash": "f50bdb490656",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -189,13 +189,22 @@
       ]
     },
     "src/components/HomeHero.tsx": {
-      "hash": "a1cf2f7a1080",
+      "hash": "9a2c4c8a0a94",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
         "known-issues.md",
         "motion-and-interaction.md",
         "pages/home.md",
+        "product-overview.md"
+      ]
+    },
+    "src/components/Marquee.tsx": {
+      "hash": "53639e89faad",
+      "docs": [
+        "code-conventions.md",
+        "components/global-and-shared.md",
+        "motion-and-interaction.md",
         "product-overview.md"
       ]
     },
@@ -260,7 +269,7 @@
       ]
     },
     "src/components/WishButton.tsx": {
-      "hash": "d9aa67f2f4fd",
+      "hash": "01166ae848b8",
       "docs": [
         "architecture.md",
         "components/global-and-shared.md",
@@ -402,7 +411,7 @@
       ]
     },
     "src/components/home/PressStrip.tsx": {
-      "hash": "15b23adc82fd",
+      "hash": "e3a128104063",
       "docs": [
         "brand-voice-and-copy.md",
         "pages/home.md",
@@ -514,7 +523,7 @@
       ]
     },
     "src/components/pdp/CompleteTheLook.tsx": {
-      "hash": "c323eb13e327",
+      "hash": "31e8fc3fdb80",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -634,6 +643,18 @@
         "motion-and-interaction.md",
         "pages/product.md",
         "product-overview.md"
+      ]
+    },
+    "src/components/share/ShareButton.tsx": {
+      "hash": "6a21e839e2a2",
+      "docs": [
+        "features/sharing.md"
+      ]
+    },
+    "src/components/share/ShareSheet.tsx": {
+      "hash": "19c7ff39aa26",
+      "docs": [
+        "features/sharing.md"
       ]
     },
     "src/components/tryon/JewelryOverlay.tsx": {
@@ -812,7 +833,7 @@
       ]
     },
     "src/index.css": {
-      "hash": "ef192fe27b55",
+      "hash": "bb355343ec61",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -827,6 +848,13 @@
         "pages/product.md",
         "platform-and-tooling.md",
         "product-overview.md"
+      ]
+    },
+    "src/lib/share.ts": {
+      "hash": "3fc93164f406",
+      "docs": [
+        "features/sharing.md",
+        "shopify-integration.md"
       ]
     },
     "src/lib/shopify.ts": {
@@ -960,13 +988,14 @@
       ]
     },
     "src/pages/Product.tsx": {
-      "hash": "f2598cc97333",
+      "hash": "f5fa151f31fc",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
         "commerce-logic.md",
         "components/pdp-modules.md",
         "data-model.md",
+        "features/sharing.md",
         "features/shoppable-video-and-atelier.md",
         "motion-and-interaction.md",
         "pages/cart-and-checkout.md",
@@ -979,12 +1008,13 @@
       ]
     },
     "src/pages/Wishlist.tsx": {
-      "hash": "0b91e748c384",
+      "hash": "f0a5b4165e75",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
         "commerce-logic.md",
         "data-model.md",
+        "features/sharing.md",
         "motion-and-interaction.md",
         "pages/account-and-wishlist.md",
         "pages/cart-and-checkout.md",

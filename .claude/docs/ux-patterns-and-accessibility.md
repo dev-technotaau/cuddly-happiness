@@ -10,6 +10,7 @@ Scope: all `src/**/*.tsx` (inventory), in particular `src/components/CartDrawer.
 |---|---|---|---|---|---|---|---|---|
 | Mobile menu | Header | `z-[70]` | inline when `mobileOpen` | — | — | — | — | `data-lenis-prevent`; closes on route change |
 | Cart drawer | CartDrawer | `z-[80]` backdrop / `z-[90]` panel | always mounted, toggled | yes | `body` (restores the previous value) | yes | dialog, `aria-modal`, `aria-hidden` + `inert` while closed | Focuses after 50 ms; no trap or restore |
+| Share sheet | ShareSheet (`features/sharing.md`) | `z-[100]` | portal, mounted while open | yes | `body` (restores the previous value) | yes | dialog, `aria-modal`, `aria-labelledby` its title; Tab trapped; focus returns to the trigger | bottom sheet below `md`; `data-lenis-prevent`; `[data-share-sheet]` marker |
 | Gallery lightbox | pdp/Gallery | `z-[95]` | inline | — | — | yes | dialog | relies on `data-lenis-prevent` |
 | Ring-size guide | pdp/RingSize | `z-[95]` | inline | — | — | yes | dialog | relies on `data-lenis-prevent` |
 | Reviews modal | pdp/Reviews | `z-[100]` | `createPortal(…, document.body)` | yes | `html` (reset to `''`) | yes | dialog | — |
@@ -104,6 +105,12 @@ The layout is mobile-first, with **`lg` (1024 px) as the main switch**: 284 `lg:
 ## 6. Accessibility inventory (facts)
 
 - **Landmarks:** `<header>`, `<main>`, `<footer>`, `<nav>` (desktop), `<address>` (footer), `<aside>` (side panels).
+- **Skip link:** `App.tsx` renders a "Skip to content" button as the first focusable element on every page. It is `sr-only` until focused, then fixed at the top left (`z-[120]`). It focuses `<main tabIndex={-1}>` in code, because a `#main` link would be read as a route.
+- **Home hero carousel** (`pages/home.md` §4.1):
+  - a pause button, and autoplay that holds on hover, keyboard focus, a hidden tab or off-screen;
+  - arrow keys on the slide controls and swipe on touch;
+  - `inert` hidden slides, and a polite live region while paused;
+  - `ring` focus styles on every control.
 - **Headings:** one `h1` per page (HomeHero, Category, Product, Cart, Checkout, GiftCards, Wishlist, Account, Atelier). Sections use `h2` through `SectionHeader`, and cards use `h3`.
 - **ARIA attributes:**
 
@@ -130,7 +137,7 @@ The layout is mobile-first, with **`lg` (1024 px) as the main switch**: 284 `lg:
 | `alert` | GiftCards errors |
 
 - **Focus:** `outline-none` appears 18 times and no `focus-visible:` styles exist anywhere. Some inputs show focus through `focus:border-…`. Only CartDrawer moves focus programmatically, and it is the only element using `inert`.
-- **Reduced motion is respected by:** `SmoothScroll` (no Lenis), `useReveal`, `HomeHero`, `MakingScroll`, `Product`'s entrance stagger, `useInViewPlay` (no autoplay), and the CSS for grain and marquee.
+- **Reduced motion is respected by:** `SmoothScroll` (no Lenis), `useReveal`, `HomeHero`, `MakingScroll`, `Product`'s entrance stagger, `useInViewPlay` (no autoplay), the CSS for the grain, and the `Marquee` component (no animation, copies hidden from assistive tech).
 - **Reduced motion is not respected by:** the WishButton pop, the Gallery stage fade/scale, the Header mega-menu tweens, the drawer slide and backdrop, the RewardProgress bar, the UndoToast `fadeUp`, and CSS hover transitions.
 - **Images:** the primary product image's alt text is the product name. Decorative and duplicate images use `alt=""`. Decorative SVGs use `aria-hidden`.
 - **Film grain:** the overlay is `pointer-events: none` with `aria-hidden`.

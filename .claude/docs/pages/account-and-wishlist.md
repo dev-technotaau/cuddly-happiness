@@ -46,7 +46,7 @@ Container `mx-auto max-w-[1400px] px-6 py-16 lg:px-12 lg:py-24`.
 - Header: eyebrow `Liste de souhaits`; h1 `Your Wishlist` (*Wishlist* italic vermeil, `text-6xl font-light lg:text-8xl`).
 - Actions (only when items exist):
   - **Try your wishlist on** — `TryOnButton` for the first try-on-eligible item, with `list` = all eligible items (rail in the studio).
-  - **Copy link** — `navigator.clipboard?.writeText(\`${location.origin}${location.pathname}#/wishlist\`)` (no confirmation; the link shows the *recipient's* own local list).
+  - **Share list:** a `ShareButton` (`variant="outline"`) whose subject lists every saved piece with its own product link and price (`features/sharing.md`). It replaced "Copy link" on 2026-10-16. That button copied `#/wishlist`, which opens the recipient's own device-local list, and gave no feedback.
   - **Add all to bag** — adds every item except rentals, personalized pieces and the gift card as `{ slug, metal: p.metals[0] }` (each call opens the drawer).
 - Signed-out notice (items exist, no user): `Saved on this device. Sign in to keep your wishlist across devices.`
 - Grid: `mt-14 grid gap-x-8 gap-y-16 sm:grid-cols-2 lg:grid-cols-4` of `ProductCard` (with `index` for reveal stagger).

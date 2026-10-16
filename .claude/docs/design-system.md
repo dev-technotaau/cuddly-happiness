@@ -57,6 +57,11 @@ Inline `fontFamily` values also name Baskervville (Personalizer "Serif" preview,
 
 **Wordmark** (Header): tracked capitals, `font-serif-editorial -mr-[0.12em] block whitespace-nowrap text-[17px] uppercase tracking-[0.12em] sm:-mr-[0.16em] sm:text-[22px] sm:tracking-[0.16em] lg:text-[25px]`, with the ampersand as `<em className="text-[var(--gold-vermeil)]">&amp;</em>`. The negative right margin equals the tracking and cancels the trailing letter-space, so the capitals centre. The gift-card art repeats the capitals (`text-[5.6cqi] uppercase tracking-[0.14em]`).
 
+**Hero lockup** (HomeHero):
+- Lines 1 and 3 sit flush left. The accent line opens with a gold hairline (`w-[0.9em] sm:w-[1.5em]`, transparent to champagne) that draws in from the left edge, then the italic at `1.05em` in champagne.
+- After each reveal a single glint crosses the italic. It is a text-clipped gradient (`bg-clip-text text-transparent`, `bg-[length:250%_100%]`) whose `background-position` GSAP moves from `100%` to `0%`.
+- Pad any text-clipped span below (`pb-[0.3em] -mb-[0.3em]`), or its descenders vanish.
+
 **De-facto type scale:**
 - Arbitrary sizes in use:
   - Micro: `text-[10px]` (152), `text-[11px]` (91), `text-[9px]` (22), `text-[8px]` (1).
@@ -111,7 +116,7 @@ Inline `fontFamily` values also name Baskervville (Personalizer "Serif" preview,
 
 | Layer | Value | Where |
 |---|---|---|
-| Hero internals | `z-[3]`, `z-[5]`, `z-[6]` | HomeHero |
+| Hero internals | `z-[4]`–`z-[7]` | HomeHero: light and grades 4–5 (inside the frame), side label 5, copy 6, featured piece 7 (above the copy column, whose full-height box would block it) |
 | Local overlays | `z-10` | CategoryIndex, Gallery, TryOnStudio captured shot |
 | PDP sticky bar | `z-40` | StickyBar |
 | Back-to-top button | `z-[45]` | `BackToTop` (above the StickyBar; below the header, so the mobile menu inside the header's stacking context covers it) |
@@ -120,8 +125,10 @@ Inline `fontFamily` values also name Baskervville (Personalizer "Serif" preview,
 | Mobile menu | `z-[70]` | Header |
 | Cart backdrop / drawer | `z-[80]` / `z-[90]` | CartDrawer |
 | Lightboxes | `z-[95]` | Gallery lightbox, RingSize guide |
+| Share sheet | `z-[100]` | `ShareSheet` (portal, with the other modals and viewers) |
 | Modals / viewers | `z-[100]` | Reviews modal, VideoViewer |
 | Try-on studio | `z-[110]` | TryOnStudio |
+| Skip link (while focused) | `z-[120]` | `App.tsx` |
 
 ## 4. Shape, borders & depth
 
@@ -192,11 +199,11 @@ Conventions:
 | `.font-serif-editorial`, `.font-spec` | Font utilities (unlayered): Baskervville with lining figures; Jost with lining tabular figures | yes |
 | `.grain-overlay` | Static radial-dot texture | **unused** |
 | `::-webkit-scrollbar*` | Hairline scrollbar | yes |
-| `@keyframes marqueeScroll` + `.animate-marquee` (38 s, pauses on hover) | Header announcement bar | yes |
+
 | `.editorial-zoom` + `.group:hover .editorial-zoom` | Image hover zoom | yes (13) |
 | `html.lenis …`, `.lenis.lenis-smooth` | Lenis recommended CSS | yes |
 | `.film-grain` + `@keyframes grainShift` | Animated grain overlay | yes (App) |
-| `@media (prefers-reduced-motion: reduce)` | Stops grain and marquee | yes |
+| `@media (prefers-reduced-motion: reduce)` | Stops the grain (the `Marquee` component handles reduced motion itself) | yes |
 | `@keyframes fadeUp` | 16 px fade-up (used through an arbitrary `animate-[…]`, e.g. UndoToast) | yes |
 | `.link-line` (+ `::before` / `::after`) | Editorial underline link | yes (13) |
 

@@ -34,6 +34,7 @@ Scope: everything in `.claude/docs/`
 | Account and wishlist | [pages/account-and-wishlist.md](pages/account-and-wishlist.md) |
 | Header, Footer and shared components (Price, ProductCard, WishButton, SectionHeader, useReveal…) | [components/global-and-shared.md](components/global-and-shared.md) |
 | Virtual try-on studio | [features/virtual-try-on.md](features/virtual-try-on.md) |
+| Sharing and gift hints (PDP and wishlist) | [features/sharing.md](features/sharing.md) |
 | Shoppable video and the Atelier page | [features/shoppable-video-and-atelier.md](features/shoppable-video-and-atelier.md) |
 | What the owner asked for and why: principles, decisions, open requests, placeholders | [design-intent.md](design-intent.md) |
 | The full Figma Make build history (23 prompts and responses, with status against the code) | [history/figma-make-log.md](history/figma-make-log.md) |

@@ -27,6 +27,7 @@ Render with `createPortal(…, document.body)` when the overlay lives deep in th
 - **Buttons inside a product-card `<a>`** must be `type="button"` and call `e.preventDefault()` and `e.stopPropagation()`, as `WishButton` and `TryOnButton` do.
 - **Touch targets:** primary round controls are `h-11 w-11` (44 px). Don't make essential content hover-only, because Tailwind v4 hover never fires on touch devices.
 - **Focus:** if you write `outline-none`, add a visible focus state (`focus:border-[var(--text-espresso)]`, the gold underline, or a `focus-visible:` ring). Don't remove focus without a replacement.
+- **Skip link:** `App.tsx`'s "Skip to content" button must stay the first focusable element on every page. It focuses `<main>` in code; never turn it into a `#main` link (the hash router would treat it as a route).
 
 ## Fixed UI at the bottom edge
 
