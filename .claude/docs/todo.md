@@ -147,7 +147,8 @@ Scope: compiled 2026-10-15 from `history/figma-make-log.md`, `design-intent.md`,
 
 ## 6. Tooling & platform (PROTO)
 
-1. [ ] **P1 · Site title.** The tab and `og:title` say "Figma Make App". Set `title` (and optionally `language`) in `.figma/make/site.json`, and consider per-route `document.title`. Source: KI-002.
+1. [x] **P1 · Site title.** Done 2026-10-16: `site.json` sets the title, an on-voice description and `en-CA`, and `Routes` (`src/App.tsx`, `headFor`) retitles every page as "{Page} — Teresa & Sons". Source: KI-002.
+   - [ ] **P3 · Absolute `og:image`.** Set `openGraph.image` to the full URL once the deployed origin is known. Source: KI-069.
 2. [ ] **P2 · Formatter.** `pnpm run format` (oxfmt 0.2.0) corrupts the code and is denied in settings. Add a config matching the house style (single quotes, no semicolons, wide lines) and verify it on a copy, or leave it denied. Source: KI-001.
 3. [ ] **P2 · No typecheck in build or deploy.** Consider a `typecheck` script. Source: KI-004.
 4. [ ] **P3 · About 630 kB of initial JS** (entry 463 kB + shared vendor 167 kB). The pages are still eager. `lazy()` the pages. Source: KI-005.
@@ -232,18 +233,22 @@ Work that was never on the list, logged so it isn't redone or undone:
   - Try on and wishlist on the featured piece, and "Book a private appointment";
   - swipe and arrow keys, focus rings and stronger contrast;
   - a site-wide "Skip to content" link.
+- [x] **Page titles, favicon and social card (2026-10-16).** Every tab said "Figma Make App" and showed Figma's icon.
+  - `site.json` sets the title "Teresa & Sons — Fine Jewellery in Montréal since 1962", an on-voice description, `en-CA`, the icons and `og:image`, plus `theme-color` and `og:site_name`/`og:type`/`og:locale` through `customScripts.headEnd`.
+  - `Routes` (`src/App.tsx`, `headFor`) retitles each page ("Necklaces — Teresa & Sons", the piece's name on a PDP) and swaps in the category's or the piece's own description. New routes need a `headFor` case (`rules/routing-and-state.md`).
+  - New files in `public/`: the gold italic ampersand on espresso as `favicon.svg`, a 32 px `favicon.ico`, a 180 px `apple-touch-icon.png` and the 1200×630 `og-image.jpg`. Docs: `platform-and-tooling.md` §5 and §12.3.
 
 ## 11. Planned features (owner requests, 2026-10-16)
 
 - [ ] **P1 · PROTO · "Shop all" page: every piece in one place. Next up.**
-  - **Route.** `#/shop` (`href.shop`), added in all four routing places (`Route` union, `parseHash`, `href`, `Routes`). In the theme it maps to Shopify's built-in `/collections/all`.
+  - **Route.** `#/shop` (`href.shop`), added in all five routing places (`Route` union, `parseHash`, `href`, `Routes`, `headFor`). In the theme it maps to Shopify's built-in `/collections/all`.
   - **Page.** In the Category page's style: a vault hero ("Every *piece*", with the French *Toutes les pièces*), the "N pieces · Prices in {currency}" toolbar and sort. Every piece across the nine categories, filterable by category, with try-on for the wearable pieces.
   - **Entry points.** The header "Shop" mega menu (an "All pieces" row), the mobile menu and the footer's Shop column.
   - **Re-point** two CTAs that open Necklaces for now: Treasured's "Continue the discovery" and the empty bag's "Find your piece". Their labels were already renamed with this page in mind (2026-10-16).
 - [ ] **P1 · PROTO · Curated collections: system and pages.** In jewellery, a *collection* is a curated story (Mont-Royal, Lumière), not a category. The header's category menu became "Shop" so the word is free for this.
   - **Model.** Add a `Collection` entity: slug, name, optional French name, story, hero and feature images, season or year, and a curated order of pieces. Membership is many-to-many: a collection can hold a single piece or pieces from several categories, and a piece can sit in several collections.
   - **Today.** `Product.collection` is one string per piece, and each of its 21 values maps to exactly one category (for example Mont-Royal → necklaces, Notre-Dame → bridal). The hero's "Collection Lumière · Automne" has no pieces at all. Keep a primary collection for card eyebrows, and add the membership list.
-  - **Pages.** A `#/collections` index and a `#/collection/:slug` page: the story, the imagery, and the collection's pieces across categories, filterable by category. Follow the four-place routing rule.
+  - **Pages.** A `#/collections` index and a `#/collection/:slug` page: the story, the imagery, and the collection's pieces across categories, filterable by category. Follow the five-place routing rule.
   - **Navigation.** Add a "Collections" entry beside "Shop" (in the desktop bar or as a mega-menu column), plus the mobile menu and the footer. Link the card and PDP eyebrows (`product.collection`) to their collection, and add breadcrumbs.
   - **Copy.** The category-meaning uses of "collection" were renamed on 2026-10-16:
     - "Explore all collections" → "Continue the discovery";

@@ -19,8 +19,8 @@ Severity: **H** = breaks something real; **M** = wrong behaviour or significant 
 | ID | Sev | Issue | Where | Failure scenario → fix |
 |---|---|---|---|---|
 | KI-001 | **H** | `pnpm run format` breaks the code | `package.json` `format` → `oxfmt` 0.2.0, no config | Running it rewrites every file to double quotes and 80-column wraps, and emits `{ name: "category" slug: string }` in `src/store.tsx` → `TS1005 ';' expected`. **Never run it.** Fix: add an oxfmt config matching the house style, or pin or replace the formatter. The deny rule lives in `.claude/settings.json`. |
-| KI-002 | M | Document title is "Figma Make App" on every route | `.figma/make/site.json` has no `title`; no `document.title` anywhere | Tab title and `og:title` show the platform default. Fix: set `title` in site.json, and optionally per-route titles. |
-| KI-003 | L | Favicon is Figma Make's default icon | `public/favicon.svg` | Fix: replace it with a brand mark, or set `icons.icon`. |
+| KI-002 | — | **Fixed 2026-10-16.** Document title was "Figma Make App" on every route | `.figma/make/site.json`, `src/App.tsx` | `site.json` sets the title, an on-voice description and `en-CA`; `Routes` retitles each page (`headFor`). |
+| KI-003 | — | **Fixed 2026-10-16.** Favicon was Figma Make's default icon | `public/` | Replaced by the gold italic ampersand (SVG, ICO and apple-touch icon) and a 1200×630 social card. |
 | KI-004 | M | No typecheck in build or deploy | `build` = `vite build` | Type errors ship silently. Fix: run `npx tsc --noEmit -p .` before deploys, or add a script. |
 | KI-005 | L | Initial JS is about 630 kB: an entry chunk of 463 kB plus a shared vendor chunk of 167 kB (> 500 kB warning on the entry until 2026-10-16) | `src/App.tsx` eager page imports | Only TryOnStudio and ShareSheet are lazy. Fix: `lazy()` the pages behind `Suspense`. |
 | KI-006 | L | `tsconfig` `lib: ES2020` is narrower than the runtime target; `types: ["node"]` leaks Node globals | `tsconfig.json` | Valid modern built-ins fail `tsc`. Fix: widen `lib` if needed. |
@@ -99,6 +99,7 @@ Severity: **H** = breaks something real; **M** = wrong behaviour or significant 
 | KI-066 | — | **Fixed 2026-10-16.** Rentals hero slide showed the wrong piece | `src/components/HomeHero.tsx` | The hero now features catalog pieces; slide 2 frames the Gala Diamond Collar's boxed-strand photo (`jewelryFlat`). |
 | KI-067 | M | Catalog doesn't cover the brief's sub-types | `src/data/catalog.ts` | Missing from the brief (step 1): religious necklace, hoops, bangles, pinky ring, full eternity band, rental bracelet, wedding-day jewellery under Bridal. Fix: add products (skill `add-product`). |
 | KI-068 | L | Adding from the video viewer or try-on opens the drawer underneath | `addToCart` + z-index ladder | The drawer is `z-[90]`, below the viewer `z-[100]` and the studio `z-[110]`. In step 23 Figma Make offered "close the overlay, then Go to bag". |
+| KI-069 | L | Link previews are site-wide, and `og:image` is relative | `.figma/make/site.json` (`openGraph.image`), `src/App.tsx` (`headFor`) | Pages retitle only in the running app and hash routes share one document, so a shared PDP link previews with the site-wide title, description and card. `/og-image.jpg` is relative, which Facebook and LinkedIn may ignore. Fix: set the absolute URL once the deployed origin is known; per-page previews come with the Shopify theme's Liquid head. |
 
 ## Not issues (by design)
 

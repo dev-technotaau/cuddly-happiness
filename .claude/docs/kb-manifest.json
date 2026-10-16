@@ -1,7 +1,7 @@
 {
   "version": 1,
   "generatedAt": "2026-10-16",
-  "gitHead": "aa8467f",
+  "gitHead": "6ef0e18",
   "files": {
     ".figma/make/analyze-routes": {
       "hash": "d51912b900af",
@@ -52,7 +52,7 @@
       ]
     },
     ".figma/make/site.json": {
-      "hash": "9d0fdd39c5e8",
+      "hash": "478cc9b9914f",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -97,8 +97,6 @@
       "hash": "855f3ba9e2bb",
       "docs": [
         "architecture.md",
-        "pages/category.md",
-        "pages/product.md",
         "platform-and-tooling.md",
         "product-overview.md",
         "shopify-integration.md"
@@ -116,17 +114,37 @@
         "shopify-integration.md"
       ]
     },
-    "public/favicon.svg": {
-      "hash": "8072f06f2c98",
+    "public/apple-touch-icon.png": {
+      "hash": "af3499810ba9",
       "docs": [
-        "known-issues.md",
+        "platform-and-tooling.md"
+      ]
+    },
+    "public/favicon.ico": {
+      "hash": "70eef36dec8f",
+      "docs": [
+        "platform-and-tooling.md"
+      ]
+    },
+    "public/favicon.svg": {
+      "hash": "4db426857bb3",
+      "docs": [
+        "design-system.md",
+        "platform-and-tooling.md"
+      ]
+    },
+    "public/og-image.jpg": {
+      "hash": "7ab2151d5879",
+      "docs": [
+        "design-system.md",
         "platform-and-tooling.md"
       ]
     },
     "src/App.tsx": {
-      "hash": "9da496d08df3",
+      "hash": "55307132d209",
       "docs": [
         "architecture.md",
+        "brand-voice-and-copy.md",
         "components/global-and-shared.md",
         "components/pdp-modules.md",
         "features/virtual-try-on.md",
@@ -135,6 +153,7 @@
         "pages/category.md",
         "pages/home.md",
         "pages/product.md",
+        "platform-and-tooling.md",
         "product-overview.md"
       ]
     },

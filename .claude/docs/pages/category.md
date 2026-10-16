@@ -591,7 +591,7 @@ Observations, risks and recommendations. These are inferences from the code; non
 5. **Copy edge cases.**
    - `{n} pieces` has no singular form.
    - A valid but empty category has no empty-state message (§11).
-   - `document.title` is never set by this page or any other. The `<title>` in `index.html` holds only the `<!-- figma:title -->` placeholder.
+   - The tab title is "{category name} — Teresa & Sons" and the meta description is the category's `description`, both set by `Routes` in `src/App.tsx` (`headFor`). An unknown slug gives "Chapter not found — Teresa & Sons".
 6. **Accessibility observations.**
    - `WishButton` and the try-on chip are `<button>`s nested inside the card `<a>`, which is invalid interactive nesting. They rely on `preventDefault`/`stopPropagation`.
    - On hover-capable devices the chip stays at opacity 0 when it receives keyboard focus, because there is no `focus-within` rule.

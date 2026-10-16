@@ -30,7 +30,7 @@ Figma Make is Figma's AI-assisted environment for building and hosting code-back
 | `AGENTS.md`, `CLAUDE.md` | Platform / scaffold | Agent instructions | `CLAUDE.md` imports `AGENTS.md` |
 | `.mise.toml` | Platform | Toolchain pins | "always watched" (per the `dev.json` comment) |
 | `.gitignore` (final block), `.gitattributes` | Platform / scaffold | VCS rules | — |
-| `public/favicon.svg` | Scaffold default | Favicon | The default `icons.icon` value is `/favicon.svg` |
+| `public/favicon.svg`, `favicon.ico`, `apple-touch-icon.png`, `og-image.jpg` | App (brand assets, 2026-10-16) | Favicons and the social card | Referenced from `site.json` (§5, §12.3) |
 | `src/**`, `package.json` `dependencies`/`devDependencies` | App | The Teresa & Sons storefront | The script *names* `dev`, `build`, `format` are called by the hooks |
 
 Whether Figma Make regenerates or overwrites any platform file (for example, writing `site.json` from a settings UI) cannot be determined from the repo.
@@ -309,32 +309,44 @@ According to the doc comment, the "Figma preview script" and "design surface" us
 
 ## 5. `site.json` — current values and resulting document
 
+Set on 2026-10-16. Before that, the tab read "Figma Make App" (the plugin's default title), the description was generic platform copy and the favicon was Figma Make's icon.
+
 | Key | Current value | Effect |
 |---|---|---|
-| `description` | "Premium e-commerce platform offering luxury diamond and gold jewelry, bridal pieces, and rental options with a modern, user-friendly shopping experience." | `meta name="description"` and `meta property="og:description"` |
+| `title` | "Teresa & Sons — Fine Jewellery in Montréal since 1962" | `<title>` (escaped by `escapeHtmlText`) and `og:title`. It is the Home title; `Routes` in `src/App.tsx` retitles the other routes at runtime (`headFor`, [architecture.md](architecture.md) §3.7). |
+| `description` | "A family maison of fine jewellery on rue Sherbrooke Ouest since 1962: GIA-certified diamonds, bridal, gold heirlooms and rentals, set by hand in Montréal." | `meta name="description"` and `meta property="og:description"`. Category and product pages swap in their own description at runtime. |
+| `language` | `en-CA` | `<html lang="en-CA">`; `sanitizeHtmlValue` keeps the hyphen |
 | `robots.index` | `false` | `meta name="robots" content="noindex, nofollow"`, plus a `robots.txt` with `User-agent: *` / `Disallow: /`. The dev middleware serves it and the build emits it to `dist/robots.txt`. |
-| `accessibility.addBypassLinks` | `false` | No skip link or style is injected |
-| `accessibility.ignoreReducedMotion` | `false` | Not part of `FigmaSiteConfiguration` and read nowhere in the repo; any effect is platform-side and unknown. Passing the imported JSON object is not an excess-property error because it is not an object literal. |
-| `title` | **not set** | Falls back to **`"Figma Make App"`**, giving `<title>Figma Make App</title>` and `og:title` = `Figma Make App`. No file under `src/` sets `document.title`, so **every route shows "Figma Make App" as the browser-tab title**. |
-| `language` | not set | `<html lang="en">` |
-| `icons.icon` | not set | `<link rel="icon" href="/favicon.svg">` |
-| `openGraph.image` | not set | No `og:image` or `twitter:*` tags |
+| `icons.icon` | `/favicon.svg` (the default, now explicit) | `<link rel="icon" href="/favicon.svg">` |
+| `openGraph.image` | `/og-image.jpg` | `og:image`, `twitter:card` = `summary_large_image` and `twitter:image`. The URL is relative; see Notes. |
+| `customScripts.headEnd` | Six tags: `link rel="icon" href="/favicon.ico" sizes="32x32"`, `link rel="apple-touch-icon" href="/apple-touch-icon.png"`, `meta name="theme-color" content="#121110"` (`--bg-vault`), and `og:site_name` "Teresa &amp; Sons", `og:type` "website", `og:locale` "en_CA" | Raw HTML in the `figma:head-end` slot. It lands before the plugin's injected tags, so the ICO link precedes the SVG one. |
+| `customScripts.headStart` / `bodyStart` / `bodyEnd` | not set | Replaced with `''` |
 | `analytics.googleAnalyticsId` | not set | No analytics scripts |
-| `customScripts.*` | not set | All four slots are replaced with `''` |
+| `accessibility.addBypassLinks` | `false` | No skip link or style is injected. The app renders its own "Skip to content" button (`src/App.tsx`). |
+| `accessibility.ignoreReducedMotion` | `false` | Not part of `FigmaSiteConfiguration` and read nowhere in the repo; any effect is platform-side and unknown. Passing the imported JSON object is not an excess-property error because it is not an object literal. |
 
-The document shell in dev, as derived from the code (not captured from a build). It omits the blank lines left by emptied slots and Vite's own dev-client and refresh-preamble injections:
+The document shell as the dev server served it on 2026-10-16, without Vite's dev-client and refresh-preamble scripts and the blank lines left by emptied slots:
 
 ```html
-<html lang="en">
+<html lang="en-CA">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Figma Make App</title>
-    <meta name="description" content="Premium e-commerce platform offering luxury diamond and gold jewelry, bridal pieces, and rental options with a modern, user-friendly shopping experience.">
+    <title>Teresa &amp; Sons — Fine Jewellery in Montréal since 1962</title>
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="theme-color" content="#121110" />
+    <meta property="og:site_name" content="Teresa &amp; Sons" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_CA" />
+    <meta name="description" content="A family maison of fine jewellery on rue Sherbrooke Ouest since 1962: GIA-certified diamonds, bridal, gold heirlooms and rentals, set by hand in Montréal.">
     <meta name="robots" content="noindex, nofollow">
     <link rel="icon" href="/favicon.svg">
-    <meta property="og:title" content="Figma Make App">
-    <meta property="og:description" content="Premium e-commerce platform offering luxury diamond and gold jewelry, bridal pieces, and rental options with a modern, user-friendly shopping experience.">
+    <meta property="og:title" content="Teresa &amp; Sons — Fine Jewellery in Montréal since 1962">
+    <meta property="og:description" content="A family maison of fine jewellery on rue Sherbrooke Ouest since 1962: GIA-certified diamonds, bridal, gold heirlooms and rentals, set by hand in Montréal.">
+    <meta property="og:image" content="/og-image.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="/og-image.jpg">
   </head>
   <body>
     <div id="root"></div>
@@ -350,10 +362,10 @@ In a build, Vite replaces the `/src/main.tsx` entry script with the hashed bundl
 
 | Slot comment | Position | Filled with (by `figmaSiteConfiguration`) |
 |---|---|---|
-| `<!-- figma:lang -->` | Inside `<html lang="…">` | `language` (currently `en`) |
+| `<!-- figma:lang -->` | Inside `<html lang="…">` | `language` (currently `en-CA`) |
 | `<!-- figma:head-start -->` | First in `<head>`, before `<meta charset="UTF-8" />` | `customScripts.headStart` (raw) |
-| `<!-- figma:title -->` | Inside `<title></title>` | `escapeHtmlText(title)` (currently `Figma Make App`) |
-| `<!-- figma:head-end -->` | Last in `<head>` | `customScripts.headEnd` (raw); the injected `'head'` tags follow it |
+| `<!-- figma:title -->` | Inside `<title></title>` | `escapeHtmlText(title)` (currently `Teresa &amp; Sons — Fine Jewellery in Montréal since 1962`) |
+| `<!-- figma:head-end -->` | Last in `<head>` | `customScripts.headEnd` (raw; currently the ICO and apple-touch icon links, `theme-color` and three `og:` tags); the injected `'head'` tags follow it |
 | `<!-- figma:body-start -->` | First in `<body>` | `customScripts.bodyStart` (raw), after any `body-prepend` tag |
 | `<!-- figma:body-end -->` | After the entry script, last in `<body>` | `customScripts.bodyEnd` (raw) |
 
@@ -536,14 +548,21 @@ Other facts:
 
 - `svg`, `css`, `json` and source files are not LFS-tracked.
 - There are no line-ending (`text`/`eol`) rules. The local git config has `core.autocrlf=true`.
-- `git lfs ls-files` is empty: no binary assets are committed.
+- `git lfs ls-files` is empty: no binary assets are committed yet. The brand files added to `public/` on 2026-10-16 (`favicon.ico`, `apple-touch-icon.png`, `og-image.jpg`) match the `*.ico`/`*.png`/`*.jpg` rules, so they will be the first LFS objects. `favicon.svg` stays a normal text file.
 
-### 12.3 Favicon (`public/favicon.svg`)
+### 12.3 Favicon and social card (`public/`)
 
-- It is a 16×16 SVG: a rounded square filled `#2C2C2C` with a white four-armed glyph.
-- It is the only file in `public/`.
-- A comment in `vite.config.ts` says: "Imported HTML keeps its own favicon; new Makes default to the Make product icon". So this is Figma Make's default icon, not a Teresa & Sons mark.
-- It is referenced only through the default `icons.icon` value (`/favicon.svg`).
+Built in-house on 2026-10-16. They replace Figma Make's default icon, a 16×16 `#2C2C2C` square with a white four-armed glyph ("new Makes default to the Make product icon", per a `vite.config.ts` comment).
+
+| File | What it is | Referenced by |
+|---|---|---|
+| `public/favicon.svg` | A 64×64 viewBox, about 3.3 kB, with `<title>Teresa &amp; Sons</title>`. The wordmark's italic ampersand alone, in a gold gradient (`#E7CF9C` → `--gold-champagne` `#D4B982` → `--gold-vermeil` `#B89047`) on an espresso tile (`--bg-vault` `#121110`, `rx="6.5"`). The glyph is a vector trace of Baskervville italic 600, so it needs no font. | `icons.icon` |
+| `public/favicon.ico` | 1,370 bytes: one 32 px PNG in an ICO container | The `headEnd` link with `sizes="32x32"`, for browsers without SVG favicons. The `sizes` hint keeps Chrome on the SVG. |
+| `public/apple-touch-icon.png` | 180×180, full-bleed (iOS rounds the corners) | The `headEnd` `rel="apple-touch-icon"` link |
+| `public/og-image.jpg` | 1200×630, about 71 kB. The wordmark, the hero lockup "Light, set / *by hand,* / since 1962." and "Fine jewellery · Bridal · Rentals", beside the catalog's necklace photo in a gold-ruled frame | `openGraph.image` |
+
+- **How they were made.** Headless Chrome drew the glyph in the web font on a canvas. Marching squares and Douglas–Peucker then turned it into an even-odd path. The PNG, ICO and JPEG are screenshots of the SVG and of an HTML card. The scripts were one-off and are not in the repo: to change the mark, edit `favicon.svg` and re-render the other three from it.
+- **The card's photo is the Unsplash placeholder** the catalog uses. Swap in house photography for launch.
 
 ---
 
@@ -554,7 +573,7 @@ Other facts:
 3. **Preview:** `pnpm preview`, then open `http://localhost:8443/`.
    - Stop `pnpm dev` first or set `PORT`, because both servers are strict on 8443.
    - Click through `#/`, `#/c/<slug>`, `#/p/<slug>`, `#/cart`, `#/checkout`, `#/gift-cards`, `#/wishlist`, `#/account` and `#/atelier`.
-4. **After editing `vite.config.ts` or `.figma/make/site.json`:** restart the dev server, then view the page source to confirm the `<head>` tags.
+4. **After editing `vite.config.ts` or `.figma/make/site.json`:** restart the dev server, then view the page source to confirm the `<head>` tags. Vite ignores `.figma/`, so a `site.json` edit alone is not picked up; touching `vite.config.ts` triggers the restart.
 5. **Optional:** `pnpm run build --mode development` reproduces the `deploy-preview` artifact (unminified, inline sourcemaps).
 6. **Before committing:** check `git status`. `pnpm-lock.yaml` should change only when dependencies changed, and no files should have been reformatted wholesale.
 
@@ -566,12 +585,12 @@ Tailwind v4 auto-detects class candidates in every non-gitignored file. Once `.c
 
 ## Notes & gotchas
 
-- **The brand is missing from the tab title and link previews.** Every title and `og:title` reads "Figma Make App", because `site.json` has no `title` and no code sets `document.title`. Setting `"title"` in `site.json` is enough: `&` is escaped correctly in `<title>` (by `escapeHtmlText`) and in the meta attribute (by Vite's `escape-html`).
-- **Default favicon.** `public/favicon.svg` is the Make product icon. Replace the file or set `icons.icon`.
+- **Per-route titles exist only in the running app.** `headFor()` in `src/App.tsx` sets `document.title` and the meta description after load; the `og:*` tags stay site-wide. Link unfurlers don't run JavaScript, and hash routes share one document, so every shared link previews with the site-wide title, description and card. The Shopify theme renders a per-page `<title>`, description and `og:image` server-side.
+- **`og:image` is relative.** `openGraph.image` is `/og-image.jpg`, passed through as-is. Facebook and LinkedIn expect an absolute URL, so set it to `https://<deployed origin>/og-image.jpg` once the origin is known (KI-069).
 - **`robots.index: false` blocks indexing.** It produces `noindex, nofollow` and `Disallow: /`. That is right for a prototype; change it deliberately if this ever becomes a public site.
 - **`addBypassLinks` conflicts with hash routing.** The injected link's `href="#root"` would fire `hashchange`. `parseHash` in `src/store.tsx` maps unknown hashes such as `root` to `{ name: 'home' }`, so "Skip to content" would navigate to Home. Change the target or use an in-app skip link before enabling it. See [ux-patterns-and-accessibility.md](ux-patterns-and-accessibility.md).
 - **`ignoreReducedMotion` is a no-op in the repo.** The app's own reduced-motion handling is in [motion-and-interaction.md](motion-and-interaction.md).
-- **`site.json` edits probably need a manual restart (inference).** `vite.config.ts` imports `site.json`, but Vite's watcher ignores `**/.figma/**`, so a local dev server will probably not notice the edit; restart it. It is unclear whether the Figma Make watcher counts `site.json` among "the scripts under `.figma/make/`".
+- **`site.json` edits need a dev-server restart (confirmed 2026-10-16).** `vite.config.ts` imports `site.json`, but Vite's watcher ignores `**/.figma/**`, so the edit goes unnoticed until the server restarts. Touching `vite.config.ts` restarts it. Whether the Figma Make watcher restarts on `site.json` is unknown.
 - **The local dev server is exposed on the LAN.** `host` defaults to `0.0.0.0`. Set `FIGMA_DEV_SERVER_HOST=127.0.0.1` to keep it local.
 - **`strictPort` applies to both dev and preview.** Both use 8443, so a busy port is an error. Use `PORT` to change it.
 - **`FIGMA_PUBLIC_URL` must not end with `/`.** A trailing slash would give a `//` base, because `/` is appended unconditionally. Its real format (path or absolute URL) is unknown.

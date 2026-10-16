@@ -73,6 +73,7 @@ The look was spelled out in the owner's words:
 | Hero title lockup and first-impression pass: flush-left lines with a gold hairline leading into the italic and a single glint, focus-pull reveals, the photo lighting up on load, a cursor key light, Try on and wishlist on the featured piece, a private-appointment link, swipe and arrow keys, a site-wide skip link | After 23 (Claude Code, 2026-10-16) | The owner asked for a better title layout and a "wow" first impression, prioritising retention, engagement and accessibility |
 | Sharing and gift hints: the device's share sheet with the photograph, a configured-piece message, "Drop a hint", tagged channel composers, and wishlist sharing with a link per piece | After 23 (Claude Code, 2026-10-16) | The owner asked for a top-notch, smart share system on the PDP and wherever it suits. Front-end only: every option hands off to the visitor's own apps |
 | Header "Collections" renamed "Shop"; "collection" is reserved for curated collections, which can span categories and are planned as their own system | After 23 (owner, 2026-10-16) | In jewellery a collection is a curated story, distinct from a category; the old label would confuse the two (`todo.md` §11) |
+| Head metadata and brand mark: tab titles "{Page} — Teresa & Sons", an on-voice description, `en-CA`, a favicon of the gold italic ampersand and a 1200×630 social card | After 23 (Claude Code, 2026-10-16) | The owner saw "Figma Make" in every page title and asked for a favicon built in-house |
 
 ## 4. Open items from the history
 

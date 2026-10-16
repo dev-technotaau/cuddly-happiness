@@ -57,6 +57,8 @@ Inline `fontFamily` values also name Baskervville (Personalizer "Serif" preview,
 
 **Wordmark** (Header): tracked capitals, `font-serif-editorial -mr-[0.12em] block whitespace-nowrap text-[17px] uppercase tracking-[0.12em] sm:-mr-[0.16em] sm:text-[22px] sm:tracking-[0.16em] lg:text-[25px]`, with the ampersand as `<em className="text-[var(--gold-vermeil)]">&amp;</em>`. The negative right margin equals the tracking and cancels the trailing letter-space, so the capitals centre. The gift-card art repeats the capitals (`text-[5.6cqi] uppercase tracking-[0.14em]`).
 
+**Brand mark** (favicon, `public/favicon.svg`): the wordmark's italic ampersand alone, Baskervville italic 600 traced to a vector, in a gold gradient (`#E7CF9C` → `--gold-champagne` → `--gold-vermeil`) on a `--bg-vault` tile, which is also the `theme-color`. The ICO and the 180 px apple-touch icon are renders of the same art. The 1200×630 social card (`public/og-image.jpg`) sets the hero lockup beside a framed piece. See [platform-and-tooling.md](platform-and-tooling.md) §12.3.
+
 **Hero lockup** (HomeHero):
 - Lines 1 and 3 sit flush left. The accent line opens with a gold hairline (`w-[0.9em] sm:w-[1.5em]`, transparent to champagne) that draws in from the left edge, then the italic at `1.05em` in champagne.
 - After each reveal a single glint crosses the italic. It is a text-clipped gradient (`bg-clip-text text-transparent`, `bg-[length:250%_100%]`) whose `background-position` GSAP moves from `100%` to `0%`.

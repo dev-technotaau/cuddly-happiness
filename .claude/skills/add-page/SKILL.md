@@ -8,7 +8,7 @@ argument-hint: "[route-name]"
 
 Background: `.claude/docs/architecture.md` (routing section) and `.claude/rules/routing-and-state.md`.
 
-## 1. Router: four places, change them together
+## 1. Router: five places, change them together
 
 In `src/store.tsx`:
 1. **Route union:** add `| { name: 'journal' }`, or `| { name: 'journal'; slug: string }` for a parameterised route.
@@ -18,6 +18,7 @@ In `src/store.tsx`:
 In `src/App.tsx`:
 
 4. **`Routes`:** import the page and add `case 'journal': return <Journal />`. Slug routes need `return <Journal key={route.slug} slug={route.slug} />` so state resets per slug.
+5. **`headFor`:** add `case 'journal': return named('Journal')`, which gives the tab title "Journal — Teresa & Sons" and the site description. For a slug route, look the item up and pass its name and description, with a "… not found" fallback, as the `category` and `product` cases do.
 
 ## 2. The page component
 

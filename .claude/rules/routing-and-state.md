@@ -16,11 +16,12 @@ Full reference: `.claude/docs/architecture.md`.
 
 ## Routing (hash router in `src/store.tsx`)
 
-**Adding a route** means changing four places together:
+**Adding a route** means changing five places together:
 1. The `Route` union.
 2. A `parseHash` rule placed before the final `return { name: 'home' }`. Keep the `#/p/gift-card` alias ahead of the generic `#/p/:slug` rule.
 3. An `href` entry.
 4. A `case` in `Routes` in `src/App.tsx`.
+5. A `case` in `headFor` in `src/App.tsx` for the tab title and meta description. Without one, the page keeps the site-wide Home title.
 
 Then link the new route from the Header (desktop nav and mobile menu) and/or the Footer.
 

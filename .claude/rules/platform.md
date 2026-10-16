@@ -27,7 +27,7 @@ Full reference: `.claude/docs/platform-and-tooling.md`.
   - Keep `base` (from `FIGMA_PUBLIC_URL`), `server`/`preview` host/port/`strictPort` (from `PORT`, default 8443), and the `emitSourcemaps = mode === 'development'` switch.
   - Don't set `build.outDir`, because the deploy hooks expect `dist/`.
 - **`index.html`:** keep the six `<!-- figma:* -->` slots, `<div id="root">` and the `/src/main.tsx` module script.
-- **Head metadata** (title, description, robots, OG image, analytics, custom scripts) is set in `.figma/make/site.json`, never hard-coded. There is no `title` yet, so the tab reads "Figma Make App". Restart the dev server after editing it.
+- **Head metadata** (title, description, language, robots, icons, OG image, analytics, custom scripts) is set in `.figma/make/site.json`, never hard-coded in `index.html`. Extra head tags (the ICO and apple-touch icons, `theme-color`, `og:site_name`/`og:type`/`og:locale`) go in `customScripts.headEnd`. Per-route titles and descriptions come from `headFor()` in `src/App.tsx`, which reads the site-wide ones back from the `og:*` tags. Vite doesn't watch `.figma/`, so restart the dev server after editing `site.json` (touching `vite.config.ts` also restarts it).
 - **Skip links:** don't enable `accessibility.addBypassLinks` without retargeting it. Its `href="#root"` is parsed by the hash router and lands on Home.
 - **AGENTS.md and the root CLAUDE.md** (`@AGENTS.md`) are part of the scaffold. Put project knowledge in `.claude/` instead.
 

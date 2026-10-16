@@ -1,7 +1,18 @@
 {
-  "description": "Premium e-commerce platform offering luxury diamond and gold jewelry, bridal pieces, and rental options with a modern, user-friendly shopping experience.",
+  "title": "Teresa & Sons — Fine Jewellery in Montréal since 1962",
+  "description": "A family maison of fine jewellery on rue Sherbrooke Ouest since 1962: GIA-certified diamonds, bridal, gold heirlooms and rentals, set by hand in Montréal.",
+  "language": "en-CA",
   "robots": {
     "index": false
+  },
+  "icons": {
+    "icon": "/favicon.svg"
+  },
+  "openGraph": {
+    "image": "/og-image.jpg"
+  },
+  "customScripts": {
+    "headEnd": "<link rel=\"icon\" href=\"/favicon.ico\" sizes=\"32x32\" />\n    <link rel=\"apple-touch-icon\" href=\"/apple-touch-icon.png\" />\n    <meta name=\"theme-color\" content=\"#121110\" />\n    <meta property=\"og:site_name\" content=\"Teresa &amp; Sons\" />\n    <meta property=\"og:type\" content=\"website\" />\n    <meta property=\"og:locale\" content=\"en_CA\" />"
   },
   "accessibility": {
     "addBypassLinks": false,

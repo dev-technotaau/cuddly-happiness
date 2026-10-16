@@ -24,11 +24,13 @@ Scope: `src/App.tsx`, `src/store.tsx`, `src/components/Header.tsx`, `src/compone
 
 Positioning signals present in the code: an editorial "maison" voice with French eyebrows ("Chapitre V · Mariage", "Carte-cadeau", "Votre sélection", "Liste de souhaits", "Mon compte"), French micro-headlines ("Bon retour.", "Merci."), Roman-numeral chapters, GIA reports, insured signature delivery, duties prepaid to the U.S., lifetime care, a rental "vault", and private salon appointments. Tone rules live in [Brand, voice & copywriting](brand-voice-and-copy.md).
 
-`.figma/make/site.json` description, verbatim:
+`.figma/make/site.json` title and description, verbatim:
 
-> Premium e-commerce platform offering luxury diamond and gold jewelry, bridal pieces, and rental options with a modern, user-friendly shopping experience.
+> Teresa & Sons — Fine Jewellery in Montréal since 1962
+>
+> A family maison of fine jewellery on rue Sherbrooke Ouest since 1962: GIA-certified diamonds, bridal, gold heirlooms and rentals, set by hand in Montréal.
 
-The same file sets `"robots": { "index": false }` and `"accessibility": { "addBypassLinks": false, "ignoreReducedMotion": false }` (see [Figma Make platform, toolchain & build](platform-and-tooling.md)).
+The same file sets `"language": "en-CA"`, `"robots": { "index": false }`, the favicon and social card (`icons`, `openGraph`, `customScripts.headEnd`) and `"accessibility": { "addBypassLinks": false, "ignoreReducedMotion": false }` (see [Figma Make platform, toolchain & build](platform-and-tooling.md)).
 
 ### 1.2 What the codebase is
 

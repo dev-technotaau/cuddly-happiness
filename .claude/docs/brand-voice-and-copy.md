@@ -40,11 +40,15 @@ Scope: every user-facing string in `src/**/*.{ts,tsx}`, which covers all of `src
 | Product reference | ids `tns-nk-001` … `tns-cs-003` are shown as `Ref. TNS-NK-001` (`product.id.toUpperCase()`) and as a `Reference` row | `src/data/catalog.ts`, `src/pages/Product.tsx` |
 | Order number | `Order TS-{last 6 digits of Date.now()}` | `src/pages/Checkout.tsx` `placeOrder` |
 | Demo gift card | `TERESASONS1962MT`, hinted as `Demo card: TERE SASO NS19 62MT` | `src/data/giftcards.ts` `DEMO`, `src/components/giftcard/BalanceChecker.tsx` |
-| Site metadata | `.figma/make/site.json` sets only `description` (below) and `robots.index: false`. It has no `title`, so `vite.config.ts` falls back to `"Figma Make App"` for `<title>` and `og:title`. With no `language`, `<html lang>` becomes `en`. | `.figma/make/site.json`, `vite.config.ts` |
+| Site metadata | `.figma/make/site.json` sets the `title` and `description` (both below), `language: "en-CA"` and `robots.index: false`. `Routes` in `src/App.tsx` retitles each page as `{Page} — Teresa & Sons`: the category or piece name, `Wishlist`, `Gift Cards`, `Your Account`, `Your Bag`, `Checkout`, `The Atelier`, `Chapter not found`, `Piece not found`. | `.figma/make/site.json`, `src/App.tsx` (`headFor`) |
 
-`site.json` `description` (it is injected as `<meta name="description">` and `og:description`):
+`site.json` `title` (the Home tab title and `og:title`):
 
-> `Premium e-commerce platform offering luxury diamond and gold jewelry, bridal pieces, and rental options with a modern, user-friendly shopping experience.`
+> `Teresa & Sons — Fine Jewellery in Montréal since 1962`
+
+`site.json` `description` (injected as `<meta name="description">` and `og:description`; category and product pages swap in their own description at runtime):
+
+> `A family maison of fine jewellery on rue Sherbrooke Ouest since 1962: GIA-certified diamonds, bridal, gold heirlooms and rentals, set by hand in Montréal.`
 
 ### 1.2 Founder story and family
 
@@ -821,7 +825,7 @@ The full verbatim copy for each page is in the linked docs. This table only maps
 | Atelier and shoppable video | `#/atelier`, modal | `src/pages/Atelier.tsx`, `src/components/video/*`, `src/data/media.ts` | [features/shoppable-video-and-atelier.md](features/shoppable-video-and-atelier.md) |
 | Virtual try-on | modal | `src/components/tryon/*` | [features/virtual-try-on.md](features/virtual-try-on.md) |
 | Catalog copy (names, taglines, descriptions, specs) | — | `src/data/catalog.ts`, `src/data/media.ts` | [data-model.md](data-model.md) |
-| Site title and meta | — | `.figma/make/site.json`, `vite.config.ts` | [platform-and-tooling.md](platform-and-tooling.md) |
+| Site title and meta | — | `.figma/make/site.json`, `src/App.tsx` (`headFor`) | [platform-and-tooling.md](platform-and-tooling.md) |
 
 ---
 
@@ -831,14 +835,13 @@ Everything in this section is observation, risk or recommendation, not a stateme
 
 **Brand metadata**
 
-- `.figma/make/site.json` has no `title` or `language`. The built page's `<title>` and `og:title` are therefore `Figma Make App`, and `lang` is `en`. The favicon is the default `/favicon.svg`; a comment in `vite.config.ts` says new Makes default to the Make product icon. The `description` is written in generic platform language, not the brand voice.
-- **Recommendation:** set `title`, `language` and an on-voice `description` in `site.json`.
+- Resolved 2026-10-16: `site.json` carries an on-voice title and description and `en-CA`, and the favicon is the house ampersand. Pages retitle only in the running app, so link previews always show the site-wide title, description and card (`known-issues.md` KI-069).
 - `robots.index: false` adds `noindex, nofollow` and a `Disallow: /` robots.txt.
 - No French phrase is wrapped in `lang="fr"`, so screen readers pronounce them with English rules.
 
 **House-style drift** (pick one style and normalise)
 
-- `Jewelry` appears in the category names `Bridal Jewelry` and `Jewelry Rentals`, in `High jewelry`, the Atelier option `Jewelry rental fitting`, and `site.json`. `Jewellery` / `jewellery` appears in the Cart rows and RewardProgress, and `jeweller(s)` in HomeHero, FourCs and the PDP.
+- `Jewelry` appears in the category names `Bridal Jewelry` and `Jewelry Rentals`, in `High jewelry` and in the Atelier option `Jewelry rental fitting`. `Jewellery` / `jewellery` appears in the Cart rows, RewardProgress and `site.json` (title and description), and `jeweller(s)` in HomeHero, FourCs and the PDP.
 - `-ize` (`Personalized`, `non-personalized`) sits alongside `-ise` (`itemised`, `prioritise`, `pre-authorised`, `pre-authorisation`). `modelled`, `centre`, `colourless`, `coloured` and `millimetres` sit alongside the GIA label `Color`.
 - `Montréal` vs `Montreal` (see §5).
 - Other naming pairs:

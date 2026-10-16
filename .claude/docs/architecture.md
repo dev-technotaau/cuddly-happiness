@@ -22,7 +22,7 @@ Imports point downward: a layer may import any lower layer. §1.4 lists the edge
 | 3 | Shared components & hooks | `src/components/Price.tsx`, `ProductCard.tsx`, `WishButton.tsx`, `RecentlyViewed.tsx`, `useReveal.ts`, `lineDetails.ts`; shared in practice although they live in feature folders: `home/SectionHeader.tsx`, `pdp/Accordion.tsx`, `tryon/TryOnButton.tsx`, `giftcard/GiftCardArt.tsx` | Building blocks used by several pages and features. |
 | 4 | Feature components & chrome | `src/components/{home,pdp,cart,tryon,video,giftcard}/*`; `src/components/Header.tsx`, `Footer.tsx`, `CartDrawer.tsx`, `HomeHero.tsx` | Domain sections, overlays and the global chrome. |
 | 5 | Pages | `src/pages/*.tsx` (9 files) | Route targets. They compose features and own page-local UI state such as forms, selections and confirmations. |
-| 6 | App | `src/main.tsx`, `src/App.tsx` | Composition root: providers, shell and the `Routes` switch. |
+| 6 | App | `src/main.tsx`, `src/App.tsx` | Composition root: providers, shell, the `Routes` switch and per-route document titles (`headFor`). |
 
 ### 1.2 Directory map
 
@@ -30,7 +30,7 @@ Imports point downward: a layer may import any lower layer. §1.4 lists the edge
 |---|---|---|
 | `/` (repo root) | Project shell | `index.html`, `package.json`, `pnpm-lock.yaml`, `vite.config.ts`, `tsconfig.json`, `.mise.toml` (`node = "22"`, `"npm:pnpm" = "10.34.3"`), `AGENTS.md`, `CLAUDE.md` (contains `@AGENTS.md`), `.gitignore`, `.gitattributes` |
 | `.figma/make/` | Figma Make platform hooks | Shell scripts `analyze-routes`, `deploy` (`pnpm run build` then `figma make deploy --build-dir dist`), `deploy-preview` (`pnpm run build --mode development`), `dev`, `format`, `install`, `langserver`; `dev.json` (reinstall on `package.json` / `pnpm-lock.yaml` changes); `site.json` (site metadata read by `vite.config.ts`) |
-| `public/` | Static files served from the base URL | `favicon.svg` |
+| `public/` | Static files served from the base URL | `favicon.svg` (the house ampersand), `favicon.ico` (32 px fallback), `apple-touch-icon.png` (180 px), `og-image.jpg` (1200×630 social card) |
 | `src/` | Entry and app-wide modules | `main.tsx`, `App.tsx`, `store.tsx`, `index.css`, `vite-env.d.ts` (`/// <reference types="vite/client" />`) |
 | `src/data/` | Data layer | `catalog.ts`, `giftcards.ts`, `media.ts`, `costing.ts`, `tax.ts` |
 | `src/lib/` | Integration mapping | `shopify.ts` |
@@ -92,12 +92,13 @@ data layer: giftcards.ts, media.ts, costing.ts ─► catalog.ts ;  catalog.ts a
    - `<!-- figma:head-start -->`, `<!-- figma:head-end -->`, `<!-- figma:body-start -->`, `<!-- figma:body-end -->`
    - `<div id="root"></div>` and `<script type="module" src="/src/main.tsx"></script>`
 2. **The `figmaSiteConfiguration` Vite plugin** (`vite.config.ts`, `transformIndexHtml` with `order: 'pre'`, active in both dev and build) fills the slots from `.figma/make/site.json`:
-   - `lang` becomes `en` because no `language` is set.
-   - The title becomes the HTML-escaped default `Figma Make App` because no `title` is set.
-   - The custom-script slots become empty.
-   - It injects `<meta name="description">` with the site.json description, `<meta name="robots" content="noindex, nofollow">` (because `robots.index` is `false`), `<link rel="icon" href="/favicon.svg">` (the default), and `og:title` / `og:description`.
-   - It adds no analytics, no `og:image` and no skip link, because `accessibility.addBypassLinks` is `false`.
+   - `lang` becomes `en-CA` (`language`).
+   - The title becomes the HTML-escaped `Teresa &amp; Sons — Fine Jewellery in Montréal since 1962` (`title`).
+   - The `head-end` slot receives `customScripts.headEnd`: the `favicon.ico` (`sizes="32x32"`) and `apple-touch-icon.png` links, `theme-color` `#121110`, and `og:site_name` / `og:type` / `og:locale`. The other custom-script slots become empty.
+   - It injects `<meta name="description">` with the site.json description, `<meta name="robots" content="noindex, nofollow">` (because `robots.index` is `false`), `<link rel="icon" href="/favicon.svg">`, `og:title` / `og:description`, and `og:image` / `twitter:card` / `twitter:image` for `/og-image.jpg`.
+   - It adds no analytics and no skip link, because `accessibility.addBypassLinks` is `false`. The app renders its own "Skip to content" button instead.
    - `robots.txt` (`User-agent: *` / `Disallow: /`) is served by dev middleware and emitted as a build asset.
+   - These are the site-wide values. After the first render, `Routes` replaces `document.title` and the meta description per route (§3.7). The `og:*` tags never change.
 3. **`src/main.tsx`** imports `React`, `ReactDOM` (`react-dom/client`), `App` and then `./index.css`. It calls `ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><App /></React.StrictMode>)`. There is no other bootstrap code: no service worker, analytics or polyfills.
 4. **`src/index.css`** loads Google Fonts with `@import url(…)` (Baskervville, Jost, Pinyon Script), then `@import 'tailwindcss'`. It also defines the colour tokens on `:root`, the `html` base styles, the utilities (`.font-serif-editorial`, `.font-spec`, `.link-line`, `.editorial-zoom`, `.film-grain`, …) and the Lenis CSS. See [design-system.md](design-system.md).
 5. **First render.** `StoreProvider`'s lazy `useState` initialisers read `window.location.hash` and `localStorage` synchronously. The first paint therefore already shows the deep-linked page, the persisted currency, cart count, wishlist and account.
@@ -140,7 +141,7 @@ data layer: giftcards.ts, media.ts, costing.ts ─► catalog.ts ;  catalog.ts a
 | `SmoothScroll` | No context. Side effects only: the Lenis singleton (`getLenis()`), ScrollTrigger sync and scroll-to-top on route change | Must be inside `StoreProvider`, because it reads `route` |
 | Shell `div` | Page background and text colour tokens | — |
 | `Header`, `Footer`, `CartDrawer` | Global chrome that persists across routes | `Header` and `CartDrawer` call `useStore()`. `CartDrawer` renders `TryOnButton` through `CartLineItem`, so it needs `TryOnProvider`. |
-| `Routes` | Page selection | `useStore()` |
+| `Routes` | Page selection, plus the per-route tab title and meta description (`headFor`) | `useStore()` |
 
 ### 2.3 Why the order matters
 
@@ -283,7 +284,10 @@ Every use of the `href` map, by file:
 
 `route` is a new object on every `hashchange`, even when it parses to the same page, so the following run every time:
 
-1. `Routes` re-renders and swaps the page (remount rules above).
+1. `Routes` re-renders and swaps the page (remount rules above). Its effect on `[route]` then sets `document.title` and `<meta name="description">` from `headFor(route)`:
+   - Category: "{name} — Teresa & Sons" and the category's `description`. Product: "{name} — Teresa & Sons" and "{tagline} {description}". Unknown slugs: "Chapter not found" or "Piece not found", with the site description.
+   - Wishlist, Gift Cards, Your Account, Your Bag, Checkout and The Atelier: "{label} — Teresa & Sons" with the site description.
+   - Home (the `default` branch) restores the site-wide title and description. `App.tsx` reads them once at load from the `og:title` / `og:description` tags that `site.json` fills, because nothing changes those.
 2. `SmoothScroll` runs its effect on `[route]`:
    - It calls `lenisInstance.scrollTo(0, { immediate: true })` when Lenis exists, and `window.scrollTo(0, 0)` otherwise.
    - It then calls `requestAnimationFrame(() => ScrollTrigger.refresh())`; the frame is cancelled if the route changes again before it fires.
@@ -811,7 +815,7 @@ The dev toolchain (Vite 8.0.5, TypeScript 5.9.3, Tailwind CSS 4.2.2, `@vitejs/pl
 - **Bundle and type safety.**
   - Every page is eagerly imported. The 610.47 kB main chunk exceeds Vite's default 500 kB `build.chunkSizeWarningLimit`; route-level `lazy()`, as already done for `TryOnStudio`, is the natural lever.
   - `pnpm run build` does not type-check; run `npx tsc --noEmit -p .` separately.
-- **Document metadata.** `site.json` has no `title` or `language`, so the page title is "Figma Make App" and `lang` is `en`. `accessibility.ignoreReducedMotion` in `site.json` is not read by `vite.config.ts`.
+- **Document metadata.** `site.json` sets the title, description, `en-CA`, the icons and the social card; `Routes` retitles each page in the running app. Link unfurlers don't run JavaScript, and hash routes share one document, so every shared link previews with the site-wide title and card. `og:image` is the relative `/og-image.jpg` (KI-069). `accessibility.ignoreReducedMotion` in `site.json` is not read by `vite.config.ts`.
 - **Device-local features that look shareable.** Wishlist "Copy link" shares `…#/wishlist`, but the list lives in the sharer's `localStorage`. Customer reviews (`tns-reviews-<slug>`) accumulate per product with data-URL images and no pruning.
 - **The demo gift card leaks into storage.** After any checkout, `tns-giftcard-ledger` holds the demo card `TERESASONS1962MT`, because `issueCards` and `debitCards` save the in-memory list that includes it. `Account` hides it by comparing codes.
 - **Minor timer leak.** `pages/GiftCards.tsx` calls `window.setTimeout(() => setAdded(false), 2400)` with no cleanup. This is harmless in React 19.

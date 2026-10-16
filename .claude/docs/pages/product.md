@@ -21,7 +21,7 @@ Scope: `src/pages/Product.tsx` (primary); as used by it: `src/components/pdp/*.t
   `<p className="font-serif-editorial py-40 text-center text-4xl">This piece has returned to the vault.</p>`
   Header and Footer still frame it, because they live in `App`. There is no breadcrumb, sticky bar or link back, and `recordView` is not called. Every hook still runs before this early return, and the `root` ref is never attached, so both GSAP layout effects exit early.
 - **Gift card product links.** The `gift-card` product (`tns-gf-003`, category `gifts`, `metals: []`) still shows up as a `ProductCard` in the "Also in Gifts" grid on the other two gifts PDPs. Its card links to `#/p/gift-card`, which opens the Gift Cards page by design.
-- **No document title.** Nothing in `src/` sets `document.title`. `index.html` contains `<title><!-- figma:title --></title>`.
+- **Document title.** `Routes` in `src/App.tsx` (`headFor`) sets the tab title to "{product.name} — Teresa & Sons" and the meta description to "{tagline} {description}". An unknown slug gives "Piece not found — Teresa & Sons". The `og:*` tags stay site-wide.
 
 ---
 
@@ -704,7 +704,7 @@ Observations, risks and recommendations (opinion is labelled as such):
 13. **The engraving counter counts untrimmed characters**, and engraving text is never validated beyond the 18-character limit (`maxLength={18}`).
 14. **The installment threshold applies to the displayed currency amount** (`amount >= 400`), so the Shop Pay line disappears for some USD prices and vermeil options (section 6.4).
 15. **`hadHistory` is a mount-time snapshot.** It only controls numbering. If the history holds only slugs that no longer exist, `'recent'` is still numbered but `RecentlyViewed` renders nothing; it is the last section, so nothing visibly breaks.
-16. **No per-product `document.title` or meta.** A Shopify port gets this from Liquid; the prototype does not.
+16. **Per-product title and meta exist only in the running app.** `headFor` sets them after load, so link unfurlers, which don't run JavaScript, see the site-wide title and card. A Shopify port gets a per-product `<title>`, description and `og:image` from Liquid.
 17. **"What the fee covers" is a no-op when `#price-breakdown` is absent.** `scrollToId` exits early when the element is missing. All current rentals have a breakdown, but a rental whose name matched `/commission|redesign/` or with `metals: []` would break the link.
 18. **Shopify mapping is missing for product lines.** `toShopifyCartItem` handles gift cards only; metal and size variants and the engraving, personalization and booking line-item properties still need a mapping (see [Shopify integration](../shopify-integration.md)).
 
