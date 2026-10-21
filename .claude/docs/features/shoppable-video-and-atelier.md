@@ -51,7 +51,7 @@ URLs are built by `clip(id, 360|720)` → `https://assets.mixkit.co/videos/{id}/
 - Returns `null` for an empty list.
 - Section header: `SectionHeader` in a `max-w-[1600px] px-6 pt-28 lg:px-12 lg:pt-36` wrapper.
 - Scroll buttons appear only when there are more than 3 films. They are round 44 px buttons with `aria-label` "Scroll films left" / "Scroll films right" and call `scrollBy(±0.8 × rail width, smooth)`.
-- The rail is `flex snap-x snap-mandatory gap-3 overflow-x-auto … lg:-mt-20 lg:gap-4`, with the scrollbar hidden and `data-lenis-prevent-wheel`. It overlaps the header on lg.
+- The rail is `flex snap-x snap-mandatory gap-3 overflow-x-auto … lg:-mt-20 lg:gap-4`, with the scrollbar hidden, `overscroll-x-contain` and `data-lenis-prevent-horizontal` (2026-10-21; `data-lenis-prevent-wheel` before, which made the wheel stutter over the rail). It overlaps the header on lg.
 
 **Tile** (a `<button>` with `data-reveal={(index % 4) * 0.06}`):
 - Size and layout:
@@ -100,6 +100,8 @@ Touch: a vertical swipe of more than 60 px goes to the next or previous film.
 - Previous / next round buttons (`ChevronUp` / `ChevronDown`).
 
 ## 4. Atelier page (`src/pages/Atelier.tsx`)
+
+> **2026-10-21:** the page runs hero → the four-step process → `TheHands` (01) → `MakingScroll` (02, moved from Home) → `Generations` (03) → the films (04) → the visit booked on the page (`VisitFlow`). The wireframe below predates the redesign.
 
 ```
 ┌ Hero (12 cols) ───────────────────────────────────────────────────────────┐

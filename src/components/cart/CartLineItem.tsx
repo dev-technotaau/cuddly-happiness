@@ -69,7 +69,7 @@ export default function CartLineItem({ line, variant = 'drawer', onNavigate }: P
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <p className="font-spec text-[9px] uppercase tracking-[0.22em] text-[var(--text-linen)]">{line.rental ? t.rental : line.giftCard ? t.giftCard : catalog.product(p).collection}</p>
+            <p className="font-spec text-[9px] uppercase tracking-[0.22em] text-[var(--text-taupe)]">{line.rental ? t.rental : line.giftCard ? t.giftCard : catalog.product(p).collection}</p>
             <a href={productHref} onClick={onNavigate} className={`font-serif-editorial mt-1 block leading-tight transition-colors hover:text-[var(--gold-vermeil)] ${page ? 'text-3xl' : 'text-xl'}`}>
               {name}
             </a>
@@ -117,8 +117,8 @@ export default function CartLineItem({ line, variant = 'drawer', onNavigate }: P
           </div>
           <div className="text-right">
             <Price amount={linePrice(line)} className={page ? 'text-base' : 'text-sm'} />
-            {line.qty > 1 && <p className="font-spec mt-0.5 text-[10px] text-[var(--text-linen)]"><Price amount={unit} className="[&_span]:hidden" /> {t.each}</p>}
-            {fullPrice !== unit && <p className="font-spec text-[10px] text-[var(--text-linen)] line-through"><Price amount={fullPrice} className="[&_span]:hidden" /></p>}
+            {line.qty > 1 && <p className="font-spec mt-0.5 text-[10px] text-[var(--text-taupe)]"><Price amount={unit} className="[&_span]:hidden" /> {t.each}</p>}
+            {fullPrice !== unit && <p className="font-spec text-[10px] text-[var(--text-taupe)] line-through"><Price amount={fullPrice} className="[&_span]:hidden" /></p>}
           </div>
         </div>
       </div>

@@ -1,8 +1,11 @@
 import { useState } from 'react'
-import { IMG } from '../../data/catalog'
+import { IMG, pic } from '../../data/catalog'
+import { HOUSE } from '../../data/house'
 import { bilingual, useCopy } from '../../i18n'
 import { rich } from '../../i18n/rich'
 import { href } from '../../store'
+import { btnOnDark } from '../ui'
+import VisitButton from '../visit/VisitButton'
 
 // Where the house standard sits on each scale, by position.
 const OURS: [number, number][] = [[3, 4], [4, 7], [3, 7], [0, 6]]
@@ -17,10 +20,9 @@ const COPY = bilingual(
     ],
     eyebrow: 'Diamond Education',
     title: 'The <em>Four Cs</em>, explained by a jeweller.',
-    alt: 'Diamond under loupe',
+    alt: 'Loose diamonds before they are set: a pear, a marquise, a round',
     standard: 'Teresa & Sons standard',
     shop: 'Shop certified diamonds',
-    viewing: 'Book a diamond viewing',
   },
   {
     cs: [
@@ -31,15 +33,16 @@ const COPY = bilingual(
     ],
     eyebrow: 'Comprendre le diamant',
     title: 'Les <em>4 C</em>, expliqués par un joaillier.',
-    alt: 'Diamant sous la loupe',
+    alt: 'Des diamants avant le sertissage\u00a0: une poire, une marquise, un rond',
     standard: 'L’exigence Teresa & Sons',
     shop: 'Magasiner les diamants certifiés',
-    viewing: 'Réserver une présentation de diamants',
   },
 )
 
-export default function FourCs() {
+/** The Four Cs, one at a time, with where the house standard sits on each scale. */
+export default function FourCs({ index }: { index: string }) {
   const t = useCopy(COPY)
+  const house = useCopy(HOUSE)
   const [active, setActive] = useState(0)
   const c = { ...t.cs[active], ours: OURS[active] }
 
@@ -47,12 +50,12 @@ export default function FourCs() {
     <section className="bg-[var(--bg-vault)] text-[var(--bg-travertine)]">
       <div className="mx-auto grid max-w-[1600px] gap-16 px-6 py-28 lg:grid-cols-12 lg:px-12 lg:py-36">
         <div className="lg:col-span-5">
-          <p data-reveal className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-champagne)]"><span className="mr-4 text-white/45">04</span>{t.eyebrow}</p>
+          <p data-reveal className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-champagne)]"><span className="mr-4 text-white/45">{index}</span>{t.eyebrow}</p>
           <h2 data-reveal="0.05" className="font-serif-editorial mt-6 text-[2.75rem] font-light leading-[0.98] tracking-[-0.02em] sm:text-6xl lg:text-[4.75rem]">
             {rich(t.title, 'text-[var(--gold-champagne)]')}
           </h2>
           <div data-reveal="0.1" className="relative mt-12 aspect-square overflow-hidden">
-            <img src={IMG.ring1} alt={t.alt} loading="lazy" className="h-full w-full object-cover opacity-80" />
+            <img {...pic(IMG.stones, '(min-width: 1024px) 40vw, 100vw')} alt={t.alt} loading="lazy" className="h-full w-full object-cover opacity-80" />
             <div className="absolute inset-0 flex items-center justify-center">
               <span className="font-serif-editorial text-[clamp(5rem,9vw,9rem)] font-light italic text-white/90 mix-blend-overlay">{c.key}</span>
             </div>
@@ -66,7 +69,7 @@ export default function FourCs() {
                 role="tab"
                 aria-selected={active === i}
                 onClick={() => setActive(i)}
-                className={`-mb-px border-b py-5 text-left transition-colors ${active === i ? 'border-[var(--gold-champagne)] text-white' : 'border-transparent text-white/40 hover:text-white/70'}`}
+                className={`-mb-px border-b py-5 text-left transition-colors ${active === i ? 'border-[var(--gold-champagne)] text-white' : 'border-transparent text-white/60 hover:text-white/70'}`}
               >
                 <span className="font-spec block text-[10px] text-[var(--gold-champagne)]">0{i + 1}</span>
                 <span className="font-serif-editorial mt-1 block text-[clamp(20px,2.2vw,30px)]">{x.key}</span>
@@ -95,15 +98,14 @@ export default function FourCs() {
               <p className="font-spec mt-4 text-[10px] uppercase tracking-[0.24em] text-white/50">
                 <span className="mr-2 inline-block h-2 w-2 bg-[var(--gold-champagne)]" /> {t.standard}
               </p>
+              <p className="mt-6 max-w-lg text-sm text-white/60">{house.natural}</p>
             </div>
 
             <div className="mt-14 flex flex-wrap gap-6">
-              <a href={href.category('bridal')} className="bg-[var(--gold-champagne)] px-8 py-4 text-[11px] font-medium uppercase tracking-[0.24em] text-[var(--bg-vault)] hover:bg-white">
+              <a href={href.category('bridal', { type: 'engagement' })} className={btnOnDark}>
                 {t.shop}
               </a>
-              <a href={href.atelier} className="border-b border-white/40 py-4 text-[11px] uppercase tracking-[0.24em] hover:border-[var(--gold-champagne)]">
-                {t.viewing}
-              </a>
+              <VisitButton tone="dark" request={{ purpose: 'engagement' }} />
             </div>
           </div>
         </div>

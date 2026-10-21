@@ -1,7 +1,7 @@
 {
   "version": 1,
   "generatedAt": "2026-10-21",
-  "gitHead": "4335aaa",
+  "gitHead": "ba62612",
   "files": {
     ".figma/make/analyze-routes": {
       "hash": "d51912b900af",
@@ -141,12 +141,13 @@
       ]
     },
     "src/App.tsx": {
-      "hash": "119d91db9747",
+      "hash": "fda02b67f4ba",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
         "components/global-and-shared.md",
         "components/pdp-modules.md",
+        "features/legacy-redesign.md",
         "features/virtual-try-on.md",
         "known-issues.md",
         "motion-and-interaction.md",
@@ -165,7 +166,7 @@
       ]
     },
     "src/components/CartDrawer.tsx": {
-      "hash": "5849fb699c01",
+      "hash": "3e39ff59a341",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -182,7 +183,7 @@
       ]
     },
     "src/components/Footer.tsx": {
-      "hash": "915431c73ad4",
+      "hash": "4c02c07d4b56",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -192,7 +193,7 @@
       ]
     },
     "src/components/Header.tsx": {
-      "hash": "5db90b8cad77",
+      "hash": "616eb9c49b28",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -208,7 +209,7 @@
       ]
     },
     "src/components/HomeHero.tsx": {
-      "hash": "549d11ae2627",
+      "hash": "71793d883085",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -228,7 +229,7 @@
       ]
     },
     "src/components/Price.tsx": {
-      "hash": "fcbf89319717",
+      "hash": "97d0e4dd27e5",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -244,7 +245,7 @@
       ]
     },
     "src/components/ProductCard.tsx": {
-      "hash": "d50c79cd86e3",
+      "hash": "b45359fa46d5",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -260,7 +261,7 @@
       ]
     },
     "src/components/RecentlyViewed.tsx": {
-      "hash": "46f1911fa209",
+      "hash": "9e4a88011347",
       "docs": [
         "architecture.md",
         "commerce-logic.md",
@@ -275,7 +276,7 @@
       ]
     },
     "src/components/SmoothScroll.tsx": {
-      "hash": "09637d80e076",
+      "hash": "2b7709321335",
       "docs": [
         "architecture.md",
         "components/global-and-shared.md",
@@ -305,8 +306,14 @@
         "design-system.md"
       ]
     },
+    "src/components/brand/Hallmark.tsx": {
+      "hash": "1c7b62b5da24",
+      "docs": [
+        "features/legacy-redesign.md"
+      ]
+    },
     "src/components/cart/CartLineItem.tsx": {
-      "hash": "39cd67c01aa5",
+      "hash": "78e34f1057d5",
       "docs": [
         "architecture.md",
         "commerce-logic.md",
@@ -317,7 +324,7 @@
       ]
     },
     "src/components/cart/CartUpsell.tsx": {
-      "hash": "e4e6bb9b3521",
+      "hash": "9e256d99496b",
       "docs": [
         "architecture.md",
         "commerce-logic.md",
@@ -327,7 +334,7 @@
       ]
     },
     "src/components/cart/GiftOptions.tsx": {
-      "hash": "817d84ed4f7f",
+      "hash": "650dcf634083",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -367,8 +374,27 @@
         "product-overview.md"
       ]
     },
+    "src/components/catalog/Interlude.tsx": {
+      "hash": "dc42f2950853",
+      "docs": [
+        "features/legacy-redesign.md"
+      ]
+    },
+    "src/components/catalog/PieceGrid.tsx": {
+      "hash": "8ebfbf1ecdde",
+      "docs": [
+        "features/legacy-redesign.md",
+        "known-issues.md"
+      ]
+    },
+    "src/components/contact/AskSheet.tsx": {
+      "hash": "fb20f33d661a",
+      "docs": [
+        "features/legacy-redesign.md"
+      ]
+    },
     "src/components/giftcard/BalanceChecker.tsx": {
-      "hash": "50366fb69440",
+      "hash": "7032bc10c50a",
       "docs": [
         "brand-voice-and-copy.md",
         "commerce-logic.md",
@@ -393,7 +419,7 @@
       ]
     },
     "src/components/home/CategoryIndex.tsx": {
-      "hash": "e096b283b4e9",
+      "hash": "089508f51bdb",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -404,7 +430,7 @@
       ]
     },
     "src/components/home/FourCs.tsx": {
-      "hash": "06cdf27bb384",
+      "hash": "185ca1ec2657",
       "docs": [
         "brand-voice-and-copy.md",
         "motion-and-interaction.md",
@@ -412,8 +438,14 @@
         "product-overview.md"
       ]
     },
+    "src/components/home/Generations.tsx": {
+      "hash": "0afb83ed6726",
+      "docs": [
+        "features/legacy-redesign.md"
+      ]
+    },
     "src/components/home/GiftFinder.tsx": {
-      "hash": "4274a6b43b68",
+      "hash": "52ca2a5abcfe",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -425,8 +457,14 @@
         "product-overview.md"
       ]
     },
+    "src/components/home/HouseNumbers.tsx": {
+      "hash": "ad3e0a78a197",
+      "docs": [
+        "features/legacy-redesign.md"
+      ]
+    },
     "src/components/home/MakingScroll.tsx": {
-      "hash": "216fc0335845",
+      "hash": "29e73405b1d7",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -436,15 +474,27 @@
       ]
     },
     "src/components/home/PressStrip.tsx": {
-      "hash": "b3eb72b08a45",
+      "hash": "f50c7f6c6cdb",
       "docs": [
         "brand-voice-and-copy.md",
         "pages/home.md",
         "product-overview.md"
       ]
     },
+    "src/components/home/PrivateVisit.tsx": {
+      "hash": "472f3963b4fc",
+      "docs": [
+        "features/legacy-redesign.md"
+      ]
+    },
+    "src/components/home/RentOrOwn.tsx": {
+      "hash": "1b9282ce3192",
+      "docs": [
+        "features/legacy-redesign.md"
+      ]
+    },
     "src/components/home/SectionHeader.tsx": {
-      "hash": "1972366ce514",
+      "hash": "9eed597d99a8",
       "docs": [
         "architecture.md",
         "components/global-and-shared.md",
@@ -457,16 +507,28 @@
       ]
     },
     "src/components/home/Services.tsx": {
-      "hash": "106ee574f888",
+      "hash": "eeb81f26aad8",
       "docs": [
         "brand-voice-and-copy.md",
         "motion-and-interaction.md",
         "pages/home.md",
         "product-overview.md"
+      ]
+    },
+    "src/components/home/Signatures.tsx": {
+      "hash": "6a2efa84f8b0",
+      "docs": [
+        "features/legacy-redesign.md"
+      ]
+    },
+    "src/components/home/SketchToRing.tsx": {
+      "hash": "7d747520b83b",
+      "docs": [
+        "features/legacy-redesign.md"
       ]
     },
     "src/components/home/SocialGrid.tsx": {
-      "hash": "7cdd383cb978",
+      "hash": "5ac674e22071",
       "docs": [
         "brand-voice-and-copy.md",
         "motion-and-interaction.md",
@@ -474,8 +536,14 @@
         "product-overview.md"
       ]
     },
+    "src/components/home/TennisGuide.tsx": {
+      "hash": "ea1293971f66",
+      "docs": [
+        "features/legacy-redesign.md"
+      ]
+    },
     "src/components/home/Testimonials.tsx": {
-      "hash": "06af472886fb",
+      "hash": "f4f5f45e09f9",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -484,8 +552,14 @@
         "product-overview.md"
       ]
     },
+    "src/components/home/TheHands.tsx": {
+      "hash": "54bb6827dbeb",
+      "docs": [
+        "features/legacy-redesign.md"
+      ]
+    },
     "src/components/home/Treasured.tsx": {
-      "hash": "888f4ebe9d09",
+      "hash": "aea68183c233",
       "docs": [
         "pages/category.md",
         "pages/home.md",
@@ -493,7 +567,7 @@
       ]
     },
     "src/components/home/TryOnFeature.tsx": {
-      "hash": "071f1713b5f1",
+      "hash": "006bb7225640",
       "docs": [
         "brand-voice-and-copy.md",
         "data-model.md",
@@ -502,17 +576,16 @@
       ]
     },
     "src/components/home/VisitSalon.tsx": {
-      "hash": "2790aec0e48d",
+      "hash": "91f15ce145ce",
       "docs": [
         "brand-voice-and-copy.md",
-        "known-issues.md",
         "motion-and-interaction.md",
         "pages/home.md",
         "product-overview.md"
       ]
     },
     "src/components/home/WatchSpotlight.tsx": {
-      "hash": "fd3a4400bb05",
+      "hash": "2e9762436595",
       "docs": [
         "brand-voice-and-copy.md",
         "commerce-logic.md",
@@ -520,6 +593,12 @@
         "motion-and-interaction.md",
         "pages/home.md",
         "product-overview.md"
+      ]
+    },
+    "src/components/home/WelcomeBack.tsx": {
+      "hash": "275c6f679863",
+      "docs": [
+        "features/legacy-redesign.md"
       ]
     },
     "src/components/lineDetails.ts": {
@@ -552,7 +631,7 @@
       ]
     },
     "src/components/locale/LocaleMenu.tsx": {
-      "hash": "2fa39ff81bcc",
+      "hash": "ed7a12e0a0aa",
       "docs": [
         "components/global-and-shared.md",
         "features/languages.md"
@@ -564,8 +643,21 @@
         "components/global-and-shared.md"
       ]
     },
+    "src/components/menu/Marked.tsx": {
+      "hash": "bb4f9544478d",
+      "docs": [
+        "features/legacy-redesign.md"
+      ]
+    },
+    "src/components/menu/MobileSearch.tsx": {
+      "hash": "7941f98fdfd9",
+      "docs": [
+        "components/global-and-shared.md",
+        "features/legacy-redesign.md"
+      ]
+    },
     "src/components/menu/SiteMenu.tsx": {
-      "hash": "a64738ce313a",
+      "hash": "6320aa6e5b46",
       "docs": [
         "commerce-logic.md",
         "components/global-and-shared.md",
@@ -575,9 +667,10 @@
       ]
     },
     "src/components/menu/search.ts": {
-      "hash": "066f397b48df",
+      "hash": "96f3359f9155",
       "docs": [
-        "components/global-and-shared.md"
+        "components/global-and-shared.md",
+        "features/languages.md"
       ]
     },
     "src/components/pdp/Accordion.tsx": {
@@ -590,7 +683,7 @@
       ]
     },
     "src/components/pdp/CompleteTheLook.tsx": {
-      "hash": "104fbf5fdc4b",
+      "hash": "d4ded8650249",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -627,7 +720,7 @@
       ]
     },
     "src/components/pdp/Personalizer.tsx": {
-      "hash": "babb9a123667",
+      "hash": "39e8de947c1c",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -640,7 +733,7 @@
       ]
     },
     "src/components/pdp/PriceBreakdown.tsx": {
-      "hash": "9af0b1f86fc3",
+      "hash": "0982ad175c43",
       "docs": [
         "brand-voice-and-copy.md",
         "commerce-logic.md",
@@ -653,7 +746,7 @@
       ]
     },
     "src/components/pdp/ProductFAQ.tsx": {
-      "hash": "16bffe1c5efb",
+      "hash": "066ac4cbf578",
       "docs": [
         "brand-voice-and-copy.md",
         "components/pdp-modules.md",
@@ -665,7 +758,7 @@
       ]
     },
     "src/components/pdp/RentalCalendar.tsx": {
-      "hash": "23fcb92b7205",
+      "hash": "90f9b723318e",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -677,7 +770,7 @@
       ]
     },
     "src/components/pdp/Reviews.tsx": {
-      "hash": "ce8733fbb6e3",
+      "hash": "c615054411a3",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -692,7 +785,7 @@
       ]
     },
     "src/components/pdp/RingSize.tsx": {
-      "hash": "f47c8f67475a",
+      "hash": "c762be96e709",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -704,7 +797,7 @@
       ]
     },
     "src/components/pdp/StickyBar.tsx": {
-      "hash": "4c674316a00d",
+      "hash": "634be0a899d5",
       "docs": [
         "architecture.md",
         "commerce-logic.md",
@@ -721,7 +814,7 @@
       ]
     },
     "src/components/share/ShareSheet.tsx": {
-      "hash": "12cd40664c47",
+      "hash": "ad07a7c9d373",
       "docs": [
         "features/sharing.md"
       ]
@@ -741,7 +834,7 @@
       ]
     },
     "src/components/transition/PageTransition.tsx": {
-      "hash": "9f187f29caa9",
+      "hash": "66fdda3658af",
       "docs": [
         "motion-and-interaction.md"
       ]
@@ -784,7 +877,7 @@
       ]
     },
     "src/components/tryon/TryOnStudio.tsx": {
-      "hash": "c8646a581591",
+      "hash": "24f566ffb825",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -795,6 +888,13 @@
         "pages/cart-and-checkout.md",
         "product-overview.md",
         "ux-patterns-and-accessibility.md"
+      ]
+    },
+    "src/components/ui.ts": {
+      "hash": "a23ddf5afe4d",
+      "docs": [
+        "design-system.md",
+        "features/legacy-redesign.md"
       ]
     },
     "src/components/useReveal.ts": {
@@ -811,7 +911,7 @@
       ]
     },
     "src/components/video/ShoppableVideos.tsx": {
-      "hash": "8fb001238e07",
+      "hash": "7c5d1e56ea5d",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -826,7 +926,7 @@
       ]
     },
     "src/components/video/VideoViewer.tsx": {
-      "hash": "32f70ec45799",
+      "hash": "be1041dffc3e",
       "docs": [
         "architecture.md",
         "commerce-logic.md",
@@ -848,8 +948,39 @@
         "pages/home.md"
       ]
     },
+    "src/components/visit/NextTimes.tsx": {
+      "hash": "089b0acb47d2",
+      "docs": [
+        "features/legacy-redesign.md"
+      ]
+    },
+    "src/components/visit/VisitBand.tsx": {
+      "hash": "24470cd26176",
+      "docs": [
+        "features/legacy-redesign.md"
+      ]
+    },
+    "src/components/visit/VisitButton.tsx": {
+      "hash": "2e875542ac65",
+      "docs": [
+        "features/legacy-redesign.md"
+      ]
+    },
+    "src/components/visit/VisitDrawer.tsx": {
+      "hash": "1240602ee3e4",
+      "docs": [
+        "features/legacy-redesign.md"
+      ]
+    },
+    "src/components/visit/VisitFlow.tsx": {
+      "hash": "c87967b7ef20",
+      "docs": [
+        "brand-voice-and-copy.md",
+        "features/legacy-redesign.md"
+      ]
+    },
     "src/data/catalog.fr.ts": {
-      "hash": "e68d0cb139f3",
+      "hash": "12c9f22635ce",
       "docs": [
         "brand-voice-and-copy.md",
         "data-model.md",
@@ -859,7 +990,7 @@
       ]
     },
     "src/data/catalog.ts": {
-      "hash": "c50b2d710f45",
+      "hash": "d077751bc2f1",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -869,6 +1000,7 @@
         "data-model.md",
         "design-system.md",
         "features/languages.md",
+        "features/legacy-redesign.md",
         "features/virtual-try-on.md",
         "known-issues.md",
         "pages/cart-and-checkout.md",
@@ -909,6 +1041,12 @@
         "shopify-integration.md"
       ]
     },
+    "src/data/house.ts": {
+      "hash": "68f507f7733e",
+      "docs": [
+        "features/legacy-redesign.md"
+      ]
+    },
     "src/data/media.ts": {
       "hash": "8b3dd60ac278",
       "docs": [
@@ -926,7 +1064,7 @@
       ]
     },
     "src/data/salon.ts": {
-      "hash": "385fc461b6b1",
+      "hash": "974ef688aba2",
       "docs": [
         "data-model.md",
         "features/languages.md",
@@ -948,8 +1086,14 @@
         "shopify-integration.md"
       ]
     },
+    "src/data/visits.ts": {
+      "hash": "78223c4b7596",
+      "docs": [
+        "features/legacy-redesign.md"
+      ]
+    },
     "src/i18n/catalog.ts": {
-      "hash": "66108afa21b5",
+      "hash": "454c5d66ff3d",
       "docs": [
         "data-model.md",
         "features/languages.md"
@@ -985,7 +1129,7 @@
       ]
     },
     "src/index.css": {
-      "hash": "bb355343ec61",
+      "hash": "f68ed0ad2eee",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -993,6 +1137,7 @@
         "components/global-and-shared.md",
         "components/pdp-modules.md",
         "design-system.md",
+        "known-issues.md",
         "motion-and-interaction.md",
         "pages/cart-and-checkout.md",
         "pages/category.md",
@@ -1044,7 +1189,7 @@
       ]
     },
     "src/pages/Account.tsx": {
-      "hash": "db1ace0e456f",
+      "hash": "8810bc9329f0",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -1058,7 +1203,7 @@
       ]
     },
     "src/pages/Atelier.tsx": {
-      "hash": "8346b41417b8",
+      "hash": "6a4507d5e952",
       "docs": [
         "brand-voice-and-copy.md",
         "data-model.md",
@@ -1070,7 +1215,7 @@
       ]
     },
     "src/pages/Cart.tsx": {
-      "hash": "78f99ed7b223",
+      "hash": "de63bf9df054",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -1085,7 +1230,7 @@
       ]
     },
     "src/pages/Category.tsx": {
-      "hash": "00d8aa22a0ca",
+      "hash": "586b10493f1e",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -1099,7 +1244,7 @@
       ]
     },
     "src/pages/Checkout.tsx": {
-      "hash": "da615e19f0be",
+      "hash": "5dc44aac5d23",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -1115,7 +1260,7 @@
       ]
     },
     "src/pages/GiftCards.tsx": {
-      "hash": "baf8e13e38a4",
+      "hash": "2cd049042066",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -1134,11 +1279,12 @@
       ]
     },
     "src/pages/Home.tsx": {
-      "hash": "8c62d6f134af",
+      "hash": "3c467dff7710",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
         "data-model.md",
+        "features/legacy-redesign.md",
         "features/shoppable-video-and-atelier.md",
         "motion-and-interaction.md",
         "pages/home.md",
@@ -1147,13 +1293,14 @@
       ]
     },
     "src/pages/Product.tsx": {
-      "hash": "0e25c4165838",
+      "hash": "c7b87d7137a7",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
         "commerce-logic.md",
         "components/pdp-modules.md",
         "data-model.md",
+        "features/legacy-redesign.md",
         "features/sharing.md",
         "features/shoppable-video-and-atelier.md",
         "motion-and-interaction.md",
@@ -1166,8 +1313,14 @@
         "ux-patterns-and-accessibility.md"
       ]
     },
+    "src/pages/Shop.tsx": {
+      "hash": "2b51eb7050be",
+      "docs": [
+        "features/legacy-redesign.md"
+      ]
+    },
     "src/pages/Wishlist.tsx": {
-      "hash": "52c5a328e5a8",
+      "hash": "25e0277af7fe",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -1182,7 +1335,7 @@
       ]
     },
     "src/store.tsx": {
-      "hash": "9df8a4fcbd5f",
+      "hash": "d32f312fa383",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -1191,6 +1344,7 @@
         "components/pdp-modules.md",
         "data-model.md",
         "features/languages.md",
+        "features/legacy-redesign.md",
         "known-issues.md",
         "motion-and-interaction.md",
         "pages/account-and-wishlist.md",

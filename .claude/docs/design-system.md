@@ -12,9 +12,10 @@ Scope: `src/index.css`, all `src/**/*.tsx` (inventory), recipes copied from `src
 | `--bg-silk` | `#F3EFE6` | Alternate section bands, image placeholders, hover fill on tiles | 39 |
 | `--bg-vault` | `#121110` | Dark sections, footer, marquee, overlays (`/45` backdrop, `/95` viewer) | 43 |
 | `--text-espresso` | `#141311` | Primary ink, primary button fill, active toggle fill, active borders | 122 |
-| `--text-taupe` | `#6E685F` | Secondary text and body copy | 103 |
-| `--text-linen` | `#A39C91` | Tertiary text: meta lines, placeholders, inactive items, the currency code in `Price` | 104 |
-| `--gold-vermeil` | `#B89047` | Accent on light: italic headline words, numerals, eyebrows, hovers, badges, focus underline | 161 |
+| `--text-taupe` | `#6E685F` | Secondary text and body copy; since the 2026-10-21 contrast sweep also small meta text, labels, counters, notes, placeholders and the currency code in `Price` | 345 |
+| `--text-linen` | `#A39C91` | Tertiary: decorative and inactive text, dimmed hover states, text on dark grounds. Never small text on light grounds (2.6:1) | 22 |
+| `--gold-vermeil` | `#B89047` | Accent on light: italic headline words, large numerals, icons, hovers, rules, dots, underlines, the focus ring. Never small text (2.8:1) | 203 |
+| `--gold-ink` | `#846529` | Small gold text on light (added 2026-10-21): eyebrows, step and section numbers, small labels, the bag badge. AA on travertine (5.2:1) and silk (4.7:1) | 73 |
 | `--gold-champagne` | `#D4B982` | Accent on dark: eyebrows, italics, solid buttons on vault | 94 |
 | `--border-hairline` | `#E6E0D4` | All 1 px rules, borders, dividers, hairline-grid gaps | 140 |
 
@@ -55,7 +56,7 @@ Inline `fontFamily` values also name Baskervville (Personalizer "Serif" preview,
 
 **Weights.** Baskervville starts at 400, so the `font-light` (300) on display headlines renders at 400. That is intended: the regular already reads light at display sizes.
 
-**Wordmark** (Header): tracked capitals, `font-serif-editorial -mr-[0.12em] block whitespace-nowrap text-[17px] uppercase tracking-[0.12em] sm:-mr-[0.16em] sm:text-[22px] sm:tracking-[0.16em] lg:text-[25px]`, with the ampersand as `<em className="text-[var(--gold-vermeil)]">&amp;</em>`. The negative right margin equals the tracking and cancels the trailing letter-space, so the capitals centre. The gift-card art repeats the capitals (`text-[5.6cqi] uppercase tracking-[0.14em]`).
+**Wordmark** (Header): tracked capitals, `font-serif-editorial -mr-[0.12em] block whitespace-nowrap text-[17px] uppercase tracking-[0.12em] sm:-mr-[0.16em] sm:text-[22px] sm:tracking-[0.16em] xl:text-[25px]`, with the ampersand as `<em className="text-[var(--gold-vermeil)]">&amp;</em>`. The negative right margin equals the tracking and cancels the trailing letter-space, so the capitals centre. The gift-card art repeats the capitals (`text-[5.6cqi] uppercase tracking-[0.14em]`).
 
 **Brand mark** (favicon, `public/favicon.svg`): the wordmark's italic ampersand alone, Baskervville italic 600 traced to a vector, in a gold gradient (`#E7CF9C` → `--gold-champagne` → `--gold-vermeil`) on a `--bg-vault` tile, which is also the `theme-color`. The ICO and the 180 px apple-touch icon are renders of the same art. The 1200×630 social card (`public/og-image.jpg`) sets the hero lockup beside a framed piece. See [platform-and-tooling.md](platform-and-tooling.md) §12.3.
 
@@ -83,7 +84,7 @@ Inline `fontFamily` values also name Baskervville (Personalizer "Serif" preview,
 
 | Role | Classes |
 |---|---|
-| Eyebrow / kicker | `font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]` (champagne on dark) [GiftCards, Atelier, Account] |
+| Eyebrow / kicker | `font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-ink)]` (champagne on dark; `eyebrow` in `src/components/ui.ts`) [GiftCards, Atelier, Account] |
 | Hero display | `font-serif-editorial text-6xl font-light leading-[0.95] lg:text-[7.5rem]` [Atelier]. Alternative: `text-[3.25rem] font-light leading-[0.92] tracking-[-0.03em] sm:text-7xl lg:text-[7rem]` [GiftCards] |
 | Section title | `SectionHeader` h2: `font-serif-editorial max-w-3xl text-[2.75rem] font-light leading-[0.98] tracking-[-0.02em] sm:text-6xl lg:text-[5.25rem]` |
 | Page title (utility pages) | `font-serif-editorial mt-4 text-6xl font-light lg:text-7xl` (Account) / `lg:text-8xl` (Wishlist) |
@@ -108,7 +109,7 @@ Inline `fontFamily` values also name Baskervville (Personalizer "Serif" preview,
   - Asymmetric 12-column layouts: `lg:grid-cols-12`, e.g. `lg:col-span-6` beside `lg:col-span-5 lg:col-start-8`.
   - Product grids: `grid-cols-2 gap-x-6 gap-y-12 lg:grid-cols-4` or `sm:grid-cols-2 lg:grid-cols-3`.
   - **Hairline grid**: `grid gap-px bg-[var(--border-hairline)]`, where each cell has its own background (`bg-[var(--bg-silk)]` or `bg-[var(--bg-travertine)]`). Used by process steps, account tiles and "how it works".
-- **Breakpoints:** mobile-first, and `lg:` is *the* desktop switch (284 uses). `sm:` is secondary (69). `md:` is nearly unused (2). There are no `xl:`/`2xl:` classes. The Header nav, mega menu, side panels and 12-column layouts all switch at `lg`.
+- **Breakpoints:** mobile-first, and `lg:` is *the* desktop switch (284 uses). `sm:` is secondary (69). `md:` is nearly unused (2). `xl:` (1280 px) appears only in the Header, where the bar returns to full size (2026-10-21); there is no `2xl:`. Arbitrary `min-[…px]:` variants lose to `sm:`/`lg:` on the same property in Tailwind v4 (they are emitted first), so the header uses `xl:`; `max-[360px]:` tweaks the smallest phones. The Header nav, mega menu, side panels and 12-column layouts all switch at `lg`.
 - **Aspect ratios:**
   - `aspect-[4/5]`: product and editorial imagery.
   - `aspect-square`.

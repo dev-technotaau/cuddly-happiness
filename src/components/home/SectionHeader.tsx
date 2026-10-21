@@ -11,8 +11,8 @@ interface Props {
 /** Shared editorial header: numbered eyebrow on a hairline rule, large serif title, optional right-hand slot. */
 export default function SectionHeader({ index, eyebrow, title, aside, tone = 'light' }: Props) {
   const rule = tone === 'dark' ? 'bg-white/15' : 'bg-[var(--border-hairline)]'
-  const accent = tone === 'dark' ? 'text-[var(--gold-champagne)]' : 'text-[var(--gold-vermeil)]'
-  const muted = tone === 'dark' ? 'text-white/45' : 'text-[var(--text-linen)]'
+  const accent = tone === 'dark' ? 'text-[var(--gold-champagne)]' : 'text-[var(--gold-ink)]'
+  const muted = tone === 'dark' ? 'text-white/45' : 'text-[var(--text-taupe)]'
   return (
     <header className="mb-14 lg:mb-20">
       <div data-reveal className={`font-spec flex items-center gap-5 text-[10px] uppercase tracking-[0.3em] ${muted}`}>

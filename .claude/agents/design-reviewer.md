@@ -26,6 +26,7 @@ You are the design-system reviewer for the Teresa & Sons storefront: a React 19 
    - z-index sits within the ladder.
    - `getLenis()?.stop()`, an overflow lock and an Escape handler, all cleaned up.
    - `role="dialog" aria-modal aria-label`, and `data-lenis-prevent` on scroll areas.
+   - A horizontal rail on a page carries `data-lenis-prevent-horizontal` (plus `overscroll-x-contain`), never `data-lenis-prevent` or `-wheel`, which break smooth scrolling over it.
    - Links inside close the overlay.
 8. **Accessibility.**
    - `aria-label` on icon buttons, `aria-pressed` on toggles, `aria-expanded` on disclosures.

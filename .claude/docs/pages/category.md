@@ -39,6 +39,8 @@ Sections from top to bottom. All of them sit inside `<div ref={root}>`, which is
 | 1 | Hero | always |
 | 2 | Gift-card band | `slug === 'gifts'` |
 | 3 | Rental steps band | `slug === 'rentals'` |
+| 3a | `GiftFinder` (`inChapter`: no "All gifts" link; moved from Home 2026-10-21) | `slug === 'gifts'` |
+| 3b | `WatchSpotlight` (`inChapter`: the story without the watches list the grid shows; moved from Home 2026-10-21) | `slug === 'watches'` |
 | 4 | Toolbar + product grid | always |
 | 5 | `ShoppableVideos` ("Worn & filmed") | `videosForCategory(...)` returns at least one film; the component returns `null` for an empty list |
 | 6 | `RecentlyViewed` | the visitor has at least one recently viewed product; the component returns `null` otherwise |

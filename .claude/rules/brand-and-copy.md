@@ -17,6 +17,12 @@ Full reference: `.claude/docs/brand-voice-and-copy.md` (voice, microcopy invento
 - **Bilingual touches (English site).** French appears in eyebrows and greetings: `Carte-cadeau`, `Solde`, `Mon compte`, `Liste de souhaits`, `La lettre`, `L’Atelier`, `Essayage virtuel`, `Bon retour.`, `Bonjour, {name}.`, `Merci.` Each category also has a French name in `CATEGORIES`. The French site is French throughout; its eyebrows never repeat the title.
 - **Naming system.** Collections are named after Montréal places: Mont-Royal, Saint-Laurent, Plateau, Vieux-Port, Outremont, Mile End, Westmount, Atwater, Griffintown, Sherbrooke, Laurier, Notre-Dame, Basilique. Category chapters are numbered with roman numerals I–IX.
 
+## House vocabulary and facts (2026-10-21)
+
+- **One verb per action, everywhere:** "Book a visit" / "Prendre rendez-vous" (context goes in a line under the button: "We’ll have it ready for you in the salon"); "Ask a jeweller" / "Parler à un joaillier". Not "concierge", "appointment", "viewing" or "consultation" as button verbs. Two named exceptions, from the approved plan: "Book a fitting" / "Réserver un essayage" on rentals, and "Book a design consultation" / "Réserver une consultation création" on commissions. The service is "private visits" / "visites privées"; "concierge" is retired (say "a jeweller"). Standard phrases stay ("Sunday by appointment", a customer's own words in a review). Swept 2026-10-21.
+- **The signatures** are "Engagement rings" and "Diamond tennis necklaces" (`HOUSE.signatures`).
+- **Policies and facts** come from `src/data/house.ts` (rental credit, returns, natural diamonds, visit length, hallmark, the generations) and `src/data/visits.ts`; don't restate them in other words elsewhere.
+
 ## Typography in strings
 
 | Character | Use for | Example |

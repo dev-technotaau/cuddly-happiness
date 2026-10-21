@@ -4,6 +4,8 @@ The Home page is the editorial landing route of the Teresa & Sons theme prototyp
 
 Scope: `src/pages/Home.tsx`, `src/components/HomeHero.tsx`, `src/components/home/CategoryIndex.tsx`, `src/components/home/FourCs.tsx`, `src/components/home/GiftFinder.tsx`, `src/components/home/MakingScroll.tsx`, `src/components/home/PressStrip.tsx`, `src/components/home/SectionHeader.tsx`, `src/components/home/Services.tsx`, `src/components/home/SocialGrid.tsx`, `src/components/home/Testimonials.tsx`, `src/components/home/Treasured.tsx`, `src/components/home/TryOnFeature.tsx`, `src/components/home/VisitSalon.tsx`, `src/components/home/WatchSpotlight.tsx`, `src/components/video/ShoppableVideos.tsx`, `src/components/RecentlyViewed.tsx`, `src/components/ProductCard.tsx`, `src/data/media.ts`, `src/data/catalog.ts`. Supporting behaviour was checked in `src/components/useReveal.ts`, `src/index.css`, `src/store.tsx`, `src/App.tsx`, `src/components/SmoothScroll.tsx`, `src/components/Header.tsx`, `src/components/Price.tsx`, `src/components/WishButton.tsx`, `src/components/tryon/TryOnButton.tsx`, `src/components/tryon/TryOnProvider.tsx`, `src/components/video/useInViewPlay.ts` and `src/components/video/VideoViewer.tsx`.
 
+> **Current order (refined 2026-10-21):** Hero (four slides) → As seen in → [Welcome back, Recently viewed: returning visitors] → 01 Our signatures → the house in four numbers → 02 The Index (silk) → 03 Most treasured (with "Try any piece on you") → 04 Rent or own (on the vault's dark ground) → 05 Sur mesure → 06 Three generations (with Teresa's quote) → 07 Families who come back → 08 Our promise (six tiles, light) → 09 The private visit → 10 Worn in Montréal → Come sit with us (the salon). Much of the section-by-section detail below predates the legacy redesign and this refine; `features/legacy-redesign.md` and the code win (`/kb-refresh` re-audits it).
+
 All derived values below (product lists, counts, prices, GiftFinder results) were computed from `src/data/catalog.ts` / `src/data/media.ts` at commit `db22872`. Recompute them if the catalog changes.
 
 ---
@@ -141,7 +143,7 @@ Breakpoints are Tailwind v4 defaults; `src/index.css` defines no `@theme`. Home 
 | Recipe | Classes (verbatim) | Used by |
 |---|---|---|
 | Page container | `mx-auto max-w-[1600px] px-6 lg:px-12` | nearly every section. `HomeHero` copy uses `lg:px-16`, `Testimonials` uses `mx-auto max-w-5xl px-6`, `VisitSalon` is full-bleed. |
-| Vertical rhythm A | `py-28 lg:py-36` | TryOnFeature, FourCs, GiftFinder, WatchSpotlight, Testimonials; ShoppableVideos (`pt-28 lg:pt-36` / `pb-28 lg:pb-36`); RecentlyViewed uses `py-28` with no `lg` step; SocialGrid uses only `pb-28 lg:pb-36` |
+| Vertical rhythm A | `py-28 lg:py-36` | TryOnFeature, FourCs, GiftFinder, WatchSpotlight, Testimonials; ShoppableVideos (`pt-28 lg:pt-36` / `pb-28 lg:pb-36`); RecentlyViewed uses `py-28` with no `lg` step; SocialGrid (top padding since 2026-10-21, when it came to follow the silk private visit) |
 | Vertical rhythm B | `py-32 lg:py-44` | CategoryIndex, Bridal, Heritage; Treasured uses only `pb-32 lg:pb-44` |
 | Display H2 | `font-serif-editorial text-[2.75rem] font-light leading-[0.98] tracking-[-0.02em] sm:text-6xl lg:text-[…]` | `lg` size 5.25rem in SectionHeader and Bridal, 5rem in TryOnFeature, 4.75rem in FourCs, GiftFinder and WatchSpotlight |
 | Eyebrow | `font-spec text-[10px] uppercase tracking-[0.3em]` + coloured index span | all numbered sections |
@@ -424,7 +426,7 @@ interface Props {
   - State `open: number | null`; ref `rail`. `scroll(d)` calls `rail.scrollBy({ left: d * rail.clientWidth * 0.8, behavior: 'smooth' })`.
   - With `tone` light the section gets no background class. The header container is `mx-auto max-w-[1600px] px-6 pt-28 lg:px-12 lg:pt-36` with a `SectionHeader`.
   - The `aside` renders only when `videos.length > 3`, which is true on Home (10 videos). It holds two round 44 px buttons (`h-11 w-11 rounded-full border`, light-tone border `border-[var(--border-hairline)] hover:border-[var(--text-espresso)]`) with `aria-label="Scroll films left"` / `"Scroll films right"` and `ChevronLeft`/`ChevronRight` icons.
-- **Rail:** `flex snap-x snap-mandatory gap-3 overflow-x-auto px-6 pb-28 [scrollbar-width:none] lg:-mt-20 lg:gap-4 lg:px-12 lg:pb-36 [&::-webkit-scrollbar]:hidden` plus the attribute `data-lenis-prevent-wheel`, so Lenis smooth scrolling does not hijack wheel input inside the rail. `lg:-mt-20` offsets SectionHeader's `lg:mb-20`.
+- **Rail:** `flex snap-x snap-mandatory gap-3 overflow-x-auto px-6 pb-28 [scrollbar-width:none] lg:-mt-20 lg:gap-4 lg:px-12 lg:pb-36 [&::-webkit-scrollbar]:hidden` plus `overscroll-x-contain` and `data-lenis-prevent-horizontal` (2026-10-21; it was `data-lenis-prevent-wheel`, which handed every wheel turn over the rail to the browser): the vertical wheel stays smooth, a sideways swipe scrolls the rail. `lg:-mt-20` offsets SectionHeader's `lg:mb-20`.
 - **Tile (`Tile`):** `<button onClick={onOpen} data-reveal={(index % 4) * 0.06} className="group relative aspect-[9/16] w-[62vw] shrink-0 snap-start overflow-hidden bg-[var(--bg-vault)] text-left sm:w-[38vw] lg:w-[19vw] lg:min-w-[240px]">`. Inside:
   - `<video src={video.preview} poster={video.poster} muted loop playsInline preload="none" className="editorial-zoom …">`. `useInViewPlay` plays it while ≥ 60 % visible and pauses it otherwise (IntersectionObserver thresholds `[0, 0.6, 1]`). This is disabled under reduced motion.
   - A gradient `bg-gradient-to-t from-black/75 via-transparent to-black/25`.
@@ -543,7 +545,7 @@ Several products change bucket with currency: Laurier Stacking Band (CAD 1,350 /
 const mm = gsap.matchMedia()
 mm.add('(min-width: 1024px) and (prefers-reduced-motion: no-preference)', () => {
   const t = track.current!
-  const distance = () => t.scrollWidth - window.innerWidth
+  const distance = () => t.scrollWidth - root.current!.clientWidth
   const tween = gsap.to(t, {
     x: () => -distance(),
     ease: 'none',
@@ -554,7 +556,7 @@ mm.add('(min-width: 1024px) and (prefers-reduced-motion: no-preference)', () => 
 return () => mm.revert()
 ```
 
-  At ≥ 1024 px with motion allowed, the section pins when its top reaches 112 px (just under the sticky header). The track then translates left by `track.scrollWidth − window.innerWidth` while the user scrolls the same distance vertically, with `scrub: 1` (1 s smoothing). A second scrubbed tween fills the 192 px (`w-48`) progress line from `scale-x-0` to 1 over the same range. The `[data-making-progress]` selector is not scoped (`gsap.matchMedia()` has no scope argument). Otherwise (narrow screens or reduced motion) there is no pin.
+  At ≥ 1024 px with motion allowed, the section pins when its top reaches 112 px (just under the sticky header). The track then translates left by `track.scrollWidth − section width` while the user scrolls the same distance vertically, with `scrub: 1` (1 s smoothing). A second scrubbed tween fills the 192 px (`w-48`) progress line from `scale-x-0` to 1 over the same range. The `[data-making-progress]` selector is not scoped (`gsap.matchMedia()` has no scope argument). Otherwise (narrow screens or reduced motion) there is no pin.
 - **Layout:**
   - **Section:** `relative overflow-hidden bg-[var(--bg-silk)] lg:h-[calc(100vh-7rem)]`.
   - **Header:** `mx-auto max-w-[1600px] px-6 pt-24 lg:absolute lg:inset-x-0 lg:top-0 lg:px-12 lg:pt-16`. Inside is `flex items-end justify-between gap-8` holding the H2 (`font-serif-editorial text-5xl font-light leading-none tracking-[-0.02em] lg:text-7xl`). The eyebrow `<span>` "06 · The making" (`font-spec mb-5 block text-[10px] font-normal uppercase tracking-[0.3em] text-[var(--gold-vermeil)]`) sits **inside** the H2. To its right (lg only) is the progress block: a hairline track holding `data-making-progress`, plus the caption "Five stages · 40+ hours".
@@ -658,7 +660,7 @@ return () => mm.revert()
 ### 4.17 SocialGrid (`src/components/home/SocialGrid.tsx`)
 
 - **Data:** `TILES = [IMG.earrings3, IMG.bracelet2, IMG.rings, IMG.necklace1, IMG.bridal2, IMG.watch3]`.
-- **Layout:** section `mx-auto max-w-[1600px] px-6 pb-28 lg:px-12 lg:pb-36` (no top padding).
+- **Layout:** section `mx-auto max-w-[1600px] px-6 py-28 lg:px-12 lg:py-36`. It follows `PrivateVisit` (silk) and precedes `VisitSalon`, which closes the page (2026-10-21).
   - `SectionHeader`: `index="09"`, `eyebrow="@teresaandsons"`, title `Worn in <em vermeil>Montréal</em>`, and an `aside` of `<span className="link-line">Follow #PorteTeresa</span>`, which is a span and not a link.
   - Grid `grid grid-cols-3 gap-2 lg:grid-cols-6`.
   - Each tile is `<a key={src} href="#/" onClick={(e) => e.preventDefault()} data-reveal={i * 0.04} className="group relative aspect-square overflow-hidden">`. It holds a lazy `editorial-zoom` image (`alt=""`) and a hover overlay (`bg-[var(--bg-vault)]/0` → `/40`, opacity 0 → 1, 500 ms) with `ArrowUpRight` (size 20).

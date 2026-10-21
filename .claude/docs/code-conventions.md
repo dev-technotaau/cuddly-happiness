@@ -70,7 +70,7 @@ export default function WishButton({ slug, className = '', size = 'sm' }: { slug
 - **Passing classes in.** Components accept `className = ''` and append it last. Callers override with `!`-important utilities when needed (`!w-auto`, `!py-3`).
 - **Inline `style`** is used only for runtime values: transforms, gradients, widths, `clipPath`, font families, `containerType`. It appears in 8 files.
 - **Shared global classes** come from `src/index.css`: `font-serif-editorial`, `font-spec`, `link-line`, `editorial-zoom`, `film-grain`. Scrolling strips use the `Marquee` component (`src/components/Marquee.tsx`), not a CSS class.
-- **Animation hooks** use data attributes: `data-reveal` (66), `data-pdp-in` (13), `data-parallax` (12), `data-lenis-prevent` (9), `data-reveal-img` (6), `data-mega-item` (5), `data-lenis-prevent-wheel` (1).
+- **Animation hooks** use data attributes: `data-reveal` (66), `data-pdp-in` (13), `data-parallax` (12), `data-lenis-prevent` (15, overlays only), `data-reveal-img` (6), `data-mega-item` (5), `data-lenis-prevent-horizontal` (5, the page rails; 2026-10-21).
 
 ## 7. TypeScript idioms
 

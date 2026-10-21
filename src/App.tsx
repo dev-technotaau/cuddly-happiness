@@ -1,13 +1,17 @@
 import { useEffect } from 'react'
-import { getCategory, getProduct } from './data/catalog'
+import { getCategory, getProduct, signatureFor } from './data/catalog'
+import { HOUSE } from './data/house'
 import { bilingual, pick, useCopy, useLocale } from './i18n'
 import { catalogFor } from './i18n/catalog'
-import { StoreProvider, useStore, type Route } from './store'
+import { plain } from './i18n/rich'
+import { StoreProvider, queryString, useStore, type Route } from './store'
 import { TryOnProvider } from './components/tryon/TryOnProvider'
 import SmoothScroll from './components/SmoothScroll'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import CartDrawer from './components/CartDrawer'
+import VisitDrawer from './components/visit/VisitDrawer'
+import AskSheet from './components/contact/AskSheet'
 import BackToTop from './components/BackToTop'
 import Splash from './components/splash/Splash'
 import PageTransition from './components/transition/PageTransition'
@@ -22,6 +26,7 @@ import Wishlist from './pages/Wishlist'
 import Account from './pages/Account'
 import GiftCards from './pages/GiftCards'
 import Cart from './pages/Cart'
+import Shop from './pages/Shop'
 
 // The site-wide English title and description come from .figma/make/site.json (read from the og tags, which never
 // change); the French ones are here, as Shopify's Translate & Adapt would hold them.
@@ -37,6 +42,8 @@ const SITE = bilingual(
     cart: 'Your Bag',
     checkout: 'Checkout',
     atelier: 'The Atelier',
+    shop: 'Every Piece',
+    shopDescription: 'Every piece of Teresa & Sons in one place: engagement rings, diamond tennis necklaces, gold, watches and the rental vault, made in our Montréal atelier since 1962.',
     skip: 'Skip to content',
   },
   {
@@ -50,6 +57,8 @@ const SITE = bilingual(
     cart: 'Votre panier',
     checkout: 'Paiement',
     atelier: 'L’Atelier',
+    shop: 'Toutes les pièces',
+    shopDescription: 'Toutes les pièces de Teresa & Sons au même endroit : bagues de fiançailles, colliers tennis en diamants, or, montres et le coffre de location, faits dans notre atelier montréalais depuis 1962.',
     skip: 'Passer au contenu',
   },
 )
@@ -63,8 +72,14 @@ function headFor(route: Route): [string, string] {
   switch (route.name) {
     case 'category': {
       const category = getCategory(route.slug)
+      const signature = category && signatureFor(category.slug, route.query.type)
+      if (signature) {
+        const s = pick(HOUSE).signatures[signature.id]
+        return named(plain(s.title), s.line)
+      }
       return category ? named(catalog.category(category).name, catalog.category(category).description) : named(t.chapterMissing)
     }
+    case 'shop': return named(t.shop, t.shopDescription)
     case 'product': {
       const product = getProduct(route.slug)
       const copy = product && catalog.product(product)
@@ -83,10 +98,13 @@ function headFor(route: Route): [string, string] {
 /** The page for a route. It renders the route PageTransition is showing, which trails the address during a transition. */
 function Routes({ route }: { route: Route }) {
   switch (route.name) {
+    // Keyed with their options too, so a link to other filters (or to renting) opens fresh, as a new page would.
+    case 'shop':
+      return <Shop key={queryString(route.query)} query={route.query} />
     case 'category':
-      return <Category key={route.slug} slug={route.slug} />
+      return <Category key={route.slug + queryString(route.query)} slug={route.slug} query={route.query} />
     case 'product':
-      return <Product key={route.slug} slug={route.slug} />
+      return <Product key={route.slug + (route.query.mode ?? '')} slug={route.slug} mode={route.query.mode} />
     case 'wishlist':
       return <Wishlist />
     case 'giftcards':
@@ -149,6 +167,8 @@ export default function App() {
           </main>
           <Footer />
           <CartDrawer />
+          <VisitDrawer />
+          <AskSheet />
           <BackToTop />
           <LanguageNotice />
           <LanguageVeil />

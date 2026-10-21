@@ -37,6 +37,7 @@ Scope: everything in `.claude/docs/`
 | Sharing and gift hints (PDP and wishlist) | [features/sharing.md](features/sharing.md) |
 | Shoppable video and the Atelier page | [features/shoppable-video-and-atelier.md](features/shoppable-video-and-atelier.md) |
 | Languages: English (Canada, US) and French (Canada), `bilingual()` copy, the switch, the notice, formatting | [features/languages.md](features/languages.md) |
+| The legacy redesign: private visits (booking drawer), Ask a jeweller, rent or own, the two signatures, chapter filters and Shop all, the new Home sections, house rules | [features/legacy-redesign.md](features/legacy-redesign.md) |
 | What the owner asked for and why: principles, decisions, open requests, placeholders | [design-intent.md](design-intent.md) |
 | The full Figma Make build history (23 prompts and responses, with status against the code) | [history/figma-make-log.md](history/figma-make-log.md) |
 | Bugs, risks, tech debt (KI-xxx) | [known-issues.md](known-issues.md) |

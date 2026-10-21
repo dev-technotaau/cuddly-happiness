@@ -108,8 +108,8 @@ function Preview({ product, value, swatch }: { product: Product; value: Personal
         </div>
       )}
 
-      <span className="font-spec absolute bottom-3 left-4 text-[9px] uppercase tracking-[0.24em] text-[var(--text-linen)]">{t.preview}</span>
-      {value.chainLength && <span className="font-spec absolute bottom-3 right-4 text-[9px] uppercase tracking-[0.24em] text-[var(--text-linen)]">{t.chain(catalog.unit(value.chainLength))}</span>}
+      <span className="font-spec absolute bottom-3 left-4 text-[9px] uppercase tracking-[0.24em] text-[var(--text-taupe)]">{t.preview}</span>
+      {value.chainLength && <span className="font-spec absolute bottom-3 right-4 text-[9px] uppercase tracking-[0.24em] text-[var(--text-taupe)]">{t.chain(catalog.unit(value.chainLength))}</span>}
     </div>
   )
 }
@@ -128,8 +128,8 @@ export default function Personalizer({ product, value, onChange, step, metalSwat
     <fieldset>
       <legend className={`mb-4 flex w-full items-baseline justify-between gap-4 ${label} ${error && showError ? 'text-red-700' : ''}`}>
         <span>
-          <span className="font-spec mr-3 text-[10px] text-[var(--gold-vermeil)]">{step}</span>
-          {t.personalize} <span className="normal-case tracking-normal text-[var(--text-linen)]">— {words.label.toLowerCase()}</span>
+          <span className="font-spec mr-3 text-[10px] text-[var(--gold-ink)]">{step}</span>
+          {t.personalize} <span className="normal-case tracking-normal text-[var(--text-taupe)]">— {words.label.toLowerCase()}</span>
         </span>
       </legend>
 
@@ -141,7 +141,7 @@ export default function Personalizer({ product, value, onChange, step, metalSwat
           <div>
             <div className="flex items-baseline justify-between">
               <label htmlFor="personal-text" className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-taupe)]">{words.label}</label>
-              <span className="font-spec text-[10px] text-[var(--text-linen)]">{value.text.length}/{cfg.maxLength}</span>
+              <span className="font-spec text-[10px] text-[var(--text-taupe)]">{value.text.length}/{cfg.maxLength}</span>
             </div>
             {cfg.kind === 'initial' ? (
               <div className="mt-3 grid grid-cols-9 gap-1">
@@ -165,11 +165,11 @@ export default function Personalizer({ product, value, onChange, step, metalSwat
                 onChange={(e) => onChange({ ...value, text: cfg.kind === 'monogram' ? e.target.value.toUpperCase() : e.target.value })}
                 placeholder={t.example(cfg.kind === 'nameplate' ? 'Sofia' : 'TMS')}
                 autoComplete="off"
-                className={`mt-2 w-full border bg-transparent px-4 py-3.5 text-lg outline-none transition-colors placeholder:text-[var(--text-linen)] ${error ? 'border-red-700/50' : 'border-[var(--border-hairline)] focus:border-[var(--text-espresso)]'}`}
+                className={`mt-2 w-full border bg-transparent px-4 py-3.5 text-lg outline-none transition-colors placeholder:text-[var(--text-taupe)] ${error ? 'border-red-700/50' : 'border-[var(--border-hairline)] focus:border-[var(--text-espresso)]'}`}
                 style={value.text ? FONT_STYLES[value.font].style : undefined}
               />
             )}
-            <p className={`mt-2 text-xs ${error ? 'text-red-700' : 'text-[var(--text-linen)]'}`}>{error ?? words.hint}</p>
+            <p className={`mt-2 text-xs ${error ? 'text-red-700' : 'text-[var(--text-taupe)]'}`}>{error ?? words.hint}</p>
           </div>
 
           {/* Font */}

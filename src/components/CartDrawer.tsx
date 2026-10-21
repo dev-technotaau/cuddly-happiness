@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { ArrowRight, Lock, RotateCcw, ShieldCheck, X } from 'lucide-react'
+import { ArrowRight, CalendarHeart, Lock, RotateCcw, ShieldCheck, X } from 'lucide-react'
 import { bilingual, useCopy } from '../i18n'
 import { useCatalog } from '../i18n/catalog'
 import { href, useStore } from '../store'
@@ -32,6 +32,10 @@ const COPY = bilingual(
     viewBag: 'View full bag',
     insured: 'Fully insured',
     returns: '30-day returns',
+    seeFirst: 'Prefer to see it first?',
+    book: 'Book a visit',
+    ask: 'Ask a jeweller',
+    every: 'Every piece',
   },
   {
     shipping: { CAD: 'Livraison assurée offerte partout au Canada', USD: 'Livraison assurée offerte aux États-Unis, droits inclus' },
@@ -51,11 +55,15 @@ const COPY = bilingual(
     viewBag: 'Voir le panier complet',
     insured: 'Entièrement assuré',
     returns: 'Retours sous 30 jours',
+    seeFirst: 'Envie de la voir d’abord?',
+    book: 'Prendre rendez-vous',
+    ask: 'Parler à un joaillier',
+    every: 'Toutes les pièces',
   },
 )
 
 export default function CartDrawer() {
-  const { cart, cartOpen, setCartOpen, currency, meta } = useStore()
+  const { cart, cartOpen, setCartOpen, currency, meta, openVisit, openAsk } = useStore()
   const t = useCopy(COPY)
   const catalog = useCatalog()
   const { subtotal, count, installment, hasMerch } = useCartTotals()
@@ -100,7 +108,7 @@ export default function CartDrawer() {
         <header className="border-b border-[var(--border-hairline)] px-7 pb-5 pt-6">
           <div className="flex items-center justify-between">
             <h2 className="font-serif-editorial text-3xl">
-              {t.title} {count > 0 && <span className="font-spec align-middle text-xs text-[var(--text-linen)]">({count})</span>}
+              {t.title} {count > 0 && <span className="font-spec align-middle text-xs text-[var(--text-taupe)]">({count})</span>}
             </h2>
             <button ref={closeBtn} onClick={close} aria-label={t.close} className="-mr-2 p-2 transition-transform hover:rotate-90">
               <X size={20} strokeWidth={1.4} />
@@ -115,6 +123,7 @@ export default function CartDrawer() {
               <p className="font-serif-editorial text-3xl">{t.empty}</p>
               <p className="mt-3 text-sm text-[var(--text-taupe)]">{t.begin}</p>
               <div className="mt-8 flex flex-wrap justify-center gap-x-6 gap-y-3">
+                <a href={href.shop()} onClick={close} className="border-b border-[var(--text-espresso)] pb-1 text-[11px] uppercase tracking-[0.22em]">{t.every}</a>
                 {(['necklaces', 'earrings', 'rings'] as const).map((c) => (
                   <a key={c} href={href.category(c)} onClick={close} className="border-b border-[var(--gold-vermeil)] pb-1 text-[11px] uppercase tracking-[0.22em]">{catalog.category(c).name}</a>
                 ))}
@@ -144,10 +153,10 @@ export default function CartDrawer() {
               <span className="text-[11px] uppercase tracking-[0.22em]">{t.subtotal}</span>
               <Price amount={subtotal} className="text-lg" />
             </div>
-            <p className="mt-1.5 text-xs text-[var(--text-linen)]">
+            <p className="mt-1.5 text-xs text-[var(--text-taupe)]">
               {shipping}. {t.taxes}{meta.giftWrap && t.wrapped}
             </p>
-            <p className="mt-1 text-xs text-[var(--text-linen)]">
+            <p className="mt-1 text-xs text-[var(--text-taupe)]">
               {t.instalments} <Price amount={installment} className="[&_span]:hidden" /> {t.shopPay}
             </p>
             <a href={href.checkout} onClick={close} className="group mt-5 flex w-full items-center justify-center gap-3 bg-[var(--text-espresso)] py-4 text-[11px] font-medium uppercase tracking-[0.26em] text-[var(--bg-travertine)] transition-colors hover:bg-[var(--gold-vermeil)]">
@@ -157,10 +166,17 @@ export default function CartDrawer() {
             <a href={href.cart} onClick={close} className="mt-3 block w-full border border-[var(--border-hairline)] py-3.5 text-center text-[11px] uppercase tracking-[0.22em] transition-colors hover:border-[var(--text-espresso)]">
               {t.viewBag}
             </a>
-            <div className="mt-4 flex justify-center gap-6 text-[10px] uppercase tracking-[0.16em] text-[var(--text-linen)]">
+            <div className="mt-4 flex justify-center gap-6 text-[10px] uppercase tracking-[0.16em] text-[var(--text-taupe)]">
               <span className="flex items-center gap-1.5"><ShieldCheck size={12} strokeWidth={1.4} /> {t.insured}</span>
               <span className="flex items-center gap-1.5"><RotateCcw size={12} strokeWidth={1.4} /> {t.returns}</span>
             </div>
+            {/* The other doors: see it first, or ask */}
+            <p className="mt-4 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 border-t border-[var(--border-hairline)] pt-4 text-xs text-[var(--text-taupe)]">
+              {t.seeFirst}
+              <button type="button" onClick={() => openVisit({ pieces: cart.filter((l) => !l.giftCard).map((l) => ({ slug: l.slug, metal: l.metal, size: l.size, rent: !!l.rental || undefined })) })} className="inline-flex items-center gap-1.5 text-[var(--text-espresso)] underline decoration-[var(--gold-vermeil)] underline-offset-4"><CalendarHeart size={12} strokeWidth={1.4} /> {t.book}</button>
+              <span aria-hidden>·</span>
+              <button type="button" onClick={() => openAsk(cart.filter((l) => !l.giftCard).map((l) => l.slug))} className="text-[var(--text-espresso)] underline decoration-[var(--gold-vermeil)] underline-offset-4">{t.ask}</button>
+            </p>
           </footer>
         )}
       </aside>

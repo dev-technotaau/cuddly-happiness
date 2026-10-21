@@ -1,7 +1,7 @@
 import { useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { ChevronLeft, ChevronRight, Play } from 'lucide-react'
-import { priceFor } from '../../data/catalog'
+import { cardPrice } from '../../data/catalog'
 import { videoProducts, type ShoppableVideo } from '../../data/media'
 import { bilingual, useCopy } from '../../i18n'
 import { useCatalog } from '../../i18n/catalog'
@@ -39,7 +39,7 @@ function Tile({ video, onOpen, index }: { video: ShoppableVideo; onOpen: () => v
             <img src={first.images[0]} alt="" className="h-10 w-8 object-cover" />
             <span className="min-w-0 flex-1">
               <span className="block truncate text-[11px] font-medium">{catalog.name(first)}</span>
-              <Price amount={first.rental ? first.rental.weekend[currency] : priceFor(first, currency)} className="text-[10px]" />
+              <Price amount={cardPrice(first, currency).amount} className="text-[10px]" />
             </span>
             {rest.length > 0 && <span className="font-spec text-[10px] text-[var(--text-taupe)]">+{rest.length}</span>}
           </div>
@@ -86,7 +86,7 @@ export default function ShoppableVideos({ videos, index = '—', eyebrow, title,
           }
         />
       </div>
-      <div ref={rail} className="flex snap-x snap-mandatory gap-3 overflow-x-auto px-6 pb-28 [scrollbar-width:none] lg:-mt-20 lg:gap-4 lg:px-12 lg:pb-36 [&::-webkit-scrollbar]:hidden" data-lenis-prevent-wheel>
+      <div ref={rail} className="flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain px-6 pb-28 [scrollbar-width:none] lg:-mt-20 lg:gap-4 lg:px-12 lg:pb-36 [&::-webkit-scrollbar]:hidden" data-lenis-prevent-horizontal>
         {videos.map((x, k) => <Tile key={x.id} video={x} index={k} onOpen={() => setOpen(k)} />)}
       </div>
       {open !== null && createPortal(<VideoViewer videos={videos} start={open} onClose={() => setOpen(null)} />, document.body)}

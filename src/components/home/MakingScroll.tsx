@@ -18,7 +18,7 @@ const COPY = bilingual(
       ['The setting', 'Each claw raised and tightened under the microscope by Marco.'],
       ['The polish', 'Twelve stages of hand-finishing, then hallmarked and boxed.'],
     ] as [string, string][],
-    eyebrow: '06 · The making',
+    eyebrow: 'The making',
     title: 'From <em>bench</em> to heirloom',
     stages: 'Five stages · 40+ hours',
   },
@@ -30,13 +30,13 @@ const COPY = bilingual(
       ['Le sertissage', 'Chaque griffe relevée et resserrée sous le microscope par Marco.'],
       ['Le polissage', 'Douze étapes de finition à la main, puis le poinçon et l’écrin.'],
     ],
-    eyebrow: '06 · La fabrication',
+    eyebrow: 'La fabrication',
     title: 'De l’<em>établi</em> à l’héritage',
     stages: 'Cinq étapes · plus de 40 heures',
   },
 )
 
-export default function MakingScroll() {
+export default function MakingScroll({ index }: { index: string }) {
   const copy = useCopy(COPY)
   const STEPS = copy.steps.map(([t, d], i) => ({ n: `0${i + 1}`, t, d, img: IMAGES[i] }))
   const root = useRef<HTMLElement>(null)
@@ -47,7 +47,8 @@ export default function MakingScroll() {
     const mm = gsap.matchMedia()
     mm.add('(min-width: 1024px) and (prefers-reduced-motion: no-preference)', () => {
       const t = track.current!
-      const distance = () => t.scrollWidth - window.innerWidth
+      // How far the strip slides: its length beyond the section's own width (window.innerWidth would count the scrollbar).
+      const distance = () => t.scrollWidth - root.current!.clientWidth
       const tween = gsap.to(t, {
         x: () => -distance(),
         ease: 'none',
@@ -70,7 +71,7 @@ export default function MakingScroll() {
       <div className="mx-auto max-w-[1600px] px-6 pt-24 lg:absolute lg:inset-x-0 lg:top-0 lg:px-12 lg:pt-16">
         <div className="flex items-end justify-between gap-8">
           <h2 className="font-serif-editorial text-5xl font-light leading-none tracking-[-0.02em] lg:text-7xl">
-            <span className="font-spec mb-5 block text-[10px] font-normal uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">{copy.eyebrow}</span>
+            <span className="font-spec mb-5 block text-[10px] font-normal uppercase tracking-[0.3em] text-[var(--gold-ink)]">{index} · {copy.eyebrow}</span>
             {rich(copy.title, 'text-[var(--gold-vermeil)]')}
           </h2>
           <div className="hidden w-48 lg:block">
@@ -81,14 +82,15 @@ export default function MakingScroll() {
           </div>
         </div>
       </div>
-      <div ref={track} className="flex gap-8 overflow-x-auto px-6 py-16 lg:h-full lg:items-end lg:overflow-visible lg:px-12 lg:pb-16 lg:pt-44">
+      <div ref={track} data-lenis-prevent-horizontal className="flex gap-8 overflow-x-auto overscroll-x-contain px-6 py-16 lg:h-full lg:items-end lg:overflow-visible lg:px-12 lg:pb-16 lg:pt-44">
+        {/* Each photograph is never taller than the room left under the title, so the raised cards clear it on a short screen */}
         {STEPS.map((s, i) => (
           <article key={s.n} className={`group w-[78vw] shrink-0 sm:w-[46vw] lg:w-[30vw] ${i % 2 ? 'lg:mb-16' : ''}`}>
-            <div className="aspect-[4/5] overflow-hidden bg-[var(--bg-travertine)] lg:aspect-[5/6] lg:max-h-[48vh] lg:w-full">
+            <div className="aspect-[4/5] overflow-hidden bg-[var(--bg-travertine)] lg:aspect-[5/6] lg:max-h-[calc(100vh-33rem)] lg:w-full">
               <img src={s.img} alt={s.t} loading="lazy" className="editorial-zoom h-full w-full object-cover" />
             </div>
             <div className="mt-5 flex gap-5">
-              <span className="font-spec text-[10px] text-[var(--gold-vermeil)]">{s.n}</span>
+              <span className="font-spec text-[10px] text-[var(--gold-ink)]">{s.n}</span>
               <div>
                 <h3 className="font-serif-editorial text-3xl">{s.t}</h3>
                 <p className="mt-2 max-w-xs text-sm text-[var(--text-taupe)]">{s.d}</p>

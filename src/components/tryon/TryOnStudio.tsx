@@ -12,7 +12,8 @@ import {
   SwitchCamera,
   X,
 } from 'lucide-react'
-import { METALS, PRODUCTS, priceFor, tryOnKind, type Metal, type Product, type TryOnKind } from '../../data/catalog'
+import { METALS, PRODUCTS, priceFor, quickAddable, rentFirst, tryOnKind, type Metal, type Product, type TryOnKind } from '../../data/catalog'
+import { purposeFor } from '../../data/visits'
 import { bilingual, formatNumber, useCopy } from '../../i18n'
 import { useCatalog } from '../../i18n/catalog'
 import { COMMON } from '../../i18n/common'
@@ -78,7 +79,7 @@ const COPY = bilingual(
     dates: 'Choose dates',
     personalize: 'Personalize this piece',
     options: 'Choose size & options',
-    inPerson: 'See it in person — book a viewing',
+    inPerson: 'See it in person — book a visit',
     tryAnother: 'Try another',
     tryThis: (name: string) => `Try ${name}`,
     privacy: 'Processed entirely on your device. Nothing is recorded or uploaded. The rendering is an illustration — proportions are approximate.',
@@ -118,7 +119,7 @@ const COPY = bilingual(
     dates: 'Choisir les dates',
     personalize: 'Personnaliser cette pièce',
     options: 'Choisir la taille et les options',
-    inPerson: 'La voir en personne — réserver une présentation',
+    inPerson: 'La voir en personne — prendre rendez-vous',
     tryAnother: 'Essayer une autre pièce',
     tryThis: (name) => `Essayer ${name}`,
     privacy: 'Traité entièrement sur votre appareil. Rien n’est enregistré ni téléversé. Le rendu est une illustration — les proportions sont approximatives.',
@@ -128,7 +129,7 @@ const COPY = bilingual(
 type Source = 'idle' | 'requesting' | 'camera' | 'photo' | 'denied' | 'unsupported'
 
 export default function TryOnStudio({ request, onClose }: { request: TryOnRequest; onClose: () => void }) {
-  const { currency, addToCart } = useStore()
+  const { currency, addToCart, openVisit } = useStore()
   const t = useCopy(COPY)
   const common = useCopy(COMMON)
   const catalog = useCatalog()
@@ -155,7 +156,7 @@ export default function TryOnStudio({ request, onClose }: { request: TryOnReques
   const swatch = metal ? METALS[metal].swatch : '#D4B982'
   const defaults = DEFAULTS[kind]
   const list = (request.list ?? PRODUCTS).filter((p) => tryOnKind(p) !== null)
-  const needsConfig = !!product.rental || !!product.personalization || product.category === 'rings' || product.category === 'bridal' || product.category === 'custom'
+  const needsConfig = !quickAddable(product)
 
   // Lock page scroll while open.
   useEffect(() => {
@@ -428,9 +429,9 @@ export default function TryOnStudio({ request, onClose }: { request: TryOnReques
       <aside className="max-h-[46vh] shrink-0 overflow-y-auto border-t border-white/10 bg-[var(--bg-vault)] px-6 py-6 lg:max-h-none lg:w-[400px] lg:border-l lg:border-t-0 lg:px-8 lg:py-10" data-lenis-prevent>
         <p className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-champagne)]">{t.eyebrow(t.kinds[kind].name)}</p>
         <h3 className="font-serif-editorial mt-3 text-3xl font-light leading-tight lg:text-4xl">{catalog.name(product)}</h3>
-        <Price amount={product.rental ? product.rental.weekend[currency] : priceFor(product, currency, metal)} className="mt-2 block text-sm text-white/80 [&_span]:text-white/40" />
+        <Price amount={rentFirst(product) && product.rental ? product.rental.weekend[currency] : priceFor(product, currency, metal)} className="mt-2 block text-sm text-white/80 [&_span]:text-white/40" />
 
-        {product.metals.length > 1 && !product.rental && (
+        {product.metals.length > 1 && !rentFirst(product) && (
           <div className="mt-6">
             <p className="text-[10px] uppercase tracking-[0.2em] text-white/50">{t.metal(metal ? catalog.metal(metal) : '')}</p>
             <div className="mt-3 flex gap-2">
@@ -469,16 +470,16 @@ export default function TryOnStudio({ request, onClose }: { request: TryOnReques
         <div className="mt-8 space-y-2">
           {needsConfig ? (
             <a href={href.product(product.slug)} onClick={onClose} className="block w-full bg-[var(--gold-champagne)] py-4 text-center text-[11px] font-medium uppercase tracking-[0.24em] text-[var(--bg-vault)] hover:bg-white">
-              {product.rental ? t.dates : product.personalization ? t.personalize : t.options}
+              {rentFirst(product) ? t.dates : product.personalization ? t.personalize : t.options}
             </a>
           ) : (
             <button onClick={add} className="w-full bg-[var(--gold-champagne)] py-4 text-[11px] font-medium uppercase tracking-[0.24em] text-[var(--bg-vault)] hover:bg-white">
               {added ? common.addedToBag : common.addToBag}
             </button>
           )}
-          <a href={href.atelier} onClick={onClose} className="block w-full border border-white/20 py-3.5 text-center text-[10px] uppercase tracking-[0.22em] hover:border-[var(--gold-champagne)]">
+          <button type="button" onClick={() => { onClose(); openVisit({ purpose: purposeFor(product, rentFirst(product)), pieces: [{ slug: product.slug, metal, rent: rentFirst(product) || undefined }] }) }} className="block w-full border border-white/20 py-3.5 text-center text-[10px] uppercase tracking-[0.22em] hover:border-[var(--gold-champagne)]">
             {t.inPerson}
-          </a>
+          </button>
         </div>
 
         {list.length > 1 && (

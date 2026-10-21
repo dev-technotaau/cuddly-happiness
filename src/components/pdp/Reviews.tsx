@@ -15,7 +15,7 @@ type Words = { t: string; b: string }
 // into the other, as a Shopify review app's machine translation would supply it.
 const POOL: { a: string; loc: string; lang: Lang; text: Record<Lang, Words> }[] = [
   { a: 'Élodie M.', loc: 'Montréal, QC', lang: 'fr', text: { fr: { t: 'Plus belle qu’en photo', b: 'La finition est impeccable et elle capte la lumière à l’autre bout de la pièce. Ouvrir l’emballage, c’était comme découvrir un souvenir.' }, en: { t: 'Better than the photographs', b: 'The finish is impeccable and it catches light from across the room. Packaging felt like opening a keepsake.' } } },
-  { a: 'James T.', loc: 'Boston, MA', lang: 'en', text: { en: { t: 'Seamless cross-border order', b: 'Duties were prepaid as promised and it arrived in three days, insured and signed for. The concierge followed up personally.' }, fr: { t: 'Une commande transfrontalière sans accroc', b: 'Les droits étaient prépayés comme promis, et le colis est arrivé en trois jours, assuré et signé. Le concierge a fait un suivi en personne.' } } },
+  { a: 'James T.', loc: 'Boston, MA', lang: 'en', text: { en: { t: 'Seamless cross-border order', b: 'Duties were prepaid as promised and it arrived in three days, insured and signed for. A jeweller followed up personally.' }, fr: { t: 'Une commande transfrontalière sans accroc', b: 'Les droits étaient prépayés comme promis, et le colis est arrivé en trois jours, assuré et signé. Un joaillier a fait un suivi en personne.' } } },
   { a: 'Sophie L.', loc: 'Québec, QC', lang: 'fr', text: { fr: { t: 'Déjà un bijou de famille', b: 'Je la porte tous les jours. Elle a du poids sans être lourde. Ma fille l’a déjà réclamée.' }, en: { t: 'An heirloom already', b: 'I wear it every day. The weight feels substantial without being heavy. My daughter has already claimed it.' } } },
   { a: 'Marcus O.', loc: 'Toronto, ON', lang: 'en', text: { en: { t: 'The engraving made it', b: 'Hand-engraved with our date — the lettering is beautiful. Marco even sent a photo before shipping.' }, fr: { t: 'La gravure fait toute la différence', b: 'Gravée à la main avec notre date — le lettrage est magnifique. Marco nous a même envoyé une photo avant l’expédition.' } } },
   { a: 'Aisha R.', loc: 'New York, NY', lang: 'en', text: { en: { t: 'Worth the visit', b: 'Booked a video appointment and they showed me three stones under the loupe. Zero pressure, all expertise.' }, fr: { t: 'Le rendez-vous en valait la peine', b: 'J’ai pris un rendez-vous vidéo et on m’a montré trois pierres à la loupe. Aucune pression, que de l’expertise.' } } },
@@ -396,7 +396,7 @@ function WriteReview({ product, onClose, onSubmit }: { product: Product; onClose
       <form onSubmit={submit} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={t.write} className="max-h-[92vh] w-full max-w-xl overflow-y-auto bg-[var(--bg-travertine)] p-6 sm:p-10" data-lenis-prevent>
         <div className="flex items-start justify-between gap-6">
           <div>
-            <p className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">{t.yours}</p>
+            <p className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-ink)]">{t.yours}</p>
             <h3 className="font-serif-editorial mt-2 text-4xl font-light">{t.reviewOf(name)}</h3>
           </div>
           <button type="button" onClick={onClose} aria-label={t.close}><X size={20} strokeWidth={1.3} /></button>
@@ -423,7 +423,7 @@ function WriteReview({ product, onClose, onSubmit }: { product: Product; onClose
         </div>
 
         <div className="mt-6">
-          <p className={label}>{t.media_} <span className="normal-case tracking-normal text-[var(--text-linen)]">{t.upTo(MAX)}</span></p>
+          <p className={label}>{t.media_} <span className="normal-case tracking-normal text-[var(--text-taupe)]">{t.upTo(MAX)}</span></p>
           <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-6">
             {media.map((m, k) => (
               <div key={k} className="relative aspect-square overflow-hidden bg-[var(--bg-silk)]">
@@ -440,14 +440,14 @@ function WriteReview({ product, onClose, onSubmit }: { product: Product; onClose
               </label>
             )}
           </div>
-          <p className="mt-2 text-xs text-[var(--text-linen)]">{t.mediaHint}</p>
+          <p className="mt-2 text-xs text-[var(--text-taupe)]">{t.mediaHint}</p>
         </div>
 
         {error && <p role="alert" className="mt-5 text-sm text-red-700">{error}</p>}
         <button disabled={busy} className="mt-8 w-full bg-[var(--text-espresso)] py-4 text-[11px] font-medium uppercase tracking-[0.26em] text-[var(--bg-travertine)] transition-colors hover:bg-[var(--gold-vermeil)] disabled:opacity-60">
           {t.submit}
         </button>
-        <p className="mt-3 text-center text-xs text-[var(--text-linen)]">{t.moderated}</p>
+        <p className="mt-3 text-center text-xs text-[var(--text-taupe)]">{t.moderated}</p>
       </form>
     </div>,
     document.body,
@@ -510,7 +510,7 @@ export default function Reviews({ product, index }: { product: Product; index: s
         <div className="mb-16" data-reveal>
           <div className="mb-4 flex items-baseline justify-between">
             <p className="text-[11px] uppercase tracking-[0.22em]">{t.wall}</p>
-            <p className="font-spec text-[10px] uppercase tracking-[0.18em] text-[var(--text-linen)]">
+            <p className="font-spec text-[10px] uppercase tracking-[0.18em] text-[var(--text-taupe)]">
               {t.counts(mediaCount - videoCount, videoCount)}
             </p>
           </div>
@@ -539,13 +539,13 @@ export default function Reviews({ product, index }: { product: Product; index: s
                 <span className="relative h-px flex-1 bg-[var(--border-hairline)]">
                   <span className="absolute inset-y-[-0.5px] left-0 h-[2px] bg-[var(--gold-vermeil)]" style={{ width: `${d * 100}%` }} />
                 </span>
-                <span className="w-8 text-right text-[var(--text-linen)]">{Math.round(d * count)}</span>
+                <span className="w-8 text-right text-[var(--text-taupe)]">{Math.round(d * count)}</span>
               </li>
             ))}
           </ul>
           <dl className="mt-10 grid grid-cols-2 gap-6 border-t border-[var(--border-hairline)] pt-8 text-sm">
-            <div><dt className="font-spec text-[10px] uppercase tracking-[0.2em] text-[var(--text-linen)]">{t.fit}</dt><dd className="mt-1">{t.trueToSize}</dd></div>
-            <div><dt className="font-spec text-[10px] uppercase tracking-[0.2em] text-[var(--text-linen)]">{t.wouldGift}</dt><dd className="mt-1">{formatNumber(0.98, { style: 'percent' })}</dd></div>
+            <div><dt className="font-spec text-[10px] uppercase tracking-[0.2em] text-[var(--text-taupe)]">{t.fit}</dt><dd className="mt-1">{t.trueToSize}</dd></div>
+            <div><dt className="font-spec text-[10px] uppercase tracking-[0.2em] text-[var(--text-taupe)]">{t.wouldGift}</dt><dd className="mt-1">{formatNumber(0.98, { style: 'percent' })}</dd></div>
           </dl>
         </aside>
 
@@ -571,14 +571,14 @@ export default function Reviews({ product, index }: { product: Product; index: s
               <li key={r.id} className="py-10">
                 <div className="flex items-center justify-between gap-6">
                   <Stars n={r.stars} />
-                  <span className="font-spec text-[10px] uppercase tracking-[0.18em] text-[var(--text-linen)]">
+                  <span className="font-spec text-[10px] uppercase tracking-[0.18em] text-[var(--text-taupe)]">
                     {r.mine ? t.pending : ago.format(-r.days, 'day')}
                   </span>
                 </div>
                 <h3 lang={words.lang} className="font-serif-editorial mt-5 text-3xl">{words.words.t}</h3>
                 <p lang={words.lang} className="mt-3 max-w-2xl leading-relaxed text-[var(--text-taupe)]">{words.words.b}</p>
                 {r.lang !== lang && (
-                  <p className="mt-3 flex flex-wrap items-center gap-x-3 text-[11px] text-[var(--text-linen)]">
+                  <p className="mt-3 flex flex-wrap items-center gap-x-3 text-[11px] text-[var(--text-taupe)]">
                     <span className="italic">{both ? t.translated : t.writtenIn}</span>
                     {both && (
                       <button type="button" onClick={() => toggleOriginal(r.id)} aria-pressed={originals.includes(r.id)} className="border-b border-[var(--border-hairline)] uppercase tracking-[0.16em] text-[var(--text-taupe)] transition-colors hover:border-[var(--gold-vermeil)] hover:text-[var(--text-espresso)]">
@@ -593,9 +593,9 @@ export default function Reviews({ product, index }: { product: Product; index: s
                   </div>
                 )}
                 <p className="mt-5 flex items-center gap-2 text-[11px] uppercase tracking-[0.2em]">
-                  {r.a} <span className="text-[var(--text-linen)]">· {r.loc}</span>
+                  {r.a} <span className="text-[var(--text-taupe)]">· {r.loc}</span>
                   {r.mine ? (
-                    <span className="font-spec ml-1 text-[9px] text-[var(--gold-vermeil)]">{t.you}</span>
+                    <span className="font-spec ml-1 text-[9px] text-[var(--gold-ink)]">{t.you}</span>
                   ) : (
                     <BadgeCheck size={14} strokeWidth={1.3} className="ml-1 text-[var(--gold-vermeil)]" aria-label={t.verified} />
                   )}

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal, flushSync } from 'react-dom'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { getCategory, getProduct } from '../../data/catalog'
+import { getCategory, getProduct, signatureFor } from '../../data/catalog'
+import { HOUSE } from '../../data/house'
 import { bilingual, pick } from '../../i18n'
 import { catalogFor } from '../../i18n/catalog'
 import { accentOf, plain } from '../../i18n/rich'
@@ -34,6 +35,8 @@ const CARDS = bilingual(
     cart: ['Votre sélection', 'Your <em>Bag</em>'] as Pair,
     checkout: ['Teresa & Sons', '<em>Checkout</em>'] as Pair,
     home: ['Montréal · Est. 1962', 'Teresa <em>&</em> Sons'] as Pair,
+    shop: ['Nine chapters', 'Every <em>piece</em>'] as Pair,
+    signature: (numeral: string) => `Signature ${numeral}`,
   },
   {
     chapter: (numeral) => `Chapitre ${numeral}`,
@@ -46,6 +49,8 @@ const CARDS = bilingual(
     cart: ['La sélection', 'Votre <em>panier</em>'],
     checkout: ['Teresa & Sons', '<em>Paiement</em>'],
     home: ['Montréal · Depuis 1962', 'Teresa <em>&</em> Sons'],
+    shop: ['Neuf chapitres', 'Toutes les <em>pièces</em>'],
+    signature: (numeral) => `Signature ${numeral}`,
   },
 )
 
@@ -60,9 +65,16 @@ function labelFor(route: Route): Label {
     case 'category': {
       const c = getCategory(route.slug)
       if (!c) return card('Teresa & Sons', t.chapters)
+      // A signature's own page (engagement rings, tennis necklaces) is named for it, not for its chapter.
+      const s = signatureFor(c.slug, route.query.type)
+      if (s) {
+        const sig = pick(HOUSE).signatures[s.id]
+        return card(t.signature(sig.numeral), sig.title, sig.numeral)
+      }
       const copy = catalog.category(c)
       return { eyebrow: t.chapter(c.eyebrow, copy.accent), title: copy.name, accent: last(copy.name), numeral: c.eyebrow }
     }
+    case 'shop': return card(...t.shop)
     case 'product': {
       const p = getProduct(route.slug)
       if (!p) return card('Teresa & Sons', t.vault)
@@ -266,6 +278,18 @@ export default function PageTransition({ children }: { children: (route: Route) 
       document.removeEventListener('click', onSame)
       document.removeEventListener('pointerover', onOver)
     }
+  }, [])
+
+  // A page rewrote its options in the address (the store's replaceQuery): this is still the same page, now at the new
+  // address, so Back returns here with those options and its scroll position.
+  useEffect(() => {
+    const onAddress = () => {
+      const stack = visits.current
+      if (stack[stack.length - 1] === current.current.hash) stack[stack.length - 1] = here()
+      current.current = { ...current.current, hash: here() }
+    }
+    window.addEventListener('tns:address', onAddress)
+    return () => window.removeEventListener('tns:address', onAddress)
   }, [])
 
   const at = label ? label.title.lastIndexOf(label.accent) : -1

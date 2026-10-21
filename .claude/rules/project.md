@@ -19,7 +19,8 @@ This repo is a Shopify-store **theme design prototype** for Teresa & Sons, a Mon
 
 - There is no backend. The catalog lives in `src/data/`.
 - All app state lives in one React Context, `src/store.tsx`, persisted to localStorage under `tns-*` keys.
-- Routing is hash-based (`#/c/:slug`, `#/p/:slug`, `#/cart`, `#/checkout`, `#/gift-cards`, `#/wishlist`, `#/account`, `#/atelier`).
+- Routing is hash-based (`#/shop`, `#/c/:slug`, `#/p/:slug`, `#/cart`, `#/checkout`, `#/gift-cards`, `#/wishlist`, `#/account`, `#/atelier`); chapter, shop and piece pages keep their options in a query (`?type=engagement`, `?mode=rent`).
+- Private visits (booking drawer, `tns-visits`) and "Ask a jeweller" are simulated; see `.claude/docs/features/legacy-redesign.md`.
 - Auth, payment, availability, reviews and gift-card balances are simulated.
 
 ## Where knowledge lives
@@ -37,7 +38,7 @@ This repo is a Shopify-store **theme design prototype** for Teresa & Sons, a Mon
 | Task | Command | Notes |
 |---|---|---|
 | Typecheck | `npx tsc --noEmit -p .` | Baseline is 0 errors. `pnpm run build` does **not** typecheck. |
-| Build | `pnpm run build` | Initial JS baseline: about 750 kB (236 kB gzip): the entry chunk (561 kB), a shared vendor chunk (150 kB) and a chunk shared with the lazy menu (39 kB). Both languages ship in it. The lazy chunks, SiteMenu (34 kB), TryOnStudio (26 kB) and ShareSheet (24 kB), load on demand. Measured 2026-10-21. |
+| Build | `pnpm run build` | Initial JS baseline: about 900 kB (279 kB gzip): the entry chunk (694 kB), a shared vendor chunk (150 kB) and a chunk shared with the lazy menu (59 kB). Both languages ship in it. The lazy chunks, SiteMenu (33 kB), TryOnStudio (26 kB) and ShareSheet (24 kB), load on demand. Measured 2026-10-21, after the legacy redesign and phone search. |
 | Dev server | `pnpm dev`, then open `http://localhost:8443/#/` | Figma Make already runs it on `$PORT` (8443). Locally you start it yourself. `strictPort` is on; set `PORT` to change the port. |
 
 No tests and no linter exist.
@@ -67,10 +68,11 @@ No tests and no linter exist.
 index.html → src/main.tsx → src/App.tsx   StoreProvider ▸ TryOnProvider ▸ SmoothScroll ▸ Splash / Header / <Pages/> (PageTransition ▸ Routes) / Footer / CartDrawer / BackToTop / film-grain
 src/store.tsx      Route union, parseHash/splitHash/bareHash, href (language prefix), cart (lineKey, linePrice), meta, wishlist, recent, account, currency, lang
 src/i18n/          bilingual/useCopy/pick, locales and formatters · us (US spelling) · rich (<em> accents) · catalog (useCatalog) · common
-src/data/          catalog (products, metals, prices, rentals, personalization, tryOnKind) · catalog.fr (French catalog) · giftcards · media · costing · tax · salon
-src/pages/         Home · Category · Product · Cart · Checkout · GiftCards · Wishlist · Account · Atelier
+src/data/          catalog (products, types, rent or own, card prices, signatures, metals, rentals, personalization, tryOnKind) · catalog.fr · house (signatures, generations, policies) · visits · giftcards · media · costing · tax · salon
+src/pages/         Home · Shop · Category · Product · Cart · Checkout · GiftCards · Wishlist · Account · Atelier
 src/components/    Header Footer CartDrawer ProductCard Price WishButton RecentlyViewed SmoothScroll useReveal lineDetails
-                   home/ pdp/ cart/ tryon/ video/ giftcard/ share/ menu/ splash/ transition/ (LanguageVeil) brand/ locale/ (LocaleMenu, LanguageToggle, LanguageNotice)
+                   home/ pdp/ cart/ tryon/ video/ giftcard/ share/ menu/ splash/ transition/ (LanguageVeil) brand/ (Ampersand, Hallmark) locale/
+                   visit/ (VisitDrawer, VisitFlow, VisitButton, VisitBand, NextTimes) contact/ (AskSheet) catalog/ (PieceGrid, Interlude) ui.ts (button recipes)
 src/lib/shopify.ts Shopify Ajax-cart payload for gift-card lines (placeholder variant IDs)
 src/lib/stage.ts   stage cover that holds entrances under the splash and page transitions; intro mode
 src/index.css      Google Fonts, :root tokens, global utilities, keyframes

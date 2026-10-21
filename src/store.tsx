@@ -2,12 +2,17 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { flushSync } from 'react-dom'
 import { convert, type GiftCardLine } from './data/giftcards'
 import { getProduct, personalizationPrice, priceFor, type Currency, type Metal, type Personalization, type RentalBooking } from './data/catalog'
+import type { Visit, VisitRequest } from './data/visits'
 import { browserLang, localeFor, LocaleContext, runSwitch, setActiveLocale, type Lang, type LocaleValue } from './i18n'
+
+/** A page's options in its address (`#/c/bridal?type=engagement`): filters on chapter pages, Own or Rent on a piece. */
+export type Query = Record<string, string>
 
 export type Route =
   | { name: 'home' }
-  | { name: 'category'; slug: string }
-  | { name: 'product'; slug: string }
+  | { name: 'shop'; query: Query }
+  | { name: 'category'; slug: string; query: Query }
+  | { name: 'product'; slug: string; query: Query }
   | { name: 'atelier' }
   | { name: 'checkout' }
   | { name: 'wishlist' }
@@ -46,12 +51,22 @@ export function splitHash(hash = window.location.hash): { path: string; lang: La
 /** The page part of a hash, whatever its language (`#/fr/c/rings` → `#/c/rings`). */
 export const bareHash = (hash = window.location.hash) => `#${splitHash(hash).path}`
 
+/** A query string from options, in a stable order, without empty values (`?metal=platinum&type=engagement`). */
+export function queryString(query: Query = {}) {
+  const keys = Object.keys(query).filter((k) => query[k]).sort()
+  return keys.length ? `?${keys.map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(query[k])}`).join('&')}` : ''
+}
+
 /** The route for a hash: the address bar's by default, or a link's `href` (page transitions read where a link leads). */
 export function parseHash(hash = window.location.hash): Route {
-  const parts = splitHash(hash).path.split('/').filter(Boolean)
-  if (parts[0] === 'c' && parts[1]) return { name: 'category', slug: parts[1] }
+  const [path, search = ''] = splitHash(hash).path.split('?')
+  const parts = path.split('/').filter(Boolean)
+  const query: Query = {}
+  new URLSearchParams(search).forEach((v, k) => (query[k] = v))
+  if (parts[0] === 'shop') return { name: 'shop', query }
+  if (parts[0] === 'c' && parts[1]) return { name: 'category', slug: parts[1], query }
   if (parts[0] === 'gift-cards' || (parts[0] === 'p' && parts[1] === 'gift-card')) return { name: 'giftcards' }
-  if (parts[0] === 'p' && parts[1]) return { name: 'product', slug: parts[1] }
+  if (parts[0] === 'p' && parts[1]) return { name: 'product', slug: parts[1], query }
   if (parts[0] === 'atelier') return { name: 'atelier' }
   if (parts[0] === 'checkout') return { name: 'checkout' }
   if (parts[0] === 'cart') return { name: 'cart' }
@@ -65,8 +80,10 @@ const at = (path: string) => `#${prefix}${path}`
 /** Links, in the language on screen. */
 export const href = {
   get home() { return at('/') },
-  category: (slug: string) => at(`/c/${slug}`),
-  product: (slug: string) => at(`/p/${slug}`),
+  shop: (query?: Query) => at(`/shop${queryString(query)}`),
+  category: (slug: string, query?: Query) => at(`/c/${slug}${queryString(query)}`),
+  /** A piece's page; `rent` opens it on renting. */
+  product: (slug: string, rent = false) => at(`/p/${slug}${rent ? '?mode=rent' : ''}`),
   get atelier() { return at('/atelier') },
   get checkout() { return at('/checkout') },
   get cart() { return at('/cart') },
@@ -79,6 +96,22 @@ export interface Account {
   name: string
   email: string
 }
+
+/** A date the client wants remembered (an anniversary, a birthday): the salon writes ahead of it. */
+export interface SavedDate {
+  id: string
+  label: string
+  /** Month and day, mm-dd. */
+  date: string
+}
+
+/** What the house remembers for the client on this device: their ring size and the dates that matter to them. */
+export interface Profile {
+  ringSize?: string
+  dates: SavedDate[]
+}
+
+const NO_PROFILE: Profile = { dates: [] }
 
 function load<T>(key: string, fallback: T): T {
   try {
@@ -190,6 +223,26 @@ interface StoreValue {
   linePrice: (line: CartLine) => number
   subtotal: number
   count: number
+  /** Rewrites the current page's options in the address (filters, Own or Rent) without a history entry or a page
+   *  transition, so Back, reload and shared links keep them. The route object keeps the options it opened with. */
+  replaceQuery: (query: Query) => void
+  visits: Visit[]
+  /** Books a visit, or replaces the one with the same id (a change of time). */
+  bookVisit: (visit: Visit) => void
+  cancelVisit: (id: string) => void
+  /** The booking panel's request while it is open, else null. */
+  visitRequest: VisitRequest | null
+  openVisit: (request?: VisitRequest) => void
+  closeVisit: () => void
+  /** The "Ask a jeweller" panel: the pieces it is about while it is open, else null. */
+  askAbout: string[] | null
+  openAsk: (slugs?: string[]) => void
+  closeAsk: () => void
+  profile: Profile
+  setProfile: (patch: Partial<Profile>) => void
+  /** When the visit suggestion was last shown or dismissed (ms since 1970), so it returns at most once a week. */
+  nudgeAt: number
+  dismissNudge: () => void
 }
 
 const StoreContext = createContext<StoreValue | null>(null)
@@ -319,11 +372,57 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [currency],
   )
 
+  // The address follows a page's options in place. PageTransition hears 'tns:address' and re-notes where it is, so
+  // Back still returns here (with these options) instead of reading the rewritten address as a new page.
+  const replaceQuery = useCallback((query: Query) => {
+    const [path] = splitHash().path.split('?')
+    history.replaceState(history.state, '', `#${prefix}${path}${queryString(query)}`)
+    window.dispatchEvent(new Event('tns:address'))
+  }, [])
+
+  // Visits, newest booking kept per id. A stored list is checked, not trusted.
+  const [visits, setVisits] = useState<Visit[]>(() => {
+    const v = load<unknown>('tns-visits', [])
+    return Array.isArray(v) ? v.filter((x): x is Visit => !!x && typeof x.id === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x.date) && /^\d{2}:\d{2}$/.test(x.time)) : []
+  })
+  useEffect(() => localStorage.setItem('tns-visits', JSON.stringify(visits)), [visits])
+  const bookVisit = useCallback((visit: Visit) => setVisits((vs) => [...vs.filter((v) => v.id !== visit.id), visit]), [])
+  const cancelVisit = useCallback((id: string) => setVisits((vs) => vs.filter((v) => v.id !== id)), [])
+  // The booking and "Ask a jeweller" panels take turns, and either one replaces the bag drawer.
+  const [visitRequest, setVisitRequest] = useState<VisitRequest | null>(null)
+  const [askAbout, setAskAbout] = useState<string[] | null>(null)
+  const openVisit = useCallback((request: VisitRequest = {}) => {
+    setCartOpen(false)
+    setAskAbout(null)
+    setVisitRequest(request)
+  }, [])
+  const closeVisit = useCallback(() => setVisitRequest(null), [])
+  const openAsk = useCallback((slugs: string[] = []) => {
+    setCartOpen(false)
+    setVisitRequest(null)
+    setAskAbout(slugs)
+  }, [])
+  const closeAsk = useCallback(() => setAskAbout(null), [])
+
+  const [profile, setProfileState] = useState<Profile>(() => {
+    const p = load<Partial<Profile>>('tns-profile', NO_PROFILE)
+    return { ringSize: typeof p.ringSize === 'string' ? p.ringSize : undefined, dates: Array.isArray(p.dates) ? p.dates : [] }
+  })
+  useEffect(() => localStorage.setItem('tns-profile', JSON.stringify(profile)), [profile])
+  const setProfile = useCallback((patch: Partial<Profile>) => setProfileState((p) => ({ ...p, ...patch })), [])
+
+  const [nudgeAt, setNudgeAt] = useState<number>(() => {
+    const n = load<unknown>('tns-nudge', 0)
+    return typeof n === 'number' ? n : 0
+  })
+  useEffect(() => localStorage.setItem('tns-nudge', JSON.stringify(nudgeAt)), [nudgeAt])
+  const dismissNudge = useCallback(() => setNudgeAt(Date.now()), [])
+
   const value = useMemo<StoreValue>(() => {
     const subtotal = cart.reduce((s, l) => s + linePrice(l), 0)
     const count = cart.reduce((s, l) => s + l.qty, 0)
-    return { route, currency, setCurrency, lang, setLang, langOrigin: START.origin, langHintSeen, dismissLangHint, cart, cartOpen, setCartOpen, addToCart, updateQty, clearCart, removeLine, undoRemove, lastRemoved: lastRemoved?.line ?? null, meta, setMeta, linePrice, subtotal, count, wishlist, toggleWishlist, isWished, user, signIn, signOut, recent, recordView, clearRecent }
-  }, [route, currency, setCurrency, lang, setLang, langHintSeen, dismissLangHint, cart, cartOpen, addToCart, updateQty, clearCart, removeLine, undoRemove, lastRemoved, meta, setMeta, linePrice, wishlist, toggleWishlist, isWished, user, signIn, signOut, recent, recordView, clearRecent])
+    return { route, currency, setCurrency, lang, setLang, langOrigin: START.origin, langHintSeen, dismissLangHint, cart, cartOpen, setCartOpen, addToCart, updateQty, clearCart, removeLine, undoRemove, lastRemoved: lastRemoved?.line ?? null, meta, setMeta, linePrice, subtotal, count, wishlist, toggleWishlist, isWished, user, signIn, signOut, recent, recordView, clearRecent, replaceQuery, visits, bookVisit, cancelVisit, visitRequest, openVisit, closeVisit, askAbout, openAsk, closeAsk, profile, setProfile, nudgeAt, dismissNudge }
+  }, [route, currency, setCurrency, lang, setLang, langHintSeen, dismissLangHint, cart, cartOpen, addToCart, updateQty, clearCart, removeLine, undoRemove, lastRemoved, meta, setMeta, linePrice, wishlist, toggleWishlist, isWished, user, signIn, signOut, recent, recordView, clearRecent, replaceQuery, visits, bookVisit, cancelVisit, visitRequest, openVisit, closeVisit, askAbout, openAsk, closeAsk, profile, setProfile, nudgeAt, dismissNudge])
 
   // Copy re-renders only when the language or the market changes, not with every cart or route change.
   const locale = useMemo<LocaleValue>(() => ({ lang, locale: localeFor(lang, currency), setLang }), [lang, currency, setLang])

@@ -39,7 +39,7 @@ Severity: **H** = breaks something real; **M** = wrong behaviour or significant 
 | KI-014 | L | `updateQty(key, 0)` removes a line without undo | `src/store.tsx` | Only `removeLine` records `lastRemoved`. Fix: use `removeLine` for user removals (the existing rule). |
 | KI-015 | L | `lastRemoved` persists after the toast | Store + `UndoToast` | Revisiting `#/cart` re-shows a stale "Removed …" toast for 6 s. Fix: clear it when the toast hides. |
 | KI-016 | M | Drawer and studio survive route changes | `cartOpen`, try-on `req` | Browser Back keeps overlays open. Fix: close overlays on `hashchange`. Scroll is restored on Back since the page transitions (2026-10-20). |
-| KI-017 | L | `parseHash` keeps query strings and does not decode | `src/store.tsx` | `#/c/rings?sort=low` → slug `rings?sort=low` → not-found. Fix: strip and parse the query. |
+| KI-017 | — | **Fixed 2026-10-21.** `parseHash` kept query strings | `src/store.tsx` | `parseHash` now splits the query into `route.query`; `queryString` writes it; `replaceQuery` keeps a page's options in the address. |
 | KI-018 | L | No cross-tab sync | Store | Two tabs overwrite each other's `tns-*` keys. |
 | KI-019 | L | One monolithic context re-renders all 31 `useStore()` sites on any change | `src/store.tsx` | Performance only. Fix: split contexts if it becomes a problem. |
 | KI-020 | N | Dead or duplicated code | `isGiftCardLine` (unused), store `subtotal` (unused), `useCartTotals().threshold` (unused), `.grain-overlay` CSS (unused; `.font-sans-luxury` was removed 2026-10-16), `@/` alias (unused), the redundant Product slug-reset effect | Cleanup. |
@@ -48,8 +48,8 @@ Severity: **H** = breaks something real; **M** = wrong behaviour or significant 
 
 | ID | Sev | Issue | Where | Failure scenario → fix |
 |---|---|---|---|---|
-| KI-021 | M | Listing prices ≠ PDP opening price for platinum-first pieces | `priceFor(p, currency)` on cards and rails vs `metals[0]` on the PDP | Notre-Dame shows 18,900 on the card but 19,550 on the PDP; the commission's "starting deposit" shows 5,000 vs 5,650. Fix: use one canonical price, or reorder `BRIDAL_METALS`. |
-| KI-022 | **H** | Quick-add paths bypass configuration | CompleteTheLook "Add the set", Wishlist "Add all", VideoViewer, CartUpsell, TryOnStudio | Rings and bridal pieces are added without a size; The Teresa Signet is added without its monogram; CompleteTheLook ignores the chosen metal. The "needs configuration" rules differ per surface. Fix: one shared `needsConfig(p)` helper. |
+| KI-021 | — | **Fixed 2026-10-21.** Listing prices ≠ PDP opening price for platinum-first pieces | `src/data/catalog.ts` | Cards, rails, the menu and search use `openingPrice` / `cardPrice` (the price at `metals[0]`), as the PDP does. |
+| KI-022 | — | **Fixed 2026-10-21.** Quick-add paths bypassed configuration | CompleteTheLook, Wishlist, VideoViewer, CartUpsell, TryOnStudio | One rule in `src/data/catalog.ts` (`needsSize`, `needsConfig`, `quickAddable`); CompleteTheLook adds its page's piece through the PDP's validation (`onAddMain`) and follows the chosen metal. |
 | KI-023 | M | Bag `+` lowers qty above 10 | `CartLineItem` `Math.min(10, qty + 1)` | A gift-card line with qty 11–20 drops to 10. Fix: clamp at add time, or use `Math.max`. |
 | KI-024 | M | Header currency switch on Checkout doesn't re-convert applied gift cards | `Checkout` `Applied.available` | Applying a CAD 250 card and then switching via the Header credits USD 250. Fix: derive `available` from the card balance on render. |
 | KI-025 | L | `debitCards` round-trip can over-debit by $1 | `src/data/giftcards.ts` `convert` | USD 183 → CAD 251 against a CAD 250 balance, masked by `Math.max(0, …)`. |
@@ -69,15 +69,15 @@ Severity: **H** = breaks something real; **M** = wrong behaviour or significant 
 
 | ID | Sev | Issue | Where | Failure scenario → fix |
 |---|---|---|---|---|
-| KI-040 | M | No visible keyboard focus | 18 × `outline-none`, 0 × `focus-visible:` | Keyboard users lose their place. Fix: add a `focus-visible` ring recipe. |
+| KI-040 | — | **Fixed 2026-10-21.** No visible keyboard focus | `src/index.css` | A global `:focus-visible` ring (1 px vermeil) on links, buttons, fields and sliders; fields with `outline-none` keep their underline. |
 | KI-041 | M | Drawer declares `aria-modal` but has no focus trap or restore | CartDrawer | Fix: trap focus and return it to the trigger. |
 | KI-042 | M | Mobile menu, Gallery lightbox and RingSize guide don't stop Lenis or lock scroll; the mobile menu has no Escape | Header, Gallery, RingSize | Fix: apply the overlay checklist. |
 | KI-043 | L | Scroll locks aren't reference-counted; body vs html lock styles are mixed | CartDrawer vs others | Closing the studio over an open drawer restarts Lenis. |
 | KI-044 | L | Escape closes both the studio and the drawer | `window` keydown in both | Fix: stop propagation in the top-most overlay. |
-| KI-045 | M | Vermeil (2.8:1) and linen (2.6:1) text fail WCAG AA | Tokens on travertine | Fix: darken them for text, or keep them for decoration only. |
+| KI-045 | L | **Small text fixed 2026-10-21.** Vermeil (2.8:1) and linen (2.6:1) text failed WCAG AA | Tokens on travertine and silk | Measured on every page and overlay at two widths: small text now uses taupe and gold-ink (`--gold-ink` #846529), placeholders taupe, dark-ground greys `white/60`; no small text fails. **Still open:** large vermeil accents (italic headline words, large numerals) measure 2.81:1 on travertine and 2.57:1 on silk, under the 3:1 for large text; the gold 8% darker (#A98441) reaches 3.29:1 and 3.02:1. Owner decision (todo §12). |
 | KI-046 | L | Missing `aria-pressed` (currency toggles, rental periods); missing `aria-live`/`aria-invalid` on PDP validation | Header, Account, Checkout, Product | |
 | KI-047 | L | Buttons nested in card `<a>`; the try-on chip is invisible on keyboard focus | ProductCard | |
-| KI-048 | L | `.link-line` (unlayered) overrides `hidden` | Category "Try these pieces on" uses `hidden sm:inline-flex` | It likely shows on phones. Fix: `max-sm:!hidden`. |
+| KI-048 | — | **Fixed 2026-10-21.** "Try these pieces on" showed on phones | `src/components/catalog/PieceGrid.tsx` | Uses `max-sm:!hidden`. |
 | KI-049 | L | Several animations ignore reduced motion | WishButton pop, Gallery stage, mega menu, drawer, RewardProgress, UndoToast | |
 | KI-050 | N | `{n} pieces` has no singular; Category has no empty state for 0 products; the PDP not-found state has no way back | Category, Product | |
 
@@ -95,12 +95,12 @@ Severity: **H** = breaks something real; **M** = wrong behaviour or significant 
 
 | ID | Sev | Issue | Where | Failure scenario → fix |
 |---|---|---|---|---|
-| KI-065 | L | Newsletter form gives no feedback | `src/components/Footer.tsx` | Submit only calls `preventDefault()`, although step 3 of the history described a thank-you. Fix: add a sent state ("Merci…"), as the Atelier form has. |
+| KI-065 | — | **Fixed 2026-10-21.** Newsletter form gave no feedback | `src/components/Footer.tsx` | Checks the email and shows "Merci. The next letter leaves the atelier with the season." (simulated). |
 | KI-066 | — | **Fixed 2026-10-16.** Rentals hero slide showed the wrong piece | `src/components/HomeHero.tsx` | The hero now features catalog pieces; slide 2 frames the Gala Diamond Collar's boxed-strand photo (`jewelryFlat`). |
-| KI-067 | M | Catalog doesn't cover the brief's sub-types | `src/data/catalog.ts` | Missing from the brief (step 1): religious necklace, hoops, bangles, pinky ring, full eternity band, rental bracelet, wedding-day jewellery under Bridal. Fix: add products (skill `add-product`). |
+| KI-067 | M | Catalog doesn't cover the brief's sub-types | `src/data/catalog.ts` | Missing from the brief (step 1): religious necklace, hoops, bangles, pinky ring, full eternity band, rental bracelet, wedding-day jewellery under Bridal. Fix: add products (skill `add-product`). Partly fixed 2026-10-21: a full eternity band (Lachine), true tennis necklaces (Redpath, Drummond, Peel), wedding-day jewellery under Bridal (the tiara set, `alsoIn`) and a rental bracelet (Westmount, rentable) were added; a religious necklace, hoops, a bangle and a pinky ring remain. |
 | KI-068 | L | Adding from the video viewer or try-on opens the drawer underneath | `addToCart` + z-index ladder | The drawer is `z-[90]`, below the viewer `z-[100]` and the studio `z-[110]`. In step 23 Figma Make offered "close the overlay, then Go to bag". |
 | KI-069 | L | Link previews are site-wide, and `og:image` is relative | `.figma/make/site.json` (`openGraph.image`), `src/App.tsx` (`headFor`) | Pages retitle only in the running app and hash routes share one document, so a shared PDP link previews with the site-wide title, description and card. `/og-image.jpg` is relative, which Facebook and LinkedIn may ignore. Fix: set the absolute URL once the deployed origin is known; per-page previews come with the Shopify theme's Liquid head. |
-| KI-070 | L | Salon hours and telephone live in three places | `src/data/salon.ts` (desktop menu), `src/components/Footer.tsx`, `src/components/home/VisitSalon.tsx` | Changing the hours means editing two components and `SALON.hours`; miss one and the menu's "Open now" line disagrees with the footer. Fix: render the Footer and VisitSalon lines from `SALON`. |
+| KI-070 | — | **Fixed 2026-10-21.** Salon hours and telephone lived in three places | `src/data/salon.ts` | The Footer and `VisitSalon` read `SALON`, `salonHours()`, `salonWeek()`, `salonStatus()` and `salonDial()`; contact links use `SALON.email` and `SALON.maps`. |
 
 ## Not issues (by design)
 

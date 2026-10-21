@@ -24,9 +24,10 @@ Full reference: `.claude/docs/architecture.md`.
 5. A `case` in `headFor` in `src/App.tsx` for the tab title and meta description, with both languages in `SITE`. Without one, the page keeps the site-wide Home title.
 6. A `case` in `labelFor` in `src/components/transition/PageTransition.tsx`, with an `[eyebrow, title]` pair per language in `CARDS`. The switch is exhaustive, so a route without one doesn't compile.
 
-Then link the new route from the Header (desktop nav and mobile menu), the desktop menu (`RAIL` in `src/components/menu/SiteMenu.tsx`, plus a `pages` entry and its `KEYWORDS` so the menu's search finds it) and/or the Footer.
+Then link the new route from the Header (desktop nav and mobile menu), the desktop menu (`RAIL` in `src/components/menu/SiteMenu.tsx`, plus a `pages` entry, the same page in the `pages` list of `src/components/menu/MobileSearch.tsx` so phones find it too, and its bilingual `KEYWORDS` line in `src/components/menu/search.ts`) and/or the Footer.
 
-- **Slug pages** must keep `key={route.slug}`. Category and Product rely on remounting to reset their state and reveal tweens.
+- **Slug pages** must keep their key. Category and Product rely on remounting to reset their state and reveal tweens; since 2026-10-21 the key also includes their options (`route.slug + queryString(route.query)`, `route.slug + mode`).
+- **Options in the address** (2026-10-21). `shop`, `category` and `product` routes carry `query`. Link with `href.shop(query)`, `href.category(slug, query)` and `href.product(slug, rent)` (`?mode=rent`). A page that changes its own options (filters, Own or Rent) writes them with the store's `replaceQuery(query)`: no history entry, no page transition, and `PageTransition` re-notes the page (`tns:address`) so Back returns to it.
 - **Links** are `<a href={href.…}>`. Never assign `location.hash`, call `history.*`, or hard-code `'#/…'` strings.
 - **Language prefix.** French addresses carry `#/fr`; English has none. Read `href.*` at render time, never in a module-level constant (it would keep the first load's language). Compare addresses with `bareHash()`, split them with `splitHash()`. Only the first load obeys a prefix; `syncLocale` then keeps the address in the visitor's language with `history.replaceState`.
 - **In-page anchors** do not exist as `href="#id"`, because they would be parsed as routes and land on Home. Scroll with `getLenis()?.scrollTo(el, { offset: -120 })`, falling back to `el.scrollIntoView(...)`.
@@ -45,6 +46,7 @@ Then link the new route from the Header (desktop nav and mobile menu), the deskt
 - **New `CartMeta` field:** add it to both the interface and `DEFAULT_META`. `clearCart()` resets meta to the defaults.
 - **Validate persisted values when reading them**, as `loadCurrency` (`tns-currency`) and `resolveLang` (`tns-lang`) do.
 - **Language:** `lang`/`setLang` come from `useStore()` or `useLocale()` (`{ lang, locale, setLang }`, which re-renders only on a language or market change). Copy goes through `useCopy`; never read `tns-lang` directly.
+- **Visits and contact** (2026-10-21): `openVisit(request)` / `closeVisit` / `visitRequest` drive the booking drawer; `visits`, `bookVisit`, `cancelVisit` (`tns-visits`); `openAsk(slugs)` / `closeAsk` / `askAbout` drive "Ask a jeweller". Opening one closes the bag and the other. `profile` / `setProfile` (`tns-profile`: ring size, dates to remember) and `nudgeAt` / `dismissNudge` (`tns-nudge`). See `.claude/docs/features/legacy-redesign.md`.
 
 ## Providers
 

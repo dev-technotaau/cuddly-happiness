@@ -126,7 +126,7 @@ export default function RentalCalendar({ slug, period, value, onChange, step, er
     <fieldset>
       <legend className={`${label} ${error ? 'text-red-700' : ''}`}>
         <span>
-          <span className="font-spec mr-3 text-[10px] text-[var(--gold-vermeil)]">{step}</span>
+          <span className="font-spec mr-3 text-[10px] text-[var(--gold-ink)]">{step}</span>
           {t.title} {error && !value.start && <span className="normal-case tracking-normal">{t.chooseStart}</span>}
         </span>
       </legend>
@@ -145,7 +145,7 @@ export default function RentalCalendar({ slug, period, value, onChange, step, er
 
         {/* Calendar grid */}
         <div className="px-3 pb-3 pt-2" onMouseLeave={() => setHover(null)}>
-          <div className="font-spec grid grid-cols-7 py-2 text-center text-[9px] uppercase tracking-[0.16em] text-[var(--text-linen)]">
+          <div className="font-spec grid grid-cols-7 py-2 text-center text-[9px] uppercase tracking-[0.16em] text-[var(--text-taupe)]">
             {t.weekdays.map((w) => <span key={w}>{w}</span>)}
           </div>
           <div className="grid grid-cols-7 gap-y-1" role="grid">
@@ -184,7 +184,7 @@ export default function RentalCalendar({ slug, period, value, onChange, step, er
               )
             })}
           </div>
-          <div className="font-spec mt-3 flex flex-wrap gap-x-5 gap-y-1 border-t border-[var(--border-hairline)] pt-3 text-[9px] uppercase tracking-[0.16em] text-[var(--text-linen)]">
+          <div className="font-spec mt-3 flex flex-wrap gap-x-5 gap-y-1 border-t border-[var(--border-hairline)] pt-3 text-[9px] uppercase tracking-[0.16em] text-[var(--text-taupe)]">
             <span className="flex items-center gap-1.5"><span className="h-2 w-2 bg-[var(--text-espresso)]" /> {t.start}</span>
             <span className="flex items-center gap-1.5"><span className="h-2 w-2 bg-[var(--gold-champagne)]/40" /> {t.yourDays(days)}</span>
             <span className="flex items-center gap-1.5"><span className="line-through">12</span> {t.reservedKey}</span>
@@ -208,7 +208,7 @@ export default function RentalCalendar({ slug, period, value, onChange, step, er
             <Icon size={16} strokeWidth={1.3} className="shrink-0 text-[var(--gold-vermeil)]" />
             <span>
               <span className="block text-[10px] uppercase tracking-[0.18em]">{title}</span>
-              <span className="block text-xs text-[var(--text-linen)]">{d}</span>
+              <span className="block text-xs text-[var(--text-taupe)]">{d}</span>
             </span>
           </button>
         ))}
@@ -238,13 +238,13 @@ export default function RentalCalendar({ slug, period, value, onChange, step, er
       {start && end && (
         <div className={`mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-4 p-4 ${conflict ? 'bg-red-50' : 'bg-[var(--bg-silk)]'}`}>
           <div>
-            <p className="text-[9px] uppercase tracking-[0.2em] text-[var(--text-linen)]">{(value.method ?? 'courier') === 'courier' ? t.delivered : t.fitting}</p>
+            <p className="text-[9px] uppercase tracking-[0.2em] text-[var(--text-taupe)]">{(value.method ?? 'courier') === 'courier' ? t.delivered : t.fitting}</p>
             <p className="font-serif-editorial mt-1 text-lg leading-tight">{formatDay(start)}</p>
             <p className="font-spec text-[10px] text-[var(--text-taupe)]">{value.slot ? formatSlot(value.slot) : t.selectTime}</p>
           </div>
           <span className="h-px w-8 bg-[var(--gold-vermeil)]" />
           <div className="text-right">
-            <p className="text-[9px] uppercase tracking-[0.2em] text-[var(--text-linen)]">{t.collected}</p>
+            <p className="text-[9px] uppercase tracking-[0.2em] text-[var(--text-taupe)]">{t.collected}</p>
             <p className="font-serif-editorial mt-1 text-lg leading-tight">{formatDay(end)}</p>
             <p className="font-spec text-[10px] text-[var(--text-taupe)]">{t.byNoon}</p>
           </div>

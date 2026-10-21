@@ -33,7 +33,7 @@ import { href } from '../store'
 import useReveal from '../components/useReveal'
 
 const COPY = bilingual(
-  { eyebrow: 'Le journal', title: 'Notes from the <em>bench</em>', book: 'Book an appointment' },
+  { eyebrow: 'Le journal', title: 'Notes from the <em>bench</em>', book: 'Book a visit' },
   { eyebrow: 'Carnet d’atelier', title: 'Des nouvelles de l’<em>établi</em>', book: 'Prendre rendez-vous' },
 )
 
@@ -64,7 +64,7 @@ export default function Journal() {
 ## 3. Links
 
 - **Header** (`src/components/Header.tsx`): add the page to the desktop nav (`text-[11px] font-medium uppercase tracking-[0.22em]` links) and to the mobile menu list (italic serif `text-3xl` rows).
-- **Desktop menu** (`src/components/menu/SiteMenu.tsx`): add `[title, accent]` pairs for both languages to `COPY.rail` and an `item(...)` to the `rail` memo (`item('journal', { url: href.journal })`), or a link inside a panel if the page belongs under one. Add a `pages` entry (`id: 'g:journal'`, title, kicker, note, image, CTA, all from `COPY`) and its bilingual `KEYWORDS` line, so the menu's search finds it in either language.
+- **Desktop menu** (`src/components/menu/SiteMenu.tsx`): add `[title, accent]` pairs for both languages to `COPY.rail` and an `item(...)` to the `rail` memo (`item('journal', { url: href.journal })`), or a link inside a panel if the page belongs under one. Add a `pages` entry (`id: 'g:journal'`, title, kicker, note, image, CTA, all from `COPY`) and its bilingual `KEYWORDS` line in `src/components/menu/search.ts`; add the page to the `pages` list in `src/components/menu/MobileSearch.tsx` as well, so search finds it on phones and desktop alike. Both menus' search finds it in either language.
 - **Footer** (`src/components/Footer.tsx`): add it to the right column (Shop, Maison or Salon).
 - Always link with `href.journal`. Never write a literal `'#/journal'`.
 

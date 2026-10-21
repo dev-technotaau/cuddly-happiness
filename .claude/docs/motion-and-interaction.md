@@ -92,7 +92,7 @@ The instance is a module-level singleton, `let lenisInstance: Lenis | null`, rea
   - `data-lenis-prevent-touch` (touch events),
   - `data-lenis-prevent-vertical` or `data-lenis-prevent-horizontal` (by gesture direction).
 
-  This app uses `data-lenis-prevent` on overlays and their scroll panes (§10) and `data-lenis-prevent-wheel` on the shoppable-video rail (§7.2).
+  This app uses `data-lenis-prevent` on overlays and their scroll panes (§10) and, since 2026-10-21, `data-lenis-prevent-horizontal` with `overscroll-x-contain` on every horizontal rail on a page: the phone rail of Most treasured, the films, the Three generations timeline, the making strip on phones and the Shop all chapter strip. Vertical wheel turns over a rail stay with Lenis; sideways swipes scroll the rail natively. Before, the films had `data-lenis-prevent-wheel` and the others `data-lenis-prevent` (Most treasured at every width), which handed the wheel to the browser over them: smooth scrolling turned stepped and fought Lenis there.
 - **Programmatic `scrollTo(target, opts)`** uses the instance's `duration` (1.25 s) and `easing` unless overridden; `immediate: true` jumps without animating. For an element target, Lenis subtracts the element's computed `scroll-margin-top` (and the root's `scroll-padding-top`) and then adds `offset`.
 - **State classes on `<html>`.** `lenis` is always present. `lenis-stopped`, `lenis-locked`, `lenis-scrolling` and `lenis-smooth` are added while those states are active.
 
@@ -216,6 +216,8 @@ Layout, copy and the full `go()` timeline are in `pages/home.md` §4.1. This sec
 
 ### 4.2 "The making": pinned horizontal scroll (`src/components/home/MakingScroll.tsx`)
 
+Since 2026-10-21 it lives on the Atelier page (`index="02"`), no longer on Home. Each photograph is capped at `lg:max-h-[calc(100vh-33rem)]`, so the raised cards clear the title on short screens (they overlapped it at 1440 × 900).
+
 A `useLayoutEffect` (deps `[]`) creates `gsap.matchMedia()` and registers a single condition, `'(min-width: 1024px) and (prefers-reduced-motion: no-preference)'`. The cleanup calls `mm.revert()`. GSAP re-evaluates the condition live (for example on resize) and reverts or re-creates the tweens to match.
 
 | Call | Target | Values | ScrollTrigger |
@@ -223,7 +225,8 @@ A `useLayoutEffect` (deps `[]`) creates `gsap.matchMedia()` and registers a sing
 | `gsap.to` | horizontal track (`track` ref) | `x: () => -distance()`, `ease: 'none'` | `trigger: section, start: 'top 112px', end: () => '+=' + distance(), pin: true, scrub: 1, invalidateOnRefresh: true` |
 | `gsap.to` | `'[data-making-progress]'` (searched document-wide) | `scaleX: 1`, `ease: 'none'` | `trigger: section, start: 'top 112px', end: () => '+=' + distance(), scrub: true`. The trigger config is passed only if `tween.scrollTrigger` exists |
 
-- **Distance.** `distance = () => track.scrollWidth - window.innerWidth`, so the vertical scroll distance equals the horizontal travel.
+- **Distance.** `distance = () => track.scrollWidth - root.clientWidth` (the section's own width; until 2026-10-21 it was `window.innerWidth`, which counts the scrollbar), so the vertical scroll distance equals the horizontal travel.
+- **Width after the splash.** The pin is measured while the splash keeps the page from scrolling, without a scrollbar. When the scrollbar appears, `SmoothScroll`'s edge observer (a zero-height line across the page, watched by a `ResizeObserver`) sees the page narrow without a resize and calls `ScrollTrigger.refresh()` before the next paint; before 2026-10-21 the pin kept the wider width and Home showed a horizontal scrollbar after its first load.
 - **The 112 px start** equals the `7rem` the layout subtracts for the sticky header: `lg:h-[calc(100vh-7rem)]` on this section and `h-[calc(100svh-7rem)]` on the hero.
 - **Section:** `relative overflow-hidden bg-[var(--bg-silk)] lg:h-[calc(100vh-7rem)]`.
 - **Track:** `flex gap-8 overflow-x-auto px-6 py-16 lg:h-full lg:items-end lg:overflow-visible lg:px-12 lg:pb-16 lg:pt-44`.
@@ -397,7 +400,7 @@ Some elements mount after the hook's last run: the Treasured tab switch, GiftFin
 
 ### 5.5 Ordering with other ScrollTriggers
 
-React runs child layout effects before the parent's. On Home, the `HomeHero` and `MakingScroll` triggers (child components) therefore exist before the page-level `useReveal` creates its triggers, so reveal triggers below the pinned section are measured with the pin spacer already in place. A pinning ScrollTrigger also queues a global refresh, and ScrollTriggers attached to plain tweens refresh themselves as soon as they are created *(library source)*.
+React runs child layout effects before the parent's. On Home the `HomeHero` trigger, and on the Atelier the `MakingScroll` triggers (child components), therefore exist before the page-level `useReveal` creates its triggers, so reveal triggers below the pinned section are measured with the pin spacer already in place. A pinning ScrollTrigger also queues a global refresh, and ScrollTriggers attached to plain tweens refresh themselves as soon as they are created *(library source)*.
 
 ---
 
@@ -570,7 +573,7 @@ export default function useInViewPlay(ref: RefObject<HTMLVideoElement | null>, e
 
 - **Tile video:** `<video src={video.preview} poster={video.poster} muted loop playsInline preload="none" className="editorial-zoom …">`. `preview` is the 360p rendition, and nothing downloads until the tile plays. Under reduced motion tiles never autoplay and show their poster.
 - **Tile button:** `data-reveal={(index % 4) * 0.06}`, `snap-start`, and a play badge with `transition-colors group-hover:bg-white …`.
-- **Rail:** `flex snap-x snap-mandatory gap-3 overflow-x-auto … [scrollbar-width:none] … [&::-webkit-scrollbar]:hidden`, with `data-lenis-prevent-wheel`. Lenis ignores wheel input over the rail, so the browser handles it natively (§2.4).
+- **Rail:** `flex snap-x snap-mandatory gap-3 overflow-x-auto … [scrollbar-width:none] … [&::-webkit-scrollbar]:hidden`, with `data-lenis-prevent-horizontal` and `overscroll-x-contain` (2026-10-21; it had `data-lenis-prevent-wheel`). Lenis keeps the vertical wheel smooth over the rail; a sideways swipe scrolls it natively (§2.4).
 - **Arrow buttons** (shown only when `videos.length > 3`) call `rail.scrollBy({ left: d * rail.clientWidth * 0.8, behavior: 'smooth' })`.
 - **Opening a tile** renders `VideoViewer` through `createPortal(…, document.body)`.
 

@@ -50,7 +50,7 @@ Follow the checklist in `.claude/rules/ux-and-accessibility.md`:
 2. Call `getLenis()?.stop()` and lock overflow.
 3. Close on Escape, and undo all of the above on cleanup.
 4. Add `role="dialog" aria-modal="true" aria-label`.
-5. Put `data-lenis-prevent` on scrollable regions.
+5. Put `data-lenis-prevent` on the overlay's scrollable regions. A horizontal rail on a page takes `data-lenis-prevent-horizontal` and `overscroll-x-contain` instead (UX rule, "Smooth scrolling").
 6. Close on any inner link.
 7. Use `createPortal` when the overlay is rendered deep in the tree.
 

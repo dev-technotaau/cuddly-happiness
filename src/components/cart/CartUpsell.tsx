@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Check, Plus } from 'lucide-react'
-import { PRODUCTS, priceFor, type Product } from '../../data/catalog'
+import { PRODUCTS, openingPrice, quickAddable } from '../../data/catalog'
 import { bilingual, useCopy } from '../../i18n'
 import { useCatalog } from '../../i18n/catalog'
 import { href, useStore } from '../../store'
@@ -10,9 +10,6 @@ const PAIRS: Record<string, string[]> = {
   necklaces: ['earrings', 'bracelets'], earrings: ['necklaces', 'rings'], bracelets: ['rings', 'earrings'], rings: ['bracelets', 'earrings'],
   bridal: ['earrings', 'bracelets'], watches: ['bracelets', 'rings'], gifts: ['earrings', 'necklaces'], custom: ['earrings'], rentals: ['earrings'],
 }
-
-/** Pieces that can go straight into the bag without choosing size, dates or text. */
-const quickAddable = (p: Product) => !p.rental && !p.personalization && p.metals.length > 0 && p.category !== 'rings' && p.category !== 'bridal' && p.category !== 'custom'
 
 const COPY = bilingual(
   { title: 'Pairs beautifully with', add: (name: string) => `Add ${name} to bag`, added: 'Added', quick: 'Quick add', options: 'Options' },
@@ -49,7 +46,7 @@ export default function CartUpsell({ layout = 'rail', onNavigate, limit = 3 }: {
               </a>
               <div className={`min-w-0 flex-1 ${layout === 'grid' ? 'mt-3' : ''}`}>
                 <a href={href.product(p.slug)} onClick={onNavigate} className="font-serif-editorial block truncate text-lg leading-tight hover:text-[var(--gold-vermeil)]">{catalog.name(p)}</a>
-                <Price amount={priceFor(p, currency)} className="text-xs text-[var(--text-taupe)]" />
+                <Price amount={openingPrice(p, currency)} className="text-xs text-[var(--text-taupe)]" />
               </div>
               {quick ? (
                 <button

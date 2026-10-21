@@ -8,7 +8,7 @@ const COPY = bilingual(
   {
     eyebrow: 'Essayage virtuel',
     title: 'See it <em>on you</em>, before it’s yours.',
-    text: 'Open your camera and place earrings, necklaces, rings, bracelets and watches on yourself — in every metal. Save a photo to share, or bring it to your appointment.',
+    text: 'Open your camera and place earrings, necklaces, rings, bracelets and watches on yourself — in every metal. Save a photo to share, or bring it to your visit.',
     camera: 'Live camera or an uploaded photo',
     pieces: (n: number) => `${n} pieces, switch metals instantly`,
     privacy: 'Private — nothing leaves your device',
@@ -31,7 +31,7 @@ const COPY = bilingual(
   },
 )
 
-export default function TryOnFeature() {
+export default function TryOnFeature({ index }: { index: string }) {
   const t = useCopy(COPY)
   const wearable = PRODUCTS.filter((p) => tryOnKind(p))
   const start = wearable.find((p) => p.slug === 'vieux-port-diamond-studs') ?? wearable[0]
@@ -41,7 +41,7 @@ export default function TryOnFeature() {
       <div className="mx-auto grid max-w-[1600px] items-center gap-16 px-6 py-28 lg:grid-cols-12 lg:px-12 lg:py-36">
         <div className="lg:col-span-5">
           <p data-reveal className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-champagne)]">
-            <span className="mr-4 text-white/45">—</span>{t.eyebrow}
+            <span className="mr-4 text-white/45">{index}</span>{t.eyebrow}
           </p>
           <h2 data-reveal="0.05" className="font-serif-editorial mt-8 text-[2.75rem] font-light leading-[0.98] tracking-[-0.02em] sm:text-6xl lg:text-[5rem]">
             {rich(t.title, 'text-[var(--gold-champagne)]')}

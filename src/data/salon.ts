@@ -5,12 +5,19 @@ export const SALON = {
   street: '1420 rue Sherbrooke Ouest',
   city: 'Montréal, QC H3G 1K4',
   phone: '+1 514 555 0162',
+  // The salon answers texts and WhatsApp on the same line (owner decision, 2026-10-21). The email domain is a reserved
+  // placeholder until the real one is known.
+  email: 'salon@teresa-and-sons.example',
+  maps: 'https://maps.google.com/?q=1420+Rue+Sherbrooke+Ouest+Montreal',
   timeZone: 'America/Toronto',
   // Opening hours by weekday (0 = Sunday), on the 24-hour clock.
   hours: { 2: [10, 18], 3: [10, 18], 4: [10, 18], 5: [10, 18], 6: [10, 18] } as Partial<Record<number, [number, number]>>,
   // Days the salon receives by appointment only.
   byAppointment: [0],
 }
+
+/** The salon's number as links dial it (+15145550162). */
+export const salonDial = () => SALON.phone.replace(/\s/g, '')
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 

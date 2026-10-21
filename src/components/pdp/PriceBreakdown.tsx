@@ -58,6 +58,8 @@ const COPY = bilingual(
     deposit: 'Refundable security deposit',
     hold: 'Card pre-authorization · released within 48 h of return',
     noteRental: 'Tax applies to the rental fee only. The deposit is a hold, not a charge.',
+    showLines: (n: number) => `Show every line (${n})`,
+    hideLines: 'Hide the lines',
     notePiece: 'Metal values use indicative daily rates per gram for the chosen alloy. Stone values reflect our cost for this grade. Figures are rounded and reconcile exactly to the price shown.',
   },
   {
@@ -98,6 +100,8 @@ const COPY = bilingual(
     deposit: 'Dépôt de garantie remboursable',
     hold: 'Préautorisation sur carte · libérée dans les 48 h suivant le retour',
     noteRental: 'Les taxes s’appliquent aux frais de location seulement. Le dépôt est une retenue, pas un paiement.',
+    showLines: (n) => `Voir chaque ligne (${n})`,
+    hideLines: 'Masquer le détail',
     notePiece: 'La valeur du métal repose sur un cours indicatif du jour, au gramme, pour l’alliage choisi. La valeur des pierres reflète notre coût pour cette qualité. Les montants sont arrondis et concordent exactement avec le prix affiché.',
   },
 )
@@ -119,9 +123,14 @@ interface Props {
   metal?: Metal
   personalization?: Personalization
   period: RentalPeriodId
+  /** Renting rather than buying: the fee's breakdown instead of the piece's. */
+  rent: boolean
+  /** The itemized statement shows in full; otherwise only its totals, one tap from the rest. */
+  open: boolean
+  onToggle: () => void
 }
 
-export default function PriceBreakdown({ product, index, metal, personalization, period }: Props) {
+export default function PriceBreakdown({ product, index, metal, personalization, period, rent, open, onToggle }: Props) {
   const { currency } = useStore()
   const { locale } = useLocale()
   const t = useCopy(COPY)
@@ -131,7 +140,7 @@ export default function PriceBreakdown({ product, index, metal, personalization,
   const [state, setState] = useState(US_STATES[0])
   const [visible, setVisible] = useState(false)
   const bar = useRef<HTMLDivElement>(null)
-  const rental = !!product.rental
+  const rental = rent && !!product.rental
 
   const { lines, price, metalWeight, labourHours } = useMemo(() => {
     if (rental) {
@@ -176,7 +185,7 @@ export default function PriceBreakdown({ product, index, metal, personalization,
             <div className="lg:sticky lg:top-36">
               <p className="text-[11px] uppercase tracking-[0.22em]">{t.composition}</p>
               <p className="font-serif-editorial mt-3 text-6xl font-light leading-none"><Price amount={price} className="[&_span]:text-xl" /></p>
-              <p className="font-spec mt-2 text-[10px] uppercase tracking-[0.18em] text-[var(--text-linen)]">
+              <p className="font-spec mt-2 text-[10px] uppercase tracking-[0.18em] text-[var(--text-taupe)]">
                 {rental ? t.feeBeforeTax(common.periods[period]) : t.beforeTax(metal ? catalog.metal(metal) : '')}
               </p>
 
@@ -197,7 +206,7 @@ export default function PriceBreakdown({ product, index, metal, personalization,
                       {t.groups[g.id]}
                     </span>
                     <span className="flex items-baseline gap-4">
-                      <span className="font-spec text-[10px] text-[var(--text-linen)]">{pct(g.amount)}</span>
+                      <span className="font-spec text-[10px] text-[var(--text-taupe)]">{pct(g.amount)}</span>
                       <Price amount={g.amount} className="text-xs [&_span]:hidden" />
                     </span>
                   </li>
@@ -208,11 +217,11 @@ export default function PriceBreakdown({ product, index, metal, personalization,
                 <dl className="mt-10 grid grid-cols-2 gap-px bg-[var(--border-hairline)] text-center">
                   <div className="bg-[var(--bg-travertine)] py-5">
                     <dd className="font-serif-editorial text-3xl">{formatNumber(metalWeight, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} g</dd>
-                    <dt className="font-spec mt-1 text-[9px] uppercase tracking-[0.2em] text-[var(--text-linen)]">{t.metalWeight}</dt>
+                    <dt className="font-spec mt-1 text-[9px] uppercase tracking-[0.2em] text-[var(--text-taupe)]">{t.metalWeight}</dt>
                   </div>
                   <div className="bg-[var(--bg-travertine)] py-5">
                     <dd className="font-serif-editorial text-3xl">{labourHours} h</dd>
-                    <dt className="font-spec mt-1 text-[9px] uppercase tracking-[0.2em] text-[var(--text-linen)]">{t.atBench}</dt>
+                    <dt className="font-spec mt-1 text-[9px] uppercase tracking-[0.2em] text-[var(--text-taupe)]">{t.atBench}</dt>
                   </div>
                 </dl>
               )}
@@ -222,7 +231,7 @@ export default function PriceBreakdown({ product, index, metal, personalization,
           {/* Itemised statement */}
           <div className="lg:col-span-7 lg:col-start-6">
             <div className="border border-[var(--border-hairline)]">
-              {GROUPS.map((g) => {
+              {open && GROUPS.map((g) => {
                 const rows = lines.filter((l) => l.group === g.id)
                 if (rows.length === 0) return null
                 const sub = rows.reduce((s, l) => s + l.amount, 0)
@@ -240,15 +249,21 @@ export default function PriceBreakdown({ product, index, metal, personalization,
                         <li key={l.id} className="grid grid-cols-[1fr_auto] gap-x-6 gap-y-1 px-6 py-4">
                           <span className="text-sm">{l.label}</span>
                           <span className="text-right text-sm">
-                            {l.included ? <span className="font-spec text-[10px] uppercase tracking-[0.18em] text-[var(--gold-vermeil)]">{t.included}</span> : <Price amount={l.amount} className="[&_span]:hidden" />}
+                            {l.included ? <span className="font-spec text-[10px] uppercase tracking-[0.18em] text-[var(--gold-ink)]">{t.included}</span> : <Price amount={l.amount} className="[&_span]:hidden" />}
                           </span>
-                          {l.detail && <span className="font-spec col-span-2 text-[10px] uppercase tracking-[0.1em] text-[var(--text-linen)]">{l.detail}</span>}
+                          {l.detail && <span className="font-spec col-span-2 text-[10px] uppercase tracking-[0.1em] text-[var(--text-taupe)]">{l.detail}</span>}
                         </li>
                       ))}
                     </ul>
                   </div>
                 )
               })}
+
+              {/* The statement opens on demand: its lines, then the taxes */}
+              <button type="button" onClick={onToggle} aria-expanded={open} className={`flex w-full items-center justify-between gap-4 px-6 py-4 text-left text-[11px] uppercase tracking-[0.22em] transition-colors hover:bg-[var(--bg-silk)]/60 ${open ? 'border-t border-[var(--border-hairline)]' : ''}`}>
+                <span>{open ? t.hideLines : t.showLines(lines.length)}</span>
+                <span aria-hidden className={`font-spec text-base leading-none transition-transform duration-500 ${open ? 'rotate-45' : ''}`}>+</span>
+              </button>
 
               {/* Subtotal */}
               <div className="flex items-baseline justify-between border-t border-[var(--text-espresso)] px-6 py-5">
@@ -257,7 +272,7 @@ export default function PriceBreakdown({ product, index, metal, personalization,
               </div>
 
               {/* Taxes & duties */}
-              <div className="border-t border-[var(--border-hairline)]">
+              <div className={`border-t border-[var(--border-hairline)] ${open ? '' : 'hidden'}`}>
                 <div className="flex flex-wrap items-center justify-between gap-3 bg-[var(--bg-silk)]/60 px-6 py-3">
                   <p className="text-[10px] font-medium uppercase tracking-[0.22em]">{t.taxes}</p>
                   <label className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] text-[var(--text-taupe)]">
@@ -279,7 +294,7 @@ export default function PriceBreakdown({ product, index, metal, personalization,
                       <li key={x.name} className="flex items-baseline justify-between px-6 py-4 text-sm">
                         <span>
                           {taxName(x.name)}
-                          <span className="font-spec ml-3 text-[10px] text-[var(--text-linen)]">{t.rateOf(formatNumber(x.rate, { style: 'percent', maximumFractionDigits: 3 }))} <Price amount={price} className="[&_span]:hidden" /></span>
+                          <span className="font-spec ml-3 text-[10px] text-[var(--text-taupe)]">{t.rateOf(formatNumber(x.rate, { style: 'percent', maximumFractionDigits: 3 }))} <Price amount={price} className="[&_span]:hidden" /></span>
                         </span>
                         <Price amount={x.amount} className="[&_span]:hidden" />
                       </li>
@@ -289,16 +304,16 @@ export default function PriceBreakdown({ product, index, metal, personalization,
                       <li className="flex items-baseline justify-between gap-6 px-6 py-4 text-sm">
                         <span>
                           {t.salesTax(stateName(state))}
-                          <span className="font-spec mt-1 block text-[10px] uppercase tracking-[0.1em] text-[var(--text-linen)]">{t.zip}</span>
+                          <span className="font-spec mt-1 block text-[10px] uppercase tracking-[0.1em] text-[var(--text-taupe)]">{t.zip}</span>
                         </span>
                         <span className="font-spec text-[10px] uppercase tracking-[0.18em] text-[var(--text-taupe)]">{t.atCheckout}</span>
                       </li>
                       <li className="flex items-baseline justify-between gap-6 px-6 py-4 text-sm">
                         <span>
                           {t.duties}
-                          <span className="font-spec mt-1 block text-[10px] uppercase tracking-[0.1em] text-[var(--text-linen)]">{t.cusma}</span>
+                          <span className="font-spec mt-1 block text-[10px] uppercase tracking-[0.1em] text-[var(--text-taupe)]">{t.cusma}</span>
                         </span>
-                        <span className="font-spec text-[10px] uppercase tracking-[0.18em] text-[var(--gold-vermeil)]">{t.prepaid}</span>
+                        <span className="font-spec text-[10px] uppercase tracking-[0.18em] text-[var(--gold-ink)]">{t.prepaid}</span>
                       </li>
                     </>
                   )}
@@ -315,7 +330,7 @@ export default function PriceBreakdown({ product, index, metal, personalization,
                 <div className="flex items-baseline justify-between gap-6 px-6 py-5 text-sm">
                   <span>
                     {t.deposit}
-                    <span className="font-spec mt-1 block text-[10px] uppercase tracking-[0.1em] text-[var(--text-linen)]">{t.hold}</span>
+                    <span className="font-spec mt-1 block text-[10px] uppercase tracking-[0.1em] text-[var(--text-taupe)]">{t.hold}</span>
                   </span>
                   <Price amount={deposit} className="[&_span]:hidden" />
                 </div>

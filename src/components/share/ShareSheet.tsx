@@ -29,7 +29,7 @@ type Copied = 'link' | 'list' | 'message' | 'text'
 const NOTE_MAX = 140
 const HINT_MAX = 400
 const label = 'font-spec text-[10px] uppercase tracking-[0.24em] text-[var(--text-taupe)]'
-const field = 'mt-2 w-full border border-[var(--border-hairline)] bg-transparent px-4 py-3 text-sm outline-none transition-colors placeholder:text-[var(--text-linen)] focus:border-[var(--text-espresso)]'
+const field = 'mt-2 w-full border border-[var(--border-hairline)] bg-transparent px-4 py-3 text-sm outline-none transition-colors placeholder:text-[var(--text-taupe)] focus:border-[var(--text-espresso)]'
 const ring = 'focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-[var(--text-espresso)]'
 const tile = 'group flex h-full w-full flex-col justify-between gap-5 bg-[var(--bg-travertine)] p-4 text-left transition-colors hover:bg-[var(--bg-silk)] focus-visible:bg-[var(--bg-silk)] focus-visible:outline focus-visible:-outline-offset-2 focus-visible:outline-[var(--text-espresso)]'
 const check = 'h-3.5 w-3.5 cursor-pointer accent-[var(--text-espresso)]'
@@ -396,10 +396,10 @@ export default function ShareSheet({ subject, initialMode = 'share', onClose }: 
             <div className="mt-5 border border-[var(--border-hairline)] bg-[var(--bg-travertine)] p-3 shadow-[0_24px_48px_-32px_rgba(20,19,17,0.35)]">
               {preview && <div className="aspect-[4/5] overflow-hidden bg-[var(--bg-silk)]"><img src={preview} alt="" className="h-full w-full object-cover" /></div>}
               <div className="px-1 pb-1 pt-4">
-                {subject.eyebrow && <p className="font-spec text-[9px] uppercase tracking-[0.24em] text-[var(--gold-vermeil)]">{subject.eyebrow}</p>}
+                {subject.eyebrow && <p className="font-spec text-[9px] uppercase tracking-[0.24em] text-[var(--gold-ink)]">{subject.eyebrow}</p>}
                 <p className="font-serif-editorial mt-1.5 text-xl leading-tight">{subject.title}</p>
                 {line && <p className="font-spec mt-2 text-[10px] uppercase tracking-[0.14em] text-[var(--text-taupe)]">{line}</p>}
-                {subject.route && <p className="font-spec mt-3 truncate text-[10px] text-[var(--text-linen)]">{displayUrl(subject.route)}</p>}
+                {subject.route && <p className="font-spec mt-3 truncate text-[10px] text-[var(--text-taupe)]">{displayUrl(subject.route)}</p>}
               </div>
             </div>
           ) : (
@@ -420,7 +420,7 @@ export default function ShareSheet({ subject, initialMode = 'share', onClose }: 
           <span aria-hidden="true" className="mx-auto -mt-2 mb-5 block h-1 w-10 rounded-full bg-[var(--border-hairline)] md:hidden" />
           <div className="flex items-start justify-between gap-6">
             <div>
-              <p className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">{mode === 'hint' ? 'Un petit indice' : 'Partager'}</p>
+              <p className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-ink)]">{mode === 'hint' ? 'Un petit indice' : 'Partager'}</p>
               <h2 id={titleId} className="font-serif-editorial mt-3 text-3xl leading-tight sm:text-4xl">
                 {rich(mode === 'hint' ? t.titleHint : piece ? t.titlePiece : t.titleList, em)}
               </h2>
@@ -492,8 +492,8 @@ export default function ShareSheet({ subject, initialMode = 'share', onClose }: 
 
                 <label className="mt-7 block">
                   <span className="flex items-baseline justify-between gap-4">
-                    <span className={label}>{t.note} <span className="normal-case tracking-normal text-[var(--text-linen)]">{t.optional}</span></span>
-                    <span className="font-spec text-[10px] text-[var(--text-linen)]">{note.length}/{NOTE_MAX}</span>
+                    <span className={label}>{t.note} <span className="normal-case tracking-normal text-[var(--text-taupe)]">{t.optional}</span></span>
+                    <span className="font-spec text-[10px] text-[var(--text-taupe)]">{note.length}/{NOTE_MAX}</span>
                   </span>
                   <input value={note} onChange={(e) => setNote(e.target.value.slice(0, NOTE_MAX))} placeholder={piece ? t.notePiece : t.noteList} className={field} />
                 </label>
@@ -514,7 +514,7 @@ export default function ShareSheet({ subject, initialMode = 'share', onClose }: 
                 <label className="mt-6 block">
                   <span className="flex items-baseline justify-between gap-4">
                     <span className={label}>{t.yourHint}</span>
-                    <span className="font-spec text-[10px] text-[var(--text-linen)]">{hint.length}/{HINT_MAX}</span>
+                    <span className="font-spec text-[10px] text-[var(--text-taupe)]">{hint.length}/{HINT_MAX}</span>
                   </span>
                   <textarea ref={hintField} value={hint} onChange={(e) => setDraft(e.target.value.slice(0, HINT_MAX))} rows={6} className={`${field} resize-none leading-relaxed`} />
                 </label>
@@ -539,7 +539,7 @@ export default function ShareSheet({ subject, initialMode = 'share', onClose }: 
                       {t.restore}
                     </button>
                   )}
-                  <span className="text-[var(--text-linen)] sm:ml-auto">{manual ? t.selectedShort(shortcut) : t.linkAdded}</span>
+                  <span className="text-[var(--text-taupe)] sm:ml-auto">{manual ? t.selectedShort(shortcut) : t.linkAdded}</span>
                 </div>
 
                 <p className={`${label} mt-7`}>{t.sendBy}</p>
@@ -551,7 +551,7 @@ export default function ShareSheet({ subject, initialMode = 'share', onClose }: 
             )}
           </div>
 
-          <p className="mt-7 text-[11px] leading-relaxed text-[var(--text-linen)]">{t.nothingSent}</p>
+          <p className="mt-7 text-[11px] leading-relaxed text-[var(--text-taupe)]">{t.nothingSent}</p>
           <p className="sr-only" aria-live="polite">{status}</p>
         </div>
       </div>

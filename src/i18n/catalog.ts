@@ -1,7 +1,7 @@
 // The catalog in the visitor's language. Products keep their English data in catalog.ts (the try-on, media and costing
 // heuristics read the English names); everything a visitor reads comes through here instead.
-import { CATEGORIES, METALS, getCategory, type Category, type CategorySlug, type GiaSpec, type Metal, type Product } from '../data/catalog'
-import { BADGE_FR, CATEGORY_FR, DESIGN_FR, GIA_FR, METAL_FR, PRODUCT_FR, SPEC_LABEL_FR, VIDEO_FR } from '../data/catalog.fr'
+import { CATEGORIES, METALS, TYPE_LABELS, getCategory, type Category, type CategorySlug, type GiaSpec, type Metal, type Product, type ProductType } from '../data/catalog'
+import { BADGE_FR, CATEGORY_FR, DESIGN_FR, GIA_FR, METAL_FR, PRODUCT_FR, SPEC_LABEL_FR, TYPE_FR, VIDEO_FR } from '../data/catalog.fr'
 import { DESIGNS } from '../data/giftcards'
 import type { ShoppableVideo } from '../data/media'
 import { getLocale, useLocale, type Locale } from './index'
@@ -38,6 +38,8 @@ export interface CatalogCopy {
   spec: (p: Product, key: string) => string | undefined
   category: (c: Category | CategorySlug) => CategoryCopy
   metal: (m: Metal) => string
+  /** A piece type, plural (`Engagement rings`), for filters. */
+  type: (t: ProductType) => string
   badge: (b: Badge) => string
   /** A GIA report value (shape or cut grade). */
   gia: (value: string) => string
@@ -83,6 +85,7 @@ function build(locale: Locale): CatalogCopy {
       return { name: en(cat.name), accent: cat.french, description: en(cat.description), numeral: cat.eyebrow }
     },
     metal: (m) => (fr ? METAL_FR[m] : METALS[m].label),
+    type: (t) => (fr ? TYPE_FR[t] : en(TYPE_LABELS[t])),
     badge: (b) => (fr ? BADGE_FR[b] : b),
     gia: (value) => (fr ? GIA_FR[value] ?? value : value),
     carat: (gia) => new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(gia.carat),

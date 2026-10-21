@@ -37,9 +37,9 @@ export default function GiftOptions({ defaultOpen = false }: { defaultOpen?: boo
       <Icon size={16} strokeWidth={1.3} className="mt-0.5 shrink-0 text-[var(--gold-vermeil)]" />
       <span className="min-w-0">
         <span className="block text-[11px] uppercase tracking-[0.18em]">{label}</span>
-        <span className="mt-0.5 block text-xs text-[var(--text-linen)]">{desc}</span>
+        <span className="mt-0.5 block text-xs text-[var(--text-taupe)]">{desc}</span>
       </span>
-      <span className="font-spec ml-auto shrink-0 text-[10px] uppercase tracking-[0.16em] text-[var(--gold-vermeil)]">{t.free}</span>
+      <span className="font-spec ml-auto shrink-0 text-[10px] uppercase tracking-[0.16em] text-[var(--gold-ink)]">{t.free}</span>
     </label>
   )
 
@@ -54,9 +54,9 @@ export default function GiftOptions({ defaultOpen = false }: { defaultOpen?: boo
             rows={3}
             placeholder={t.messageHint}
             aria-label={t.message}
-            className="font-serif-editorial w-full resize-none border border-[var(--border-hairline)] bg-transparent px-4 py-3 text-lg italic outline-none placeholder:not-italic placeholder:text-[var(--text-linen)] focus:border-[var(--text-espresso)]"
+            className="font-serif-editorial w-full resize-none border border-[var(--border-hairline)] bg-transparent px-4 py-3 text-lg italic outline-none placeholder:not-italic placeholder:text-[var(--text-taupe)] focus:border-[var(--text-espresso)]"
           />
-          <p className="font-spec mt-1 text-right text-[10px] text-[var(--text-linen)]">{meta.giftMessage.length}/{MAX}</p>
+          <p className="font-spec mt-1 text-right text-[10px] text-[var(--text-taupe)]">{meta.giftMessage.length}/{MAX}</p>
         </div>
       )}
       {toggle(meta.giftReceipt, t.receipt[0], t.receipt[1], Receipt, (v) => setMeta({ giftReceipt: v }))}
@@ -73,7 +73,7 @@ export default function GiftOptions({ defaultOpen = false }: { defaultOpen?: boo
             rows={3}
             placeholder={t.noteHint}
             aria-label={t.note}
-            className="mt-2 w-full resize-none border border-[var(--border-hairline)] bg-transparent px-4 py-3 text-sm outline-none placeholder:text-[var(--text-linen)] focus:border-[var(--text-espresso)]"
+            className="mt-2 w-full resize-none border border-[var(--border-hairline)] bg-transparent px-4 py-3 text-sm outline-none placeholder:text-[var(--text-taupe)] focus:border-[var(--text-espresso)]"
           />
         )}
       </div>

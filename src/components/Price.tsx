@@ -5,7 +5,7 @@ export default function Price({ amount, className = '' }: { amount: number; clas
   const { currency } = useStore()
   return (
     <span className={`font-spec ${className}`}>
-      {formatPrice(amount, currency)} <span className="text-[0.75em] text-[var(--text-linen)]">{currency}</span>
+      {formatPrice(amount, currency)} <span className="text-[0.75em] text-[var(--text-taupe)]">{currency}</span>
     </span>
   )
 }

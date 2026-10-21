@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { ChevronDown, ChevronUp, Pause, Play, ShoppingBag, Volume2, VolumeX, X } from 'lucide-react'
-import { priceFor } from '../../data/catalog'
+import { cardPrice, quickAddable } from '../../data/catalog'
 import { videoProducts, type ShoppableVideo } from '../../data/media'
 import { bilingual, useCopy } from '../../i18n'
 import { useCatalog } from '../../i18n/catalog'
@@ -149,7 +149,7 @@ export default function VideoViewer({ videos, start, onClose }: Props) {
                   <img src={p.images[0]} alt="" className="h-12 w-10 object-cover" />
                   <span className="min-w-0 flex-1">
                     <span className="font-serif-editorial block truncate text-base leading-tight">{catalog.name(p)}</span>
-                    <Price amount={p.rental ? p.rental.weekend[currency] : priceFor(p, currency)} className="text-[11px]" />
+                    <Price amount={cardPrice(p, currency).amount} className="text-[11px]" />
                   </span>
                   <ShoppingBag size={15} strokeWidth={1.3} />
                 </a>
@@ -167,14 +167,14 @@ export default function VideoViewer({ videos, start, onClose }: Props) {
           <p className="mt-3 text-sm leading-relaxed text-white/60">{catalog.video(video).caption}</p>
           <ul className="mt-8 space-y-3">
             {products.map((p) => {
-              const configurable = !!p.rental || !!p.personalization || p.category === 'rings' || p.category === 'bridal'
+              const configurable = !quickAddable(p)
               return (
                 <li key={p.id} className="border border-white/10 p-3">
                   <a href={href.product(p.slug)} onClick={onClose} className="group flex items-center gap-4">
                     <img src={p.images[0]} alt="" className="h-20 w-16 object-cover" />
                     <span className="min-w-0 flex-1">
                       <span className="font-serif-editorial block truncate text-xl leading-tight group-hover:text-[var(--gold-champagne)]">{catalog.name(p)}</span>
-                      <Price amount={p.rental ? p.rental.weekend[currency] : priceFor(p, currency)} className="mt-1 block text-xs text-white/70 [&_span]:text-white/40" />
+                      <Price amount={cardPrice(p, currency).amount} className="mt-1 block text-xs text-white/70 [&_span]:text-white/40" />
                     </span>
                   </a>
                   <div className="mt-3 grid grid-cols-2 gap-2">

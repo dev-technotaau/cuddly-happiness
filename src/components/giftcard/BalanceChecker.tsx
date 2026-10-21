@@ -9,7 +9,7 @@ const COPY = bilingual(
     number: 'Gift card number',
     check: 'Check',
     invalid: 'Gift card numbers have 16 letters and digits.',
-    notFound: 'We couldn’t find that card. Check the number, or contact our concierge.',
+    notFound: 'We couldn’t find that card. Check the number, or ask a jeweller.',
     remaining: (card: string) => ` remaining on ${card}`,
     originally: (amount: string) => ` · originally ${amount}`,
     expires: (date: string) => `expires ${date}`,
@@ -20,7 +20,7 @@ const COPY = bilingual(
     number: 'Numéro de carte-cadeau',
     check: 'Vérifier',
     invalid: 'Les numéros de carte-cadeau comptent 16 lettres et chiffres.',
-    notFound: 'Nous ne trouvons pas cette carte. Vérifiez le numéro ou écrivez à notre concierge.',
+    notFound: 'Nous ne trouvons pas cette carte. Vérifiez le numéro ou parlez à un joaillier.',
     remaining: (card) => ` restants sur ${card}`,
     originally: (amount) => ` · montant initial ${amount}`,
     expires: (date) => `expire le ${date}`,
@@ -58,15 +58,15 @@ export default function BalanceChecker({ tone = 'light' }: { tone?: 'light' | 'd
           placeholder="XXXX XXXX XXXX XXXX"
           autoComplete="off"
           spellCheck={false}
-          className="font-spec min-w-0 flex-1 bg-transparent px-4 py-3.5 text-sm uppercase tracking-[0.16em] outline-none placeholder:normal-case placeholder:tracking-[0.16em] placeholder:opacity-40"
+          className="font-spec min-w-0 flex-1 bg-transparent px-4 py-3.5 text-sm uppercase tracking-[0.16em] outline-none placeholder:normal-case placeholder:tracking-[0.16em] placeholder:opacity-60"
         />
         <button className={`flex items-center gap-2 px-5 text-[10px] font-medium uppercase tracking-[0.2em] ${dark ? 'bg-[var(--gold-champagne)] text-[var(--bg-vault)]' : 'bg-[var(--text-espresso)] text-[var(--bg-travertine)]'}`}>
           <Search size={13} strokeWidth={1.5} /> {t.check}
         </button>
       </div>
       <p className={`mt-3 min-h-5 text-sm ${dark ? 'text-white/70' : 'text-[var(--text-taupe)]'}`} aria-live="polite">
-        {result === 'invalid' && <span className="text-red-600">{t.invalid}</span>}
-        {result === 'notfound' && <span className="text-red-600">{t.notFound}</span>}
+        {result === 'invalid' && <span className="text-red-700">{t.invalid}</span>}
+        {result === 'notfound' && <span className="text-red-700">{t.notFound}</span>}
         {result && typeof result === 'object' && (
           <>
             <span className={dark ? 'text-white' : 'text-[var(--text-espresso)]'}>{formatPrice(result.balance, result.currency)} {result.currency}</span>{t.remaining(maskCode(result.code))}
@@ -75,7 +75,7 @@ export default function BalanceChecker({ tone = 'light' }: { tone?: 'light' | 'd
           </>
         )}
       </p>
-      <p className={`text-xs ${dark ? 'text-white/40' : 'text-[var(--text-linen)]'}`}>{t.demo} TERE SASO NS19 62MT</p>
+      <p className={`text-xs ${dark ? 'text-white/60' : 'text-[var(--text-taupe)]'}`}>{t.demo} TERE SASO NS19 62MT</p>
     </form>
   )
 }

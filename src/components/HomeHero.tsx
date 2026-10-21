@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { ArrowRight, ArrowUpRight, Pause, Play } from 'lucide-react'
+import { ArrowRight, ArrowUpRight, CalendarHeart, Pause, Play } from 'lucide-react'
 import { getProduct, IMG, type CategorySlug, type Product } from '../data/catalog'
 import { bilingual, useCopy } from '../i18n'
 import { catalogFor, useCatalog } from '../i18n/catalog'
@@ -15,11 +15,12 @@ import TryOnButton from './tryon/TryOnButton'
 gsap.registerPlugin(ScrollTrigger)
 
 // The slides' pictures and links; their words are in COPY, slide for slide.
-const SLIDES: { image: string; piece: string; pieceImage: number; italic: number; chapter: CategorySlug }[] = [
-  { image: IMG.necklace2, piece: 'mont-royal-solitaire-pendant', pieceImage: 0, italic: 1, chapter: 'necklaces' },
-  { image: IMG.ring1, piece: 'notre-dame-oval-solitaire', pieceImage: 0, italic: 1, chapter: 'bridal' },
-  // The collar's boxed-strand photo; its first image is a chain that reads nothing like a collar.
-  { image: IMG.earrings2, piece: 'gala-diamond-collar', pieceImage: 1, italic: 1, chapter: 'rentals' },
+// The two signatures lead (engagement rings, then tennis necklaces); `family` opens a signature's own page.
+const SLIDES: { image: string; piece: string; pieceImage: number; italic: number; chapter: CategorySlug; family?: string }[] = [
+  { image: IMG.ovalWorn, piece: 'notre-dame-oval-solitaire', pieceImage: 0, italic: 1, chapter: 'bridal', family: 'engagement' },
+  { image: IMG.tennisWorn, piece: 'redpath-tennis-necklace', pieceImage: 0, italic: 1, chapter: 'necklaces', family: 'tennis' },
+  { image: IMG.proposal, piece: 'bonsecours-round-solitaire', pieceImage: 0, italic: 1, chapter: 'bridal' },
+  { image: IMG.archive2025, piece: 'gala-diamond-collar', pieceImage: 0, italic: 1, chapter: 'rentals' },
 ]
 
 // Each headline is three lines, the second set in gold italic. French lines are written for the display size, not
@@ -27,7 +28,8 @@ const SLIDES: { image: string; piece: string; pieceImage: number; italic: number
 const COPY = bilingual(
   {
     slides: [
-      { nav: 'Lumière', eyebrow: 'Collection Lumière · Automne', lines: ['Light, set', 'by hand,', 'since 1962.'], body: 'Three generations of Montréal jewellers crafting GIA-certified diamonds and solid gold heirlooms on rue Sherbrooke.', cta: 'Discover necklaces' },
+      { nav: 'Maison', eyebrow: 'Three generations · Montréal', lines: ['Light, set', 'by hand,', 'since 1962.'], body: 'Three generations of Montréal jewellers crafting GIA-certified diamonds and solid gold heirlooms on rue Sherbrooke.', cta: 'Discover engagement rings' },
+      { nav: 'Tennis', eyebrow: 'Signature II · Le collier tennis', lines: ['A line of', 'light,', 'unbroken.'], body: 'Diamond tennis necklaces, every stone matched and set by hand. Wear one for an evening, or keep it for life.', cta: 'Discover tennis necklaces' },
       { nav: 'Mariage', eyebrow: 'Chapitre V · Mariage', lines: ['A promise,', 'certified', 'to the facet.'], body: 'Engagement rings with GIA-graded centre stones, hand-set in platinum by our master setter.', cta: 'Explore bridal' },
       { nav: 'Location', eyebrow: 'Chapitre VII · La Location', lines: ['Borrow the', 'vault', 'for a night.'], body: 'High jewellery for galas and premieres, insured and couriered across Canada and the United States.', cta: 'View rentals' },
     ],
@@ -35,9 +37,9 @@ const COPY = bilingual(
     piece: 'La pièce',
     pieceLabel: (name: string, facts: string) => `The piece: ${name}, ${facts}`,
     weekend: 'Weekend',
-    side: 'Joailliers · Montréal · Est. 1962',
+    side: 'Joailliers · Montréal · Est. 1962 · Three generations',
     slideOf: (i: number, n: number, nav: string) => `${i} of ${n}: ${nav}`,
-    book: 'Book a private appointment',
+    book: 'Book a visit',
     slides_: 'Slides',
     slideButton: (i: number, n: number, nav: string) => `0${i} ${nav}, slide ${i} of ${n}`,
     play: 'Play slideshow',
@@ -47,7 +49,8 @@ const COPY = bilingual(
   },
   {
     slides: [
-      { nav: 'Lumière', eyebrow: 'Collection Lumière · Automne', lines: ['Sertir la', 'lumière,', 'depuis 1962.'], body: 'Trois générations de joailliers montréalais façonnent diamants certifiés GIA et bijoux d’or massif à transmettre, rue Sherbrooke.', cta: 'Découvrir les colliers' },
+      { nav: 'Maison', eyebrow: 'Trois générations · Montréal', lines: ['Sertir la', 'lumière,', 'depuis 1962.'], body: 'Trois générations de joailliers montréalais façonnent diamants certifiés GIA et bijoux d’or massif à transmettre, rue Sherbrooke.', cta: 'Découvrir les bagues de fiançailles' },
+      { nav: 'Tennis', eyebrow: 'Signature II · Le collier tennis', lines: ['Une ligne', 'de lumière,', 'sans fin.'], body: 'Des colliers tennis en diamants, chaque pierre appariée et sertie à la main. À porter le temps d’un soir, ou à garder pour la vie.', cta: 'Découvrir les colliers tennis' },
       { nav: 'Mariage', eyebrow: 'Chapitre V · Mariage', lines: ['Une promesse,', 'certifiée', 'au carat près.'], body: 'Des bagues de fiançailles aux pierres centrales classées par le GIA, serties à la main dans le platine par notre maître sertisseur.', cta: 'Découvrir le mariage' },
       { nav: 'Location', eyebrow: 'Chapitre VII · La Location', lines: ['Empruntez', 'le coffre', 'pour un soir.'], body: 'De la haute joaillerie pour les galas et les premières, assurée et livrée par messager partout au Canada et aux États-Unis.', cta: 'Voir la location' },
     ],
@@ -55,9 +58,9 @@ const COPY = bilingual(
     piece: 'La pièce',
     pieceLabel: (name, facts) => `La pièce : ${name}, ${facts}`,
     weekend: 'Fin de semaine',
-    side: 'Joailliers · Montréal · Depuis 1962',
+    side: 'Joailliers · Montréal · Depuis 1962 · Trois générations',
     slideOf: (i, n, nav) => `${i} sur ${n} : ${nav}`,
-    book: 'Prendre un rendez-vous privé',
+    book: 'Prendre rendez-vous',
     slides_: 'Diapositives',
     slideButton: (i, n, nav) => `0${i} ${nav}, diapositive ${i} sur ${n}`,
     play: 'Lire le diaporama',
@@ -81,7 +84,7 @@ const thumb = (url: string) => url.replace('w=1600', 'w=640')
 const ring = 'focus-visible:outline focus-visible:outline-offset-4 focus-visible:outline-[var(--gold-champagne)]'
 
 export default function HomeHero() {
-  const { currency } = useStore()
+  const { currency, openVisit } = useStore()
   const t = useCopy(COPY)
   const common = useCopy(COMMON)
   const catalog = useCatalog()
@@ -443,7 +446,7 @@ export default function HomeHero() {
               <div className="mt-[clamp(1.5rem,4vh,2.5rem)] flex flex-col gap-7 sm:flex-row sm:items-center sm:gap-12">
                 <p data-fade className="max-w-sm text-pretty text-sm leading-relaxed text-white/75">{s.body}</p>
                 <div data-fade className="flex flex-wrap items-center gap-x-10 gap-y-4">
-                  <a href={href.category(SLIDES[i].chapter)} className={`group inline-flex shrink-0 items-center gap-5 rounded-full text-[11px] font-medium uppercase tracking-[0.26em] ${ring}`}>
+                  <a href={href.category(SLIDES[i].chapter, SLIDES[i].family ? { type: SLIDES[i].family! } : undefined)} className={`group inline-flex max-w-full items-center gap-5 rounded-full text-[11px] font-medium uppercase tracking-[0.26em] ${ring}`}>
                     <span className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-[var(--gold-champagne)]/70">
                       <span className="absolute inset-0 origin-bottom scale-y-0 bg-[var(--gold-champagne)] transition-transform duration-500 ease-out group-hover:scale-y-100" />
                       {/* The arrow passes through: one leaves to the right as its twin arrives from the left. Both wait fully outside the
@@ -451,11 +454,11 @@ export default function HomeHero() {
                       <ArrowRight size={16} strokeWidth={1.4} className="relative transition-[translate,color,opacity] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-[260%] group-hover:text-[var(--bg-vault)] group-hover:opacity-0" />
                       <ArrowRight size={16} strokeWidth={1.4} aria-hidden="true" className="absolute -translate-x-[260%] text-[var(--bg-vault)] opacity-0 transition-[translate,opacity] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-0 group-hover:opacity-100" />
                     </span>
-                    {s.cta}
+                    <span className="min-w-0 leading-relaxed">{s.cta}</span>
                   </a>
-                  <a href={href.atelier} className={`font-spec hidden border-b border-[var(--gold-champagne)]/40 pb-1 text-[10px] uppercase tracking-[0.24em] text-white/75 transition-colors hover:border-[var(--gold-champagne)] hover:text-white sm:inline-block ${ring}`}>
-                    {t.book}
-                  </a>
+                  <button type="button" onClick={() => openVisit({ purpose: i === 1 ? 'tennis' : i === 3 ? 'rental' : 'engagement' })} className={`font-spec inline-flex items-center gap-2.5 border-b border-[var(--gold-champagne)]/40 pb-1 text-[10px] uppercase tracking-[0.24em] text-white/80 transition-colors hover:border-[var(--gold-champagne)] hover:text-white ${ring}`}>
+                    <CalendarHeart size={13} strokeWidth={1.4} className="text-[var(--gold-champagne)]" /> {t.book}
+                  </button>
                 </div>
               </div>
             </div>

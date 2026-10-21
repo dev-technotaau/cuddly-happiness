@@ -63,8 +63,8 @@ const COPY = bilingual(
     questions: 'Questions',
     detailsTitle: 'Gift card <em>details</em>',
     corporate: 'Corporate gifting',
-    corporateText: 'Ordering ten or more cards, or cards with your company’s design? Our concierge will prepare a bespoke quote.',
-    contact: 'Contact concierge',
+    corporateText: 'Ordering ten or more cards, or cards with your company’s design? We’ll prepare a bespoke quote.',
+    contact: 'Ask a jeweller',
     faq: [
       { id: 'where', title: 'Where can I use it?', content: 'Online at teresaandsons.com in Canada and the United States, and in our Montréal salon. Cards can be used on any piece, including rentals and bespoke commissions.' },
       { id: 'expiry', title: 'Does it expire?', content: 'Never. There are no fees or expiry dates, in line with Québec and provincial consumer protection law.' },
@@ -118,8 +118,8 @@ const COPY = bilingual(
     questions: 'Questions',
     detailsTitle: 'Tout sur la <em>carte-cadeau</em>',
     corporate: 'Cadeaux d’entreprise',
-    corporateText: 'Vous commandez dix cartes ou plus, ou des cartes à l’image de votre entreprise? Notre concierge préparera une soumission sur mesure.',
-    contact: 'Écrire au concierge',
+    corporateText: 'Vous commandez dix cartes ou plus, ou des cartes à l’image de votre entreprise? Nous préparerons une soumission sur mesure.',
+    contact: 'Parler à un joaillier',
     faq: [
       { id: 'where', title: 'Où puis-je l’utiliser?', content: 'En ligne sur teresaandsons.com, au Canada et aux États-Unis, ainsi qu’à notre salon de Montréal. Les cartes s’utilisent sur toutes les pièces, y compris les locations et les créations sur mesure.' },
       { id: 'expiry', title: 'Expire-t-elle?', content: 'Jamais. Aucuns frais ni date d’expiration, conformément à la Loi sur la protection du consommateur du Québec et aux lois des autres provinces.' },
@@ -134,7 +134,7 @@ const COPY = bilingual(
 export default function GiftCards() {
   const root = useRef<HTMLDivElement>(null)
   const preview = useRef<HTMLDivElement>(null)
-  const { currency, addToCart } = useStore()
+  const { currency, addToCart, openAsk } = useStore()
   const { lang } = useLocale()
   const t = useCopy(COPY)
   const common = useCopy(COMMON)
@@ -198,8 +198,8 @@ export default function GiftCards() {
   }
 
   const label = 'mb-4 block text-[11px] uppercase tracking-[0.22em]'
-  const num = 'font-spec mr-3 text-[10px] text-[var(--gold-vermeil)]'
-  const input = 'w-full border border-[var(--border-hairline)] bg-transparent px-4 py-3.5 text-sm outline-none transition-colors placeholder:text-[var(--text-linen)] focus:border-[var(--text-espresso)]'
+  const num = 'font-spec mr-3 text-[10px] text-[var(--gold-ink)]'
+  const input = 'w-full border border-[var(--border-hairline)] bg-transparent px-4 py-3.5 text-sm outline-none transition-colors placeholder:text-[var(--text-taupe)] focus:border-[var(--text-espresso)]'
   const choice = (on: boolean) => `border px-4 py-3.5 text-left transition-colors ${on ? 'border-[var(--text-espresso)] bg-[var(--text-espresso)] text-[var(--bg-travertine)]' : 'border-[var(--border-hairline)] hover:border-[var(--text-espresso)]'}`
   const recipientShown = !toSelf ? recipientName.trim() || undefined : undefined
 
@@ -209,7 +209,7 @@ export default function GiftCards() {
       <section className="border-b border-[var(--border-hairline)] bg-[var(--bg-silk)]">
         <div className="mx-auto grid max-w-[1600px] items-center gap-12 px-6 py-20 lg:grid-cols-12 lg:px-12 lg:py-28">
           <div className="lg:col-span-6">
-            <p className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">
+            <p className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-ink)]">
               <a href={href.category('gifts')} className="hover:text-[var(--text-espresso)]">{t.gifts}</a> / Carte-cadeau
             </p>
             <h1 className="font-serif-editorial mt-6 text-[3.25rem] font-light leading-[0.92] tracking-[-0.03em] sm:text-7xl lg:text-[7rem]">
@@ -226,7 +226,7 @@ export default function GiftCards() {
           </div>
           <div className="lg:col-span-5 lg:col-start-8">
             <div className="relative mx-auto max-w-md">
-              <div className="absolute -right-6 -top-6 w-[85%] rotate-6 opacity-60"><GiftCardArt design="espresso" currency={currency} amount={500} /></div>
+              <div className="absolute -right-2 -top-4 w-[85%] rotate-6 opacity-60 sm:-right-6 sm:-top-6"><GiftCardArt design="espresso" currency={currency} amount={500} /></div>
               <div className="relative -rotate-3"><GiftCardArt design="travertine" currency={currency} amount={250} to={t.you} /></div>
             </div>
           </div>
@@ -247,10 +247,10 @@ export default function GiftCards() {
               </div>
             )}
             <dl className="font-spec mt-8 grid grid-cols-3 divide-x divide-[var(--border-hairline)] border-y border-[var(--border-hairline)] text-center text-[10px] uppercase tracking-[0.18em]">
-              <div className="py-4"><dt className="text-[var(--text-linen)]">{t.design}</dt><dd className="mt-1">{catalog.design(design)}</dd></div>
-              <div className="py-4"><dt className="text-[var(--text-linen)]">{t.delivery}</dt><dd className="mt-1">{delivery === 'email' ? t.email : t.mailed}</dd></div>
+              <div className="py-4"><dt className="text-[var(--text-taupe)]">{t.design}</dt><dd className="mt-1">{catalog.design(design)}</dd></div>
+              <div className="py-4"><dt className="text-[var(--text-taupe)]">{t.delivery}</dt><dd className="mt-1">{delivery === 'email' ? t.email : t.mailed}</dd></div>
               <div className="py-4">
-                <dt className="text-[var(--text-linen)]">{t.arrives}</dt>
+                <dt className="text-[var(--text-taupe)]">{t.arrives}</dt>
                 <dd className="mt-1">{delivery === 'physical' ? t.days : toSelf || sendOn === today ? t.instantly : formatDay(new Date(sendOn + 'T00:00'))}</dd>
               </div>
             </dl>
@@ -273,7 +273,7 @@ export default function GiftCards() {
 
           {/* 02 Amount */}
           <fieldset>
-            <legend className={label}><span className={num}>02</span>{t.amount} <span className="font-spec normal-case tracking-normal text-[var(--text-linen)]">({currency})</span></legend>
+            <legend className={label}><span className={num}>02</span>{t.amount} <span className="font-spec normal-case tracking-normal text-[var(--text-taupe)]">({currency})</span></legend>
             <div className="grid grid-cols-3 gap-2">
               {DENOMINATIONS[currency].map((d) => (
                 <button type="button" key={d} onClick={() => { setAmount(d); setCustom('') }} aria-pressed={!custom && amount === d} className={`${choice(!custom && amount === d)} font-spec text-center text-sm`}>
@@ -290,7 +290,7 @@ export default function GiftCards() {
                 onChange={(e) => setCustom(e.target.value.replace(/\D/g, '').slice(0, 5))}
                 placeholder={t.custom(min, formatNumber(max))}
                 aria-label={t.amount}
-                className={`font-spec min-w-0 flex-1 bg-transparent py-3.5 text-sm outline-none placeholder:text-[var(--text-linen)] ${lang === 'fr' ? 'pl-4 pr-2' : 'px-2'}`}
+                className={`font-spec min-w-0 flex-1 bg-transparent py-3.5 text-sm outline-none placeholder:text-[var(--text-taupe)] ${lang === 'fr' ? 'pl-4 pr-2' : 'px-2'}`}
               />
             </label>
           </fieldset>
@@ -306,7 +306,7 @@ export default function GiftCards() {
                 <button type="button" key={id} onClick={() => setDelivery(id)} aria-pressed={delivery === id} className={choice(delivery === id)}>
                   <Icon size={16} strokeWidth={1.3} className={delivery === id ? 'text-[var(--gold-champagne)]' : 'text-[var(--gold-vermeil)]'} />
                   <span className="mt-3 block text-[11px] uppercase tracking-[0.18em]">{title}</span>
-                  <span className={`mt-1 block text-xs ${delivery === id ? 'text-white/60' : 'text-[var(--text-linen)]'}`}>{d}</span>
+                  <span className={`mt-1 block text-xs ${delivery === id ? 'text-white/60' : 'text-[var(--text-taupe)]'}`}>{d}</span>
                 </button>
               ))}
             </div>
@@ -334,13 +334,13 @@ export default function GiftCards() {
                     </label>
                   </>
                 )}
-                {delivery === 'physical' && <p className="text-xs text-[var(--text-linen)]">{t.address}</p>}
+                {delivery === 'physical' && <p className="text-xs text-[var(--text-taupe)]">{t.address}</p>}
               </div>
             )}
             <div className="mt-3 space-y-3">
               <div>
                 <textarea value={message} onChange={(e) => setMessage(e.target.value.slice(0, MESSAGE_MAX))} rows={3} placeholder={t.messageHint} aria-label={t.message} className={`${input} resize-none`} />
-                <p className="font-spec mt-1 text-right text-[10px] text-[var(--text-linen)]">{message.length}/{MESSAGE_MAX}</p>
+                <p className="font-spec mt-1 text-right text-[10px] text-[var(--text-taupe)]">{message.length}/{MESSAGE_MAX}</p>
               </div>
               <input value={senderName} onChange={(e) => setSenderName(e.target.value)} placeholder={t.fromHint} aria-label={t.from} className={input} />
             </div>
@@ -360,10 +360,10 @@ export default function GiftCards() {
                 <button type="button" onClick={() => setQty((q) => Math.min(20, q + 1))} aria-label={t.more} className="px-4 py-4">+</button>
               </div>
               <button className={`flex flex-1 items-center justify-center gap-3 py-5 text-[11px] font-medium uppercase tracking-[0.26em] text-[var(--bg-travertine)] transition-colors duration-500 ${added ? 'bg-[var(--gold-vermeil)]' : 'bg-[var(--text-espresso)] hover:bg-[var(--gold-vermeil)]'}`}>
-                {added ? <><Check size={15} strokeWidth={1.6} /> {common.addedToBag}</> : <>{common.addToBag} <span className="opacity-40">—</span> <Price amount={Number.isFinite(value) ? Math.round(value) * qty : 0} className="[&_span]:text-white/50" /></>}
+                {added ? <><Check size={15} strokeWidth={1.6} /> {common.addedToBag}</> : <>{common.addToBag} <span className="opacity-60">—</span> <Price amount={Number.isFinite(value) ? Math.round(value) * qty : 0} className="[&_span]:text-white/50" /></>}
               </button>
             </div>
-            <p className="mt-3 text-xs text-[var(--text-linen)]">{t.untaxed}</p>
+            <p className="mt-3 text-xs text-[var(--text-taupe)]">{t.untaxed}</p>
           </div>
         </form>
       </section>
@@ -375,7 +375,7 @@ export default function GiftCards() {
             const I = HOW_ICONS[i]
             return (
               <li key={i} data-reveal={i * 0.08} className="bg-[var(--bg-silk)] p-10 lg:p-14">
-                <span className="font-spec text-[10px] text-[var(--gold-vermeil)]">0{i + 1}</span>
+                <span className="font-spec text-[10px] text-[var(--gold-ink)]">0{i + 1}</span>
                 <I size={22} strokeWidth={1.2} className="mt-6 text-[var(--gold-vermeil)]" />
                 <h3 className="font-serif-editorial mt-6 text-3xl">{title}</h3>
                 <p className="mt-3 text-sm leading-relaxed text-[var(--text-taupe)]">{d}</p>
@@ -406,7 +406,7 @@ export default function GiftCards() {
           <div className="-mt-4 border border-[var(--border-hairline)] p-8">
             <p className="font-serif-editorial text-3xl">{t.corporate}</p>
             <p className="mt-3 text-sm text-[var(--text-taupe)]">{t.corporateText}</p>
-            <a href={href.atelier} className="link-line mt-6">{t.contact}</a>
+            <button type="button" onClick={() => openAsk()} className="link-line mt-6">{t.contact}</button>
           </div>
         </div>
         <div className="lg:col-span-7 lg:col-start-6 lg:pt-24">

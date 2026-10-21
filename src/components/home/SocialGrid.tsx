@@ -9,12 +9,12 @@ const TILES = [IMG.earrings3, IMG.bracelet2, IMG.rings, IMG.necklace1, IMG.brida
 
 const COPY = bilingual({ title: 'Worn in <em>Montréal</em>', follow: 'Follow #PorteTeresa' }, { title: 'Porté à <em>Montréal</em>', follow: 'Suivez #PorteTeresa' })
 
-export default function SocialGrid() {
+export default function SocialGrid({ index }: { index: string }) {
   const t = useCopy(COPY)
   return (
-    <section className="mx-auto max-w-[1600px] px-6 pb-28 lg:px-12 lg:pb-36">
+    <section className="mx-auto max-w-[1600px] px-6 py-28 lg:px-12 lg:py-36">
       <SectionHeader
-        index="09"
+        index={index}
         eyebrow="@teresaandsons"
         title={rich(t.title, 'text-[var(--gold-vermeil)]')}
         aside={<span className="link-line">{t.follow}</span>}

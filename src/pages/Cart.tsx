@@ -6,6 +6,7 @@ import { bilingual, useCopy } from '../i18n'
 import { COMMON } from '../i18n/common'
 import { rich } from '../i18n/rich'
 import { href, useStore } from '../store'
+import VisitButton from '../components/visit/VisitButton'
 import Price from '../components/Price'
 import { RecentlyViewedStrip } from '../components/RecentlyViewed'
 import CartLineItem from '../components/cart/CartLineItem'
@@ -65,7 +66,10 @@ const COPY = bilingual(
     checkout: 'Secure checkout',
     codes: 'Gift cards and promo codes can be applied at checkout.',
     questions: 'Questions?',
-    consult: 'Book a private consultation',
+    consult: 'Ask a jeweller',
+    seeFirst: 'Prefer to see it first?',
+    seeFirstText: 'We’ll have your bag ready in the salon, in your size.',
+    book: 'Book a visit',
   },
   {
     eyebrow: 'La sélection',
@@ -106,14 +110,19 @@ const COPY = bilingual(
     checkout: 'Paiement sécurisé',
     codes: 'Les cartes-cadeaux et les codes promo s’appliquent au paiement.',
     questions: 'Des questions?',
-    consult: 'Réserver une consultation privée',
+    consult: 'Parler à un joaillier',
+    seeFirst: 'Envie de la voir d’abord?',
+    seeFirstText: 'Nous préparerons votre panier au salon, à votre taille.',
+    book: 'Prendre rendez-vous',
   },
 )
 
 const PERK_ICONS = [Truck, RotateCcw, Gem, ShieldCheck]
 
 export default function Cart() {
-  const { cart, currency, clearCart, meta } = useStore()
+  const { cart, currency, clearCart, meta, openAsk } = useStore()
+  // The bag's pieces, as a visit would prepare them.
+  const pieces = cart.filter((l) => !l.giftCard).map((l) => ({ slug: l.slug, metal: l.metal, size: l.size, rent: !!l.rental || undefined }))
   const t = useCopy(COPY)
   const common = useCopy(COMMON)
   const { merch, giftCards, subtotal, count, installment, hasMerch, rewardUnlocked, hasRental } = useCartTotals()
@@ -133,7 +142,7 @@ export default function Cart() {
     <div className="mx-auto max-w-[1600px] px-6 py-16 lg:px-12 lg:py-24">
       <div className="flex flex-col justify-between gap-6 border-b border-[var(--border-hairline)] pb-10 sm:flex-row sm:items-end">
         <div>
-          <p className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">{t.eyebrow}</p>
+          <p className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-ink)]">{t.eyebrow}</p>
           <h1 className="font-serif-editorial mt-4 text-6xl font-light lg:text-8xl">
             {rich(t.title, 'text-[var(--gold-vermeil)]')}
           </h1>
@@ -141,7 +150,7 @@ export default function Cart() {
         {cart.length > 0 && (
           <div className="flex items-center gap-6">
             <span className="font-spec text-xs uppercase tracking-[0.2em] text-[var(--text-taupe)]">{common.pieces(count)}</span>
-            <button onClick={() => window.confirm(t.confirm) && clearCart()} className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-linen)] underline-offset-4 hover:text-[var(--text-espresso)] hover:underline">
+            <button onClick={() => window.confirm(t.confirm) && clearCart()} className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-taupe)] underline-offset-4 hover:text-[var(--text-espresso)] hover:underline">
               {t.clear}
             </button>
           </div>
@@ -154,7 +163,7 @@ export default function Cart() {
           <p className="mt-3 text-[var(--text-taupe)]">{t.begin}</p>
           <div className="mx-auto mt-6 max-w-md"><UndoToast /></div>
           <div className="mt-10 flex flex-wrap justify-center gap-4">
-            <a href={href.category('necklaces')} className="bg-[var(--text-espresso)] px-10 py-4 text-[11px] uppercase tracking-[0.24em] text-[var(--bg-travertine)] hover:bg-[var(--gold-vermeil)]">{t.find}</a>
+            <a href={href.shop()} className="bg-[var(--text-espresso)] px-10 py-4 text-[11px] uppercase tracking-[0.24em] text-[var(--bg-travertine)] hover:bg-[var(--gold-vermeil)]">{t.find}</a>
             <a href={href.giftcards} className="border border-[var(--border-hairline)] px-10 py-4 text-[11px] uppercase tracking-[0.24em] hover:border-[var(--text-espresso)]">{t.giftCards}</a>
           </div>
           <div className="mt-24 text-left"><RecentlyViewedStrip /></div>
@@ -212,13 +221,13 @@ export default function Cart() {
                     </div>
                   )}
                   {hasMerch && currency === 'USD' && row(t.tax, t.atCheckout, true)}
-                  {giftCards > 0 && <p className="text-xs text-[var(--text-linen)]">{t.untaxed}</p>}
+                  {giftCards > 0 && <p className="text-xs text-[var(--text-taupe)]">{t.untaxed}</p>}
                 </div>
                 <div className="mt-6 flex items-baseline justify-between border-t border-[var(--border-hairline)] pt-6">
                   <span className="text-[11px] uppercase tracking-[0.22em]">{tax !== null && hasMerch ? t.estimated : t.subtotal}</span>
                   <Price amount={total} className="font-serif-editorial text-3xl" />
                 </div>
-                <p className="mt-2 text-xs text-[var(--text-linen)]">{t.instalments} <Price amount={installment} className="[&_span]:hidden" /> {t.shopPay}</p>
+                <p className="mt-2 text-xs text-[var(--text-taupe)]">{t.instalments} <Price amount={installment} className="[&_span]:hidden" /> {t.shopPay}</p>
 
                 {hasMerch && !hasRental && (
                   <p className="mt-6 flex items-center gap-2.5 bg-[var(--bg-silk)] px-4 py-3 text-xs text-[var(--text-taupe)]">
@@ -231,10 +240,17 @@ export default function Cart() {
                   <Lock size={12} strokeWidth={1.6} /> {t.checkout}
                   <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
                 </a>
-                <p className="mt-4 text-center text-xs text-[var(--text-linen)]">{t.codes}</p>
+                <p className="mt-4 text-center text-xs text-[var(--text-taupe)]">{t.codes}</p>
               </div>
+              {pieces.length > 0 && (
+                <div className="mt-6 border border-[var(--border-hairline)] bg-[var(--bg-silk)] p-6">
+                  <p className="font-serif-editorial text-2xl">{t.seeFirst}</p>
+                  <p className="mt-2 text-sm text-[var(--text-taupe)]">{t.seeFirstText}</p>
+                  <VisitButton request={{ pieces }} className="mt-5 w-full">{t.book}</VisitButton>
+                </div>
+              )}
               <p className="mt-6 text-center text-xs text-[var(--text-taupe)]">
-                {t.questions} <a href={href.atelier} className="border-b border-[var(--gold-vermeil)] text-[var(--text-espresso)]">{t.consult}</a>
+                {t.questions} <button type="button" onClick={() => openAsk(pieces.map((p) => p.slug))} className="border-b border-[var(--gold-vermeil)] text-[var(--text-espresso)]">{t.consult}</button>
               </p>
             </aside>
           </div>

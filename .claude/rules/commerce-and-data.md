@@ -62,15 +62,22 @@ When you add a field to `CartLine` that makes two configurations different, chan
 
 ## Quick-add paths
 
-CompleteTheLook, Wishlist "Add all", VideoViewer, CartUpsell and TryOnStudio must **not** add pieces that need configuration: rental dates, personalization text, ring size (rings and bridal), or custom commissions. Those must link to the PDP instead. Mirror `needsConfig`/`quickAddable`, and ideally centralise them, because they disagree today (KI-022).
+CompleteTheLook, Wishlist "Add all", VideoViewer, CartUpsell and TryOnStudio must **not** add pieces that need configuration: rental dates, personalization text, ring size, or custom commissions. Since 2026-10-21 one rule decides it, in `src/data/catalog.ts`: `needsSize(p)` (ring types), `needsConfig(p)` and `quickAddable(p)` (also false for the vault's rent-first pieces). Use them; never write a local variant. CompleteTheLook adds the page's own piece through the PDP's validation (`onAddMain`).
+
+## Rent or own and card prices (2026-10-21)
+
+- A piece with `rental` rates can be rented **and** bought (`isRentable`); the vault's own pieces lead with renting (`rentFirst`). Rental and purchase lines stay separate in the bag (`lineKey` includes `rental`).
+- Cards, rails, the menu and search show `cardPrice(p, currency)` (the opening price at `metals[0]`, or the weekend rate for rent-first pieces); never `priceFor(p, currency)` without a metal, which disagrees with the PDP (KI-021).
+- `getProductsByCategory(slug)` includes `alsoIn` pieces and, for `rentals`, every rentable piece.
 
 ## Catalog data (`src/data/catalog.ts`)
 
 - **Ids:** `tns-<code>-NNN`, with codes nk, er, br, rg, bd, wt, rn, gf, cs.
 - **Slugs:** kebab-case and stable, since they become Shopify handles.
 - **Prices:** `price: p(CAD)`, or `p(CAD, USD)` to override USD.
-- **Images:** from the `IMG` map.
-- **`metals[0]`** is the PDP default and the quick-add metal. A platinum-first list makes the PDP open +650 CAD above the card price.
+- **Images:** from the `IMG` map, in order: the piece, on the body (in scale), a detail. Each piece has its own matching photos; don't reuse another piece's first photo.
+- **`type`** (required, Shopify's product type) drives filters, signatures and `needsSize`; **`alsoIn`** lists other chapters that show the piece.
+- **`metals[0]`** is the PDP default, the quick-add metal and the card price (`openingPrice`).
 - **Category copy and imagery** live only in `CATEGORIES` (English) and `CATEGORY_FR` (French). Never special-case them in pages.
 - **French catalog copy** for each product goes in `PRODUCT_FR` in `src/data/catalog.fr.ts` (name, tagline, description, specs by English key, personalization labels). Display through `useCatalog()`; tax names through `provinceName`, `taxName`, `stateName` and `taxLabel` in `src/data/tax.ts`.
 - **Name-based heuristics:** `tryOnKind`, `mediaPoolFor`, overlay drawing and costing findings all key off product **English names** via regex. Re-check them when you rename or add products, and never feed them translated names.

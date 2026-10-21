@@ -1,10 +1,11 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { ArrowRight, Heart, Search, ShoppingBag, User } from 'lucide-react'
-import { CATEGORIES, IMG, PRODUCTS, getCategory, getProduct, getProductsByCategory, priceFor, type Product } from '../../data/catalog'
+import { ArrowRight, Heart, MessageCircle, Search, ShoppingBag, User } from 'lucide-react'
+import { CATEGORIES, IMG, PRODUCTS, SIGNATURES, cardPrice, getCategory, getProduct, getProductsByCategory, signaturePieces, type Product } from '../../data/catalog'
+import { HOUSE, HOUSE_IMG } from '../../data/house'
 import { DENOMINATIONS } from '../../data/giftcards'
 import { SALON, salonStatus } from '../../data/salon'
-import { bilingual, useCopy, useLocale } from '../../i18n'
+import { bilingual, pick, useCopy, useLocale } from '../../i18n'
 import { catalogFor, useCatalog, type CatalogCopy } from '../../i18n/catalog'
 import { rich } from '../../i18n/rich'
 import { href, useStore } from '../../store'
@@ -13,7 +14,8 @@ import LanguageToggle from '../locale/LanguageToggle'
 import Price from '../Price'
 import { getLenis } from '../SmoothScroll'
 import Burger from './Burger'
-import { entry, marks, rank } from './search'
+import Marked from './Marked'
+import { KEYWORDS, chapterFields, entry, pieceFields, rank, signatureFields } from './search'
 
 export type MenuFocus = 'pointer' | 'keyboard' | 'search'
 
@@ -72,7 +74,7 @@ const COPY = bilingual(
     giftNote: 'Sent by email or boxed by post, and redeemable online and in our salon.',
     neverExpires: 'never expires',
     chooseGiftCard: 'Choose a gift card',
-    atelier: { title: 'The Atelier', kicker: 'L’Atelier', note: 'Films from the bench, and private appointments in our salon.', cta: 'Visit the atelier' },
+    atelier: { title: 'The Atelier', kicker: 'L’Atelier', note: 'Films from the bench, and private visits in our salon.', cta: 'Visit the atelier' },
     wishlist: { title: 'Wishlist', kicker: 'Liste de souhaits', saved: (n: number) => `${n} piece${n === 1 ? '' : 's'} saved on this device.`, empty: 'Save any piece with its heart to find it here.', cta: 'Open your wishlist' },
     account: { title: 'Your account', kicker: 'Mon compte', note: 'Orders, rental returns and your gift-card wallet.', open: 'Open your account' },
     signIn: 'Sign in',
@@ -95,7 +97,12 @@ const COPY = bilingual(
     bag: 'Bag',
     openBag: 'Open bag',
     openBagWith: (n: number) => `Open bag, ${n} piece${n === 1 ? '' : 's'}`,
-    appointment: 'Book an appointment',
+    appointment: 'Book a visit',
+    ask: 'Ask a jeweller',
+    every: ['Every piece', 'All nine chapters'] as [string, string],
+    everyNote: 'Everything the house makes and curates, in one place, with filters by chapter, metal, price and renting.',
+    everyCta: 'See every piece',
+    signatureKicker: (numeral: string) => `Signature ${numeral}`,
     currency: 'Currency',
     nothing: (q: string) => `Nothing matches <em>“${q}”</em>.`,
     tryThese: 'Try a stone, a metal or a Montréal place:',
@@ -117,7 +124,7 @@ const COPY = bilingual(
     giftNote: 'Envoyée par courriel ou par la poste dans son écrin, et échangeable en ligne comme au salon.',
     neverExpires: 'sans expiration',
     chooseGiftCard: 'Choisir une carte-cadeau',
-    atelier: { title: 'L’Atelier', kicker: 'Montréal · Depuis 1962', note: 'Des films tournés à l’établi, et des rendez-vous privés dans notre salon.', cta: 'Visiter l’atelier' },
+    atelier: { title: 'L’Atelier', kicker: 'Montréal · Depuis 1962', note: 'Des films tournés à l’établi, et des visites privées dans notre salon.', cta: 'Visiter l’atelier' },
     wishlist: { title: 'Liste de souhaits', kicker: 'Vos coups de cœur', saved: (n) => (n < 2 ? `${n} pièce enregistrée sur cet appareil.` : `${n} pièces enregistrées sur cet appareil.`), empty: 'Touchez le cœur d’une pièce pour la retrouver ici.', cta: 'Ouvrir votre liste' },
     account: { title: 'Votre compte', kicker: 'Espace client', note: 'Commandes, retours de location et portefeuille de cartes-cadeaux.', open: 'Ouvrir votre compte' },
     signIn: 'Se connecter',
@@ -141,21 +148,16 @@ const COPY = bilingual(
     openBag: 'Ouvrir le panier',
     openBagWith: (n) => `Ouvrir le panier, ${n} pièce${n < 2 ? '' : 's'}`,
     appointment: 'Prendre rendez-vous',
+    ask: 'Parler à un joaillier',
+    every: ['Toutes les pièces', 'Les neuf chapitres'],
+    everyNote: 'Tout ce que la maison fait et choisit, au même endroit, avec des filtres par chapitre, métal, prix et location.',
+    everyCta: 'Voir toutes les pièces',
+    signatureKicker: (numeral) => `Signature ${numeral}`,
     currency: 'Devise',
     nothing: (q) => `Rien ne correspond à <em>« ${q} »</em>.`,
     tryThese: 'Essayez une pierre, un métal ou un lieu de Montréal :',
   },
 )
-
-// What each page answers to in search, beyond its own title: both languages, so a search works in either.
-const KEYWORDS: Record<string, string> = {
-  'g:atelier': 'atelier workshop bench films video appointment book booking salon visit consultation établi vidéo rendez-vous visite',
-  'g:giftcards': 'gift card cards voucher present balance carte cadeau cartes-cadeaux solde bon',
-  'g:wishlist': 'wishlist favourites favorites saved hearts liste de souhaits favoris coups de cœur',
-  'g:account': 'account sign in log in login orders profile wallet mon compte connexion commandes profil portefeuille',
-  'g:cart': 'bag cart basket checkout panier paiement caisse',
-  'g:home': 'home accueil',
-}
 
 // The rail shows these until the visitor has viewed a piece.
 const NEW_PIECES = PRODUCTS.filter((p) => p.badges?.includes('New')).slice(0, 3)
@@ -163,32 +165,20 @@ const NEW_PIECES = PRODUCTS.filter((p) => p.badges?.includes('New')).slice(0, 3)
 const ease = 'ease-[cubic-bezier(0.16,1,0.3,1)]'
 const ring = 'focus-visible:outline focus-visible:outline-offset-4 focus-visible:outline-[var(--gold-vermeil)]'
 const ringDark = 'focus-visible:outline focus-visible:outline-offset-4 focus-visible:outline-[var(--gold-champagne)]'
-const eyebrow = 'font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]'
+const eyebrow = 'font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-ink)]'
 const sized = (src: string, w: number) => src.replace(/w=\d+/, `w=${w}`)
 
 /** A piece's card price: the weekend rate for rentals, as on ProductCard. */
 function PiecePrice({ product }: { product: Product }) {
   const { currency } = useStore()
   const t = useCopy(COPY)
-  return product.category === 'rentals' && product.rental ? <>{t.from} <Price amount={product.rental.weekend[currency]} /></> : <Price amount={priceFor(product, currency)} />
+  const shown = cardPrice(product, currency)
+  return shown.rent ? <>{t.from} <Price amount={shown.amount} /></> : <Price amount={shown.amount} />
 }
 
 const pieceDest = (p: Product, catalog: CatalogCopy, cta: string): Dest => {
   const copy = catalog.product(p)
   return { id: `p:${p.slug}`, title: copy.name, url: href.product(p.slug), kicker: `${copy.collection} · ${catalog.category(p.category).name}`, note: copy.tagline, image: p.images[0], thumb: true, meta: <PiecePrice product={p} />, cta }
-}
-
-/** `text` with the query's words underlined in gold. */
-function Marked({ text, query }: { text: string; query: string }) {
-  const parts: React.ReactNode[] = []
-  let from = 0
-  for (const [a, b] of marks(text, query)) {
-    if (a > from) parts.push(text.slice(from, a))
-    parts.push(<mark key={a} className="bg-transparent text-inherit underline decoration-[var(--gold-vermeil)] decoration-1 underline-offset-[3px]">{text.slice(a, b)}</mark>)
-    from = b
-  }
-  parts.push(text.slice(from))
-  return <>{parts}</>
 }
 
 /** The extension's photograph and story for the destination under the pointer or focus. Photographs cross-fade as it changes. */
@@ -246,7 +236,8 @@ function Preview({ dest, onNavigate }: { dest: Dest | null; onNavigate: () => vo
 
 /** Full-height desktop menu: the header's links in a left rail that unfolds sideways into panels, with search, the salon's live hours and the visitor's shortcuts. */
 export default function SiteMenu({ open, focus, onClose, trigger, onCover }: Props) {
-  const { route, currency, setCurrency, wishlist, user, count, setCartOpen, recent, clearRecent } = useStore()
+  const { route, currency, setCurrency, wishlist, user, count, setCartOpen, recent, clearRecent, openVisit, openAsk } = useStore()
+  const house = useCopy(HOUSE)
   const { lang, locale } = useLocale()
   const t = useCopy(COPY)
   const catalog = useCatalog()
@@ -280,8 +271,8 @@ export default function SiteMenu({ open, focus, onClose, trigger, onCover }: Pro
 
   // Where the visitor is, so the menu can mark it.
   const currentCat = route.name === 'category' ? route.slug : route.name === 'product' ? getProduct(route.slug)?.category ?? null : null
-  const currentRail = route.name === 'atelier' ? 'atelier' : currentCat === 'bridal' || currentCat === 'rentals' ? currentCat : currentCat || route.name === 'giftcards' ? 'shop' : null
-  const currentDest = route.name === 'giftcards' ? 'giftcards' : currentCat
+  const currentRail = route.name === 'atelier' ? 'atelier' : currentCat === 'bridal' || currentCat === 'rentals' ? currentCat : currentCat || route.name === 'giftcards' || route.name === 'shop' ? 'shop' : null
+  const currentDest = route.name === 'giftcards' ? 'giftcards' : route.name === 'shop' ? 'all' : currentCat
 
   // The bar, repeated. New pages join it as they arrive; give an entry a `panel` to unfold a list beside the rail.
   const rail = useMemo<RailItem[]>(() => {
@@ -290,10 +281,17 @@ export default function SiteMenu({ open, focus, onClose, trigger, onCover }: Pro
   }, [t])
 
   const shop = useMemo<Dest[]>(() => [
+    // Every piece, then the two signatures, then the chapters.
+    { id: 'all', title: t.every[0], url: href.shop(), kicker: t.every[1], accent: t.every[1], note: t.everyNote, image: IMG.tray, meta: <>{t.pieces(PRODUCTS.length - 1)}</>, cta: t.everyCta },
+    ...SIGNATURES.map((x): Dest => {
+      const sig = house.signatures[x.id]
+      const pieces = signaturePieces(x.id)
+      return { id: `sig:${x.id}`, title: sig.name, url: href.category(x.category, { type: x.family }), kicker: t.signatureKicker(sig.numeral), accent: t.signatureKicker(sig.numeral), note: sig.line, image: HOUSE_IMG.signatures[x.id].hero, meta: <>{t.pieces(pieces.length)} · {t.fromPrice} <Price amount={Math.min(...pieces.map((p) => cardPrice(p, currency, false).amount))} /></>, pieces: pieces.slice(0, 3), cta: sig.cta }
+    }),
     ...CATEGORIES.map((c): Dest => {
       const pieces = getProductsByCategory(c.slug)
       const rental = c.slug === 'rentals'
-      const from = Math.min(...pieces.map((p) => (rental && p.rental ? p.rental.weekend[currency] : priceFor(p, currency))))
+      const from = Math.min(...pieces.map((p) => cardPrice(p, currency, rental).amount))
       const copy = catalog.category(c)
       return {
         id: c.slug,
@@ -321,7 +319,7 @@ export default function SiteMenu({ open, focus, onClose, trigger, onCover }: Pro
       meta: <>{t.from} <Price amount={DENOMINATIONS[currency][0]} /> · {t.neverExpires}</>,
       cta: t.chooseGiftCard,
     },
-  ], [currency, t, catalog])
+  ], [currency, t, catalog, house])
 
   // Lists that unfold beside the rail, keyed by a rail item's `panel`.
   const panels: Record<string, { title: string; accent: string; aside: string; links: Dest[] }> = {
@@ -343,23 +341,19 @@ export default function SiteMenu({ open, focus, onClose, trigger, onCover }: Pro
   // Search reads both languages: a visitor can type "ring" on the French site or "bague" on the English one. The
   // language on screen ranks first, and results show in it.
   const index = useMemo(() => {
-    const other = catalogFor(lang === 'fr' ? 'en-CA' : 'fr-CA')
+    const otherLocale = lang === 'fr' ? 'en-CA' : 'fr-CA'
+    const other = catalogFor(otherLocale)
+    const otherHouse = pick(HOUSE, otherLocale)
     return {
-      chapters: shop.filter((d) => d.numeral).map((d) => {
-        const o = other.category(getCategory(d.id) ?? CATEGORIES[0])
-        return entry(d.id, d, [[d.title, 10], [d.accent ?? '', 6], [o.name, 7], [o.accent, 3], [d.note ?? '', 2]])
+      // The two signature pages answer as chapters do, and rank with them.
+      chapters: shop.filter((d) => d.numeral || d.id.startsWith('sig:')).map((d) => {
+        const sig = SIGNATURES.find((x) => `sig:${x.id}` === d.id)
+        return entry(d.id, d, sig ? signatureFields(house.signatures[sig.id], otherHouse.signatures[sig.id]) : chapterFields(getCategory(d.id) ?? CATEGORIES[0], catalog, other))
       }),
-      pieces: PRODUCTS.map((p) => {
-        const mine = catalog.product(p)
-        const theirs = other.product(p)
-        const c = catalog.category(p.category)
-        const oc = other.category(p.category)
-        const terms = [...p.metals.flatMap((m) => [catalog.metal(m), other.metal(m)]), ...(p.badges ?? []).flatMap((b) => [catalog.badge(b), other.badge(b)])].join(' ')
-        return entry(p.slug, p, [[mine.name, 10], [theirs.name, 7], [mine.collection, 6], [`${c.name} ${c.accent} ${oc.name}`, 4], [mine.tagline, 3], [terms, 2], [`${mine.description} ${mine.specs.map((s) => s[1]).join(' ')} ${theirs.tagline}`, 1]])
-      }),
+      pieces: PRODUCTS.map((p) => entry(p.slug, p, pieceFields(p, catalog, other))),
       pages: pages.map((d) => entry(d.id, d, [[d.title, 10], [KEYWORDS[d.id] ?? '', 4]])),
     }
-  }, [shop, pages, catalog, lang])
+  }, [shop, pages, catalog, house, lang])
 
   const groups = useMemo<[string, Dest[]][]>(() => (held.q ? [
     [t.groups.chapters, rank(index.chapters, held.q, 3).map((e) => e.item)],
@@ -691,7 +685,7 @@ export default function SiteMenu({ open, focus, onClose, trigger, onCover }: Pro
         <div className="flex h-20 shrink-0 items-center border-b border-[var(--border-hairline)] pl-12 pr-8">
           <label className="ml-14 flex min-w-0 flex-1 items-center gap-3 border-b border-[var(--border-hairline)] py-2 transition-colors focus-within:border-[var(--text-espresso)]">
             <Search size={15} strokeWidth={1.4} aria-hidden="true" className="shrink-0 text-[var(--text-taupe)]" />
-            <input ref={searchRef} type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t.search} aria-label={t.searchLabel} aria-controls="menu-extension" autoComplete="off" spellCheck={false} className="min-w-0 flex-1 bg-transparent text-[13px] outline-none placeholder:text-[var(--text-linen)] [&::-webkit-search-cancel-button]:hidden" />
+            <input ref={searchRef} type="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t.search} aria-label={t.searchLabel} aria-controls="menu-extension" autoComplete="off" spellCheck={false} className="min-w-0 flex-1 bg-transparent text-[13px] outline-none placeholder:text-[var(--text-taupe)] [&::-webkit-search-cancel-button]:hidden" />
             {query ? (
               <button type="button" onClick={clearSearch} className={`font-spec shrink-0 text-[10px] uppercase tracking-[0.2em] text-[var(--text-taupe)] transition-colors hover:text-[var(--text-espresso)] ${ring}`}>{t.clear}</button>
             ) : (
@@ -775,15 +769,20 @@ export default function SiteMenu({ open, focus, onClose, trigger, onCover }: Pro
             <button type="button" onClick={openBag} aria-label={count ? t.openBagWith(count) : t.openBag} className={tile}>
               <span className="relative">
                 <ShoppingBag size={18} strokeWidth={1.3} />
-                {count > 0 && <span className={`${badge} bg-[var(--gold-vermeil)] text-white`}>{count}</span>}
+                {count > 0 && <span className={`${badge} bg-[var(--gold-ink)] text-white`}>{count}</span>}
               </span>
               {t.bag}
             </button>
           </div>
-          <a href={href.atelier} onClick={onClose} className={`group mt-4 flex items-center justify-between gap-4 whitespace-nowrap bg-[var(--text-espresso)] px-5 py-4 text-[11px] font-medium uppercase tracking-[0.24em] text-[var(--bg-travertine)] transition-colors hover:bg-[var(--gold-vermeil)] ${ring}`}>
-            {t.appointment}
-            <ArrowRight size={14} strokeWidth={1.4} className="shrink-0 transition-transform group-hover:translate-x-1" />
-          </a>
+          <div className="mt-4 grid grid-cols-[1fr_auto] gap-2">
+            <button type="button" onClick={() => { onClose(); openVisit() }} className={`group flex items-center justify-between gap-4 whitespace-nowrap bg-[var(--text-espresso)] px-5 py-4 text-[11px] font-medium uppercase tracking-[0.24em] text-[var(--bg-travertine)] transition-colors hover:bg-[var(--gold-vermeil)] ${ring}`}>
+              {t.appointment}
+              <ArrowRight size={14} strokeWidth={1.4} className="shrink-0 transition-transform group-hover:translate-x-1" />
+            </button>
+            <button type="button" onClick={() => { onClose(); openAsk() }} aria-label={t.ask} title={t.ask} className={`flex w-14 items-center justify-center border border-[var(--text-espresso)] transition-colors hover:border-[var(--gold-vermeil)] hover:text-[var(--gold-vermeil)] ${ring}`}>
+              <MessageCircle size={17} strokeWidth={1.3} />
+            </button>
+          </div>
           <div className="mt-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
             <LanguageToggle />
             <div className="font-spec flex border border-[var(--border-hairline)] text-[10px] tracking-[0.15em]" role="group" aria-label={t.currency}>
@@ -859,7 +858,7 @@ export default function SiteMenu({ open, focus, onClose, trigger, onCover }: Pro
                       return (
                         <li key={d.id} className={d.numeral ? '' : 'mt-3 border-t border-[var(--border-hairline)] pt-3'}>
                           <a href={d.url} data-menu-item data-id={d.id} aria-current={d.id === currentDest ? 'page' : undefined} onPointerEnter={() => setActive(d.id)} onFocus={() => setActive(d.id)} onClick={onClose} className={`group flex items-baseline gap-3 py-[7px] ${ring}`}>
-                            <span className="font-spec w-6 shrink-0 text-[10px] text-[var(--gold-vermeil)]">
+                            <span className="font-spec w-6 shrink-0 text-[10px] text-[var(--gold-ink)]">
                               {d.numeral ?? <span aria-hidden="true" className="inline-block aspect-[1.586] w-5 rounded-[2px] bg-[linear-gradient(135deg,var(--gold-champagne),var(--gold-vermeil))] align-middle" />}
                             </span>
                             <span className={`font-serif-editorial whitespace-nowrap text-[clamp(18px,1.6vw,24px)] leading-tight transition-colors duration-300 ${on ? 'text-[var(--text-espresso)]' : 'text-[var(--text-taupe)]'}`}>{d.title}</span>

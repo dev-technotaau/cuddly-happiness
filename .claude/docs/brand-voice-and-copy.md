@@ -72,7 +72,7 @@ The story, verbatim:
 | "granddaughter" | Continues the work. Unnamed. | `Atelier.tsx` |
 | Antonio Moretti | `Second generation`. Quoted about Teresa. | `Home.tsx` |
 | Marco | `Each claw raised and tightened under the microscope by Marco.`; a client review says `Marco even sent a photo before shipping.` His relationship to the family is not stated. | `MakingScroll.tsx`, `src/components/pdp/Reviews.tsx` `POOL` |
-| Unnamed roles | `our master setter`, `Our setter`, `our in-house horologist` / `our horologist`, `our concierge`, `gemmologist sign-off`, `the maker`, `our team` | `Home.tsx`, `HomeHero.tsx`, `media.ts`, `WatchSpotlight.tsx`, `CraftStory.tsx`, `catalog.ts`, `PriceBreakdown.tsx`, `GiftOptions.tsx` |
+| Unnamed roles | `our master setter`, `Our setter`, `our in-house horologist` / `our horologist`, `gemmologist sign-off`, `the maker`, `our team` | `Home.tsx`, `HomeHero.tsx`, `media.ts`, `WatchSpotlight.tsx`, `CraftStory.tsx`, `catalog.ts`, `PriceBreakdown.tsx`, `GiftOptions.tsx` |
 
 "Three generations" (HomeHero) is consistent with Teresa, her sons and her granddaughter, but no generation is mapped to a person except Antonio as "Second generation".
 
@@ -88,7 +88,7 @@ The story, verbatim:
 | Opening hours (long) | `Tuesday – Saturday, 10h – 18h · Sunday by appointment` | `VisitSalon.tsx` |
 | Opening hours (short) | `Tue–Sat · 10h–18h` | `Footer.tsx` |
 | Concierge responsiveness | `Can’t find your answer? Our concierge replies within the hour, Tuesday to Saturday.` | `src/components/pdp/ProductFAQ.tsx` |
-| Appointment availability | `Private appointments`: `In salon on Sherbrooke or by video, seven days.` | `src/components/home/Services.tsx` |
+| Visit availability | `Private visits`: `In the salon on Sherbrooke, by video or by phone, Tuesday to Sunday.` | `src/components/home/Services.tsx` |
 | Appointment reply | `Merci. Our concierge will be in touch within one business day.` | `Atelier.tsx` (form success) |
 | Phone | `+1 514 555 0162` (spec face in VisitSalon) | `VisitSalon.tsx`, `Footer.tsx` |
 | Email address | **None.** No email address appears anywhere in the copy. | — |
@@ -133,7 +133,7 @@ The story, verbatim:
 | Lifetime care | `Lifetime warranty`: `Annual cleaning, claw checks and rhodium refresh.` `Lifetime care`: `Free annual cleaning, inspection and claw re-tightening at the atelier.` `Lifetime cleaning & inspection on every piece`. Care accordion: `Store separately in the pouch provided. Remove before swimming or applying lotions. Bring it to our salon each year for complimentary ultrasonic cleaning, claw inspection and polishing.` Account tile `Care & servicing`: `Complimentary cleaning and inspection, every year.` | `Services.tsx`, `Cart.tsx`, `Header.tsx`, `Product.tsx`, `Account.tsx` |
 | Watch service | `…regulated by our in-house horologist, with complimentary case-back engraving and a five-year service plan.` FAQ: `Each watch carries the manufacturer’s international warranty plus our own five-year service plan, including one complimentary regulation.` Category description: `…serviced by our horologist.` | `WatchSpotlight.tsx`, `ProductFAQ.tsx`, `catalog.ts` |
 | Jewellery rentals | Category description `High jewelry for galas, weddings and premieres — insured, delivered, returned.` Steps: `Reserve online or in salon`, `Fitting & ID verification`, `Insured courier delivery`, `Collected the next morning`. Periods: Weekend / One week / One month. Hand-offs: `Insured courier` (`Delivered & collected`) and `Salon fitting` (`1420 Sherbrooke O.`). | `catalog.ts`, `src/pages/Category.tsx`, `Product.tsx`, `RentalCalendar.tsx` |
-| Private appointments and concierge | `Book a private <em>appointment</em>`. Interest options: `Engagement ring`, `Heirloom redesign`, `Personalized piece`, `Jewelry rental fitting`, `Watch service`. Video appointments are mentioned in a review (`Booked a video appointment…`). | `Atelier.tsx`, `Reviews.tsx` |
+| Private visits | The booking drawer (`VisitFlow`): reasons, ways to meet (salon, video, phone), times, pieces to prepare; the confirmation reads `We’re expecting you, {name}.` See `features/legacy-redesign.md`. Video visits are mentioned in a review (`Booked a video appointment…`, a customer’s words). | `src/components/visit/VisitFlow.tsx`, `Reviews.tsx` |
 | Gifting | `Gift wrapping`: `Travertine box, silk ribbon, handwritten card`, tag `Free`. `Gift receipt`: `Prices hidden on the packing slip`, tag `Free`. `Order note`. Gift Finder. Gift cards. Corporate gifting: `Ordering ten or more cards, or cards with your company’s design? Our concierge will prepare a bespoke quote.` | `src/components/cart/GiftOptions.tsx`, `src/components/home/GiftFinder.tsx`, `GiftCards.tsx` |
 | Virtual try-on | `Essayage virtuel`: `Open your camera and place earrings, necklaces, rings, bracelets and watches on yourself — in every metal. Save a photo to share, or bring it to your appointment.` | `TryOnFeature.tsx` |
 | Newsletter | `Notes from the <em>atelier</em>, four times a year.`; `Receive La Lettre and private sale invitations` | `Footer.tsx`, `Account.tsx` |
@@ -431,7 +431,7 @@ Each principle below is inferred from the copy and backed by verbatim examples.
 | **piece(s)** (`{n} pieces`, `Reserve this piece`, `saved piece`) | item, product | "item" and "product" never appear in user-facing copy |
 | **client(s)** (`Verified clients`, `Client photos & videos`) | customer | "Customer" appears only in the platform name `Shopify Customer Accounts` |
 | **salon** (the physical store), **atelier** / **bench** (the workshop), **maison** (the house: breadcrumb root `Maison`, `Return to the maison`, `Join the maison.`, `Maison margin`) | store, shop, boutique | One outlier: `Design, showroom & maison margin` (`costing.ts`) |
-| **concierge** for human help (`Contact concierge`, `Ask the concierge`, `Speak with our concierge`) | support, customer service | — |
+| **a jeweller** for human help (`Ask a jeweller`, `Our jewellers can source or commission something special.`, `A jeweller replies within the hour`) | concierge (retired 2026-10-21), support, customer service | — |
 | **complimentary** (preferred) | free | "Free" still appears: `Free engraving`, `Free insured`, `Free annual cleaning…`, `Free` chips, `· free`, `ship free in CAD` |
 | **reserve / reservation** for rentals | book, rent | `Reserve this piece`, `Reserve the ensemble`, `Available for reservation` |
 | **commission** for bespoke work | order | `Begin commission`, `Commission a piece` |
@@ -445,7 +445,7 @@ The source text is mostly sentence case. CSS (`uppercase` plus letter-spacing) p
 | Role | Source casing | Rendered | Class recipe (typical) |
 |---|---|---|---|
 | Eyebrows / kickers | Sentence case (`The selection`, `Watch & shop`) or proper names (`Diamond Education`, `Chapter VI · Horlogerie`) | Capitals, spec face | `font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]` (`--gold-champagne` on dark backgrounds) |
-| CTAs: buttons and `.link-line` | Sentence case (`Add to bag`, `Book a viewing`) | Capitals | `text-[11px] font-medium uppercase tracking-[0.24em]`–`[0.28em]`; `.link-line` in `src/index.css` is 11px, weight 500, `letter-spacing: 0.26em`, `text-transform: uppercase`, with an animated gold underline |
+| CTAs: buttons and `.link-line` | Sentence case (`Add to bag`, `Book a visit`) | Capitals | `text-[11px] font-medium uppercase tracking-[0.24em]`–`[0.28em]`; `.link-line` in `src/index.css` is 11px, weight 500, `letter-spacing: 0.26em`, `text-transform: uppercase`, with an animated gold underline |
 | Header nav | `Shop`, `Bridal`, `Rentals`, `Atelier` | Capitals | `text-[11px] font-medium uppercase tracking-[0.22em]` |
 | Form labels and legends | Sentence case (`First name`, `Send on`) | Capitals | `text-[11px] uppercase tracking-[0.22em]` (`text-[10px]` for sub-labels) |
 | Accordion titles, including FAQ questions | Sentence-case questions (`Does it expire?`) | Capitals | `Accordion`: `text-[11px] font-medium uppercase tracking-[0.22em]` |
@@ -478,7 +478,7 @@ Some text is forced to upper case in code: the monogram input (`e.target.value.t
 | Bag state | `Added to bag` (PDP for 2200 ms, gift-card builder for 2400 ms, TryOnStudio). `Added` (CartUpsell, VideoViewer). `Go to bag` (PDP and StickyBar once the exact configuration is in the bag; opens the drawer). |
 | Bag and checkout | `Secure checkout` (lock icon plus arrow; drawer and Cart). `View full bag` (drawer). `Clear bag` (Cart; asks `Remove everything from your bag?` via `window.confirm`). `Edit`. `Save for later` (moves the line to the wishlist). `Undo`. `Apply` (gift-card code). `Place order` / `Place order — no payment due` (Checkout). `Check` (balance). |
 | Explore and navigate | `Discover necklaces`, `Explore bridal`, `View rentals` and `Book a private appointment` (hero). `Explore bridal`, `Design your own` (bridal block). `View the rental vault`. `Continue the discovery`. `All gifts`. `Shop certified diamonds`. `Shop {cat.name} →` (mega menu). `View all`. `Find your piece`. `Gift cards`. `Explore Rings`. `Continue shopping`. `Return home`. `Return to the maison`. `View in your account`. `Start shopping`. `View wishlist`. `Send a gift card`. `Send one`. `Show more reviews`. `Clear history`. `What the fee covers`. `See full cost breakdown`. `Get directions`. `Copy link`. `Follow #PorteTeresa` (a styled span, not a link). |
-| Talk to a person (all link to `#/atelier`) | `Book a viewing`, `Ask a jeweller` (PDP). `Book a diamond viewing` (FourCs). `Book an appointment` (VisitSalon, Account tile). `Book an Appointment` (Footer). `Book a sizing`. `Book a private consultation` (Cart). `Commission a piece`. `Contact concierge` (GiftCards, ProductFAQ). `Ask the concierge` (GiftFinder). `Speak with our concierge` (Services). `See it in person — book a viewing` (TryOnStudio). `Request appointment` submits the Atelier form. |
+| Talk to a person | `Book a visit` opens the booking drawer (`openVisit`) everywhere: header, menus, footer, hero, the Home acts, the product page and its sticky bar, the bag, wishlist, account, try-on studio (`See it in person — book a visit`). Two named exceptions: `Book a fitting` on rentals, `Book a design consultation` on commissions. `Ask a jeweller` opens the contact sheet (`openAsk`); a search with no result offers `Or ask a jeweller`. `Commission a piece` (Home heritage) links to the Atelier. One verb per action since 2026-10-21. |
 | Try-on | `View on you` (default label, also the CartLineItem link). `Try on` (chips on cards and in the video viewer). `Try these pieces on` (Category). `Try your wishlist on` (Wishlist). `Start virtual try-on` (TryOnFeature). `Start camera` / `Try camera again`. `Upload a photo`. `Retake`. `Save photo`. |
 | Account and reviews | `Sign in`, `Create account`, `Sign out`, `Subscribe` (Footer), `Write a review`, `Submit review` |
 | Choice toggles | Header `CA · CAD` / `US · USD`. Checkout `Canada · CAD` / `United States · USD`. Account `Canada` / `United States`. Recipient `For someone else` / `For me`. Delivery `By email` / `Physical card`. PDP periods `Weekend` / `One week` / `One month`; CompleteTheLook periods `Weekend` / `1 Week` / `1 Month`. Review filters `All` / `With photos & videos` / `5 stars`. Treasured tabs `Bestsellers` / `New arrivals` / `Atelier exclusives`. Sort options `Featured` / `Price, low to high` / `Price, high to low`. Gift Finder budgets `Under $1,000`, `$1,000 – $5,000`, `$5,000 – $15,000`, `$15,000 +` and occasions `Any occasion`, `Anniversary`, `For myself`, `For him`, `Milestone`. |
@@ -513,7 +513,7 @@ Some text is forced to upper case in code: the monogram input (`e.target.value.t
 | `This gift card is already applied.` | Duplicate code | `Checkout.tsx` | same |
 | `Your order is already fully covered.` / `Gift cards can’t be used to buy other gift cards.` | Nothing left that cards can pay for (first message if there is merchandise, second if not) | `Checkout.tsx` | same |
 | `Gift card numbers have 16 letters and digits.` | Bad format | `BalanceChecker.tsx` | `text-red-600` inside an `aria-live="polite"` paragraph |
-| `We couldn’t find that card. Check the number, or contact our concierge.` | Not found | `BalanceChecker.tsx` | same |
+| `We couldn’t find that card. Check the number, or ask a jeweller.` | Not found | `BalanceChecker.tsx` | same |
 | `Please enter a letter` · `Please enter at least {min} characters` · `Maximum {max} characters` · `Some characters cannot be engraved` (no trailing periods) | `validatePersonalization` | `catalog.ts` → `Personalizer.tsx` | Replaces the hint, `text-xs text-red-700`; the legend turns red when `showError` |
 | Legend suffix `— choose a start date` | Add attempted with no start date | `RentalCalendar.tsx` | Legend `text-red-700` |
 | `Delivery window — please choose` / `Fitting time — please choose` | Start chosen, no slot | `RentalCalendar.tsx` | Label `text-red-700` |
@@ -534,7 +534,7 @@ When the PDP rejects an add, it scrolls to `#step-dates`, `#step-personal` or `#
 | Cart page | Same two lines | `Find your piece` (goes to Necklaces), `Gift cards`, recently viewed strip |
 | Checkout | `Your bag is empty.` (italic, taupe) | `Continue shopping` (home) |
 | Wishlist | `Nothing saved yet.` / `Tap the heart on any piece to keep it here.` | `Explore Rings`, plus a strip titled `Pieces you looked at` |
-| Gift Finder with no match | `Nothing in this pairing — yet.` / `Our concierge can source or commission something special.` | `Ask the concierge` |
+| Gift Finder with no match | `Nothing in this pairing — yet.` / `Our jewellers can source or commission something special.` | `Ask a jeweller` |
 | Review filter with no match | `No reviews match this filter yet.` | — |
 | Account, Orders tile | `No orders yet. Track deliveries and rental returns here.` | `Start shopping →` |
 | Account, gift cards | `Gift cards you buy will appear here.` | `Send one` |

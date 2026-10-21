@@ -39,8 +39,8 @@ Scope: compiled 2026-10-15 from `history/figma-make-log.md`, `design-intent.md`,
 
 - [ ] ✗ **P2 · PROTO · "Go to bag" inside the video viewer and try-on studio.** Figma Make offered "close the overlay, then show the drawer" but never built it. Today adding from these overlays opens the drawer *underneath* them (drawer `z-[90]` vs viewer `z-[100]` and studio `z-[110]`). Files: `video/VideoViewer.tsx`, `tryon/TryOnStudio.tsx`. Source: step 23, KI-068.
 - [ ] ✗ **P3 · PROTO · Face/hand tracking for try-on.** Offered in step 16 and never requested. It would need a large tracking library, which goes against the minimal-dependency rule, so **ask the owner before starting**. Today placement is manual.
-- [ ] ◐ **P2 · PROTO · Home chapter numbering.** Step 9 numbered the home page 01–09. Sections added later (TryOnFeature, ShoppableVideos, RecentlyViewed "—") sit outside that sequence, and the indexes are hand-typed. Renumber them, or compute them as the PDP does with `sectionOrder`. Files: `pages/Home.tsx`, `components/home/*`.
-- [ ] ✗ **P1 · PROTO · Newsletter thank-you.** Step 3 said it shows a thank-you. Today `Footer.tsx` only calls `preventDefault()`. Add a sent state ("Merci…"), mirroring the Atelier form. Source: KI-065.
+- [x] ◐ **P2 · PROTO · Home chapter numbering.** Step 9 numbered the home page 01–09. Sections added later (TryOnFeature, ShoppableVideos, RecentlyViewed "—") sit outside that sequence, and the indexes are hand-typed. Renumber them, or compute them as the PDP does with `sectionOrder`. Files: `pages/Home.tsx`, `components/home/*`. **Done 2026-10-21:** Home numbers its 18 acts from `ACTS` in `pages/Home.tsx`; every home section takes an `index` prop.
+- [x] ✗ **P1 · PROTO · Newsletter thank-you.** Step 3 said it shows a thank-you. Today `Footer.tsx` only calls `preventDefault()`. Add a sent state ("Merci…"), mirroring the Atelier form. Source: KI-065. **Done 2026-10-21:** the Footer checks the email and thanks the visitor (simulated).
 - [x] ✗ **P1 · PROTO · Rentals hero slide photo.** Done 2026-10-16: the hero now features catalog pieces, and slide 2 frames the Gala Diamond Collar's boxed-strand photo (`jewelryFlat`). Real photography is still a placeholder (§7).
 - [ ] ◐ **P3 · PROTO · GIA details on more diamond pieces.** Step 2 claimed 8 pieces had them; only 4 do. Add sample `gia` specs to other diamond pieces (e.g. Rivière Saint-Laurent, Westmount Tennis) so the GIA card and cost breakdown appear more widely. File: `data/catalog.ts`.
 - [ ] ◐ **P3 · PROTO · Rental periods.** The plan said 4-day / 8-day rates; weekend / week / month (3 / 7 / 30 days) was built. **Confirm with the owner**; there is no action unless they want different periods.
@@ -48,7 +48,7 @@ Scope: compiled 2026-10-15 from `history/figma-make-log.md`, `design-intent.md`,
 
 ## 2. Gaps against the original brief (step 1)
 
-- [ ] ✗ **P1 · PROTO · Missing catalog sub-types.** Add mock products for:
+- [ ] ◐ **P1 · PROTO · Missing catalog sub-types.** Partly done 2026-10-21 (eternity band, tennis necklaces, the tiara set under Bridal, a rentable bracelet). Still to add:
   - a religious necklace;
   - hoop earrings (beyond the huggies);
   - a bangle;
@@ -59,18 +59,18 @@ Scope: compiled 2026-10-15 from `history/figma-make-log.md`, `design-intent.md`,
   - optionally, a true tennis necklace.
 
   Each category has only 3 products today. Use skill `add-product`. Source: KI-067.
-- [ ] ◐ **P2 · PROTO · Gifts "organized into different price ranges".** Only the home GiftFinder budgets and a "Gifts under $1,000" collection label exist. Add price-range browsing on the Gifts category page, for example the GiftFinder budget chips or a band. Files: `pages/Category.tsx`, `data/catalog.ts`.
+- [x] ◐ **P2 · PROTO · Gifts "organized into different price ranges".** Only the home GiftFinder budgets and a "Gifts under $1,000" collection label exist. Add price-range browsing on the Gifts category page, for example the GiftFinder budget chips or a band. Files: `pages/Category.tsx`, `data/catalog.ts`. **Done 2026-10-21:** every chapter, Gifts included, filters by price band (`PieceGrid`).
 - [ ] ◐ **P3 · PROTO · Watches "related offerings".** Servicing appears only as an Atelier form option and in home copy. Consider a watch-services block on the watches category page or PDP.
 - [ ] ◐ **P3 · PROTO · Promesse Wedding Band widths.** The specs say "2 / 4 / 6 mm" but there is no width selector. Add one, or change the copy. Use skill `add-cart-option` if adding.
 
 ## 3. Logic & behaviour bugs (PROTO)
 
-1. [ ] **P1 · Quick-add paths bypass configuration.**
+1. [x] **P1 · Quick-add paths bypass configuration.** **Done 2026-10-21:** one rule, `needsConfig`/`quickAddable` in `catalog.ts`; CompleteTheLook adds its piece through the PDP (`onAddMain`) in the chosen metal.
    - The paths are CompleteTheLook "Add the set", Wishlist "Add all", VideoViewer, CartUpsell and TryOnStudio.
    - The result: rings and bridal pieces are added without a size, The Teresa Signet without its monogram, and CompleteTheLook ignores the chosen metal.
    - The four "needs configuration" rules disagree. Create one shared `needsConfig(p)` helper.
    - Source: KI-022.
-2. [ ] **P1 · Card price ≠ PDP opening price** for platinum-first pieces.
+2. [x] **P1 · Card price ≠ PDP opening price** for platinum-first pieces. **Done 2026-10-21:** `openingPrice`/`cardPrice` everywhere a piece is listed.
    - Cards and rails use the base price; the PDP opens on `metals[0]`.
    - Examples: Notre-Dame 18,900 → 19,550; the commission's "starting deposit" 5,000 → 5,650.
    - Pick one canonical price, or reorder `BRIDAL_METALS`.
@@ -99,16 +99,16 @@ Scope: compiled 2026-10-15 from `history/figma-make-log.md`, `design-intent.md`,
     - `updateQty(key, 0)` isn't undoable.
     - `lastRemoved` lingers and re-shows the toast on `#/cart`.
     - Source: KI-014, KI-015.
-20. [ ] **P3 · `parseHash` keeps query strings.** `#/c/rings?sort=low` → not found. Strip them, and optionally make the sort URL-addressable. Source: KI-017.
-21. [ ] **P3 · `needsSize` is category-based,** so the Bespoke Engagement Commission (an engagement ring) has no size step.
+20. [x] **P3 · `parseHash` keeps query strings.** `#/c/rings?sort=low` → not found. Strip them, and optionally make the sort URL-addressable. Source: KI-017. **Done 2026-10-21:** routes carry `query`; filters and Own/Rent live in the address.
+21. [x] **P3 · `needsSize` is category-based,** so the Bespoke Engagement Commission (an engagement ring) has no size step. **Done 2026-10-21:** `needsSize(p)` reads the piece type (the commission still sizes at the consultation, by design).
 22. [ ] **P3 · Shop Pay line uses `>= 400` in the display currency.** It disappears for the pearl studs in USD and the vermeil initial disc.
 23. [ ] **P3 · CompleteTheLook and CartUpsell `PAIRS` tables disagree** for bridal, custom and rentals.
 24. [ ] **P3 · CartUpsell "Added" state never shows,** because the item leaves the picks immediately.
-25. [ ] **P3 · Rental sort.** Rentals sort by purchase price, not by the weekend rates shown on the cards.
+25. [x] **P3 · Rental sort.** Rentals sort by purchase price, not by the weekend rates shown on the cards. **Done 2026-10-21:** `PieceGrid` sorts by the price the card shows.
 
 ## 4. Accessibility & UX (PROTO)
 
-1. [ ] **P1 · No visible keyboard focus.** `outline-none` appears 18 times and there are zero `focus-visible:` styles. Add a focus-ring recipe to the design system. Source: KI-040.
+1. [x] **P1 · No visible keyboard focus.** `outline-none` appears 18 times and there are zero `focus-visible:` styles. Add a focus-ring recipe to the design system. Source: KI-040. **Done 2026-10-21:** a global `:focus-visible` ring in `index.css`.
 2. [ ] **P2 · The drawer declares `aria-modal` without a focus trap or focus restore.** Source: KI-041.
 3. [ ] **P2 · Some overlays don't stop Lenis or lock scroll:** the mobile menu, Gallery lightbox and RingSize guide. The mobile menu has no Escape handler. Source: KI-042.
 4. [ ] **P2 · Contrast.** Vermeil (2.8:1) and linen (2.6:1) text on travertine fail WCAG AA at the sizes used. Darken them for text, or reserve them for decoration. Source: KI-045.
@@ -116,8 +116,8 @@ Scope: compiled 2026-10-15 from `history/figma-make-log.md`, `design-intent.md`,
 6. [ ] **P3 · Buttons nested in card `<a>`s** (WishButton, the try-on chip). The chip stays invisible when it has keyboard focus. Source: KI-047.
 7. [ ] **P3 · The header rating row always renders 5 filled stars,** and its count excludes the shopper's own reviews.
 8. [ ] **P3 · Reduced motion is ignored** by the WishButton pop, the Gallery fade, the mega-menu tweens, the drawer slide, RewardProgress and UndoToast. Source: KI-049.
-9. [ ] **P2 · "Try these pieces on" likely shows on phones.** `.link-line` is unlayered and beats `hidden`. Use `max-sm:!hidden`. File: `pages/Category.tsx`. Source: KI-048.
-10. [ ] **P3 · Touch devices never see the card hover image,** and it still downloads. 1600 px images are served everywhere, with no `srcset`.
+9. [x] **P2 · "Try these pieces on" likely shows on phones.** `.link-line` is unlayered and beats `hidden`. Use `max-sm:!hidden`. File: `pages/Category.tsx`. Source: KI-048. **Done 2026-10-21:** `max-sm:!hidden` in `PieceGrid`.
+10. [x] **P3 · Touch devices never see the card hover image,** and it still downloads. 1600 px images are served everywhere, with no `srcset`. **Done 2026-10-21:** the hover photo only exists on hover-capable screens, and photos are responsive (`pic`).
 11. [ ] **P3 · Copy and empty states.**
     - "{n} pieces" has no singular.
     - A category with no products has no empty state.
@@ -138,15 +138,15 @@ Scope: compiled 2026-10-15 from `history/figma-make-log.md`, `design-intent.md`,
 - [x] **P3 · Spelling.** Done 2026-10-21: Canadian English throughout, US English derived per market. Source: KI-063.
 - [ ] **P2 · French review.** The French copy (UI, catalog, hero lines, category accents, FAQ, legal-sounding lines such as the gift-card expiry answer) is a first draft by Claude Code. Have a native Québec copywriter, and for policies a legal reviewer (Charter of the French Language), check it before launch.
 - [ ] **P3 · Locale details.** Collection label `Gifts under $1,000` / `Cadeaux à moins de 1 000 $` doesn't follow the market; the custom-gift-card field's `$` sits by language but not by currency name.
-- [ ] **P3 · Trust row, shipping/returns and care copy are identical for rentals and watches.** Tailor them.
+- [x] **P3 · Trust row, shipping/returns and care copy are identical for rentals and watches.** Tailor them. **Done 2026-10-21:** the PDP trust row follows renting, watches or the default; the returns policy is one text.
 - [ ] **P3 · Labels and links.**
   - The "Begin commission" label also applies to the fixed-price nameplate.
-  - "Book a viewing" and "Ask a jeweller" go to the same `#/atelier`.
+  - ~~"Book a viewing" and "Ask a jeweller" go to the same `#/atelier`.~~ **Done 2026-10-21:** "Book a visit" opens the booking drawer, "Ask a jeweller" the contact sheet.
 - [ ] **P3 · Engraving.**
   - The nameplate is `engravable` but shows no engraving field, while the cost breakdown still lists "Engraving — Included".
   - The engraving counter shows the untrimmed length.
 - [ ] **P3 · `tax.ts` says "2024 rates"** while listing the 2025 NS rate. Source: KI-064.
-- [ ] **P3 · Salon hours in one place.** The desktop menu reads `SALON` (`src/data/salon.ts`), but the Footer and `home/VisitSalon.tsx` still hard-code the hours and telephone. Render them from `SALON`. Source: KI-070.
+- [x] **P3 · Salon hours in one place.** The desktop menu reads `SALON` (`src/data/salon.ts`), but the Footer and `home/VisitSalon.tsx` still hard-code the hours and telephone. Render them from `SALON`. Source: KI-070. **Done 2026-10-21:** Footer and VisitSalon read `SALON`.
 
 ## 6. Tooling & platform (PROTO)
 
@@ -213,6 +213,16 @@ These are recorded so the owner's real build has the full list. **Do not impleme
 
 ## 10. Done since this list was compiled
 
+- [x] **Home refine (2026-10-21, owner request).** Home trimmed to ten acts plus the hero, press, house in numbers and the salon; what left Home lives on its own page. Plan and answers: `.claude/plans/home-refine.md`; record: `features/legacy-redesign.md`.
+
+- [x] **The legacy redesign (2026-10-21, owner request).** Plan: `.claude/plans/legacy-redesign.md`; record: `features/legacy-redesign.md`.
+  - Private visits: a booking drawer from every page and piece (reason, salon/video/phone, day and time, pieces to prepare, confirmation with calendar file, change, cancel), embedded on the Atelier page; visits in Account and on Home.
+  - "Ask a jeweller": call, text, WhatsApp, email, call-back.
+  - Rent or own: the same piece both ways (Own | Rent on the PDP, rentable pieces in Rentals, rental credit).
+  - The two signatures: hero, Home act, signature pages with guides; 8 new pieces; every piece with its own matching photos.
+  - Home: 18 numbered acts, nothing removed, new sections (Signatures, house in numbers, sketch to ring, tennis line, rent or own, the hands, three generations, private visit, welcome back).
+  - PDP doors, maker's note, tailored trust row, reviews moved up, itemized price as a summary; chapter filters and Shop all; header, menus and footer entry points; wishlist as a visit shortlist; ring size, dates to remember and care in Account.
+
 Work that was never on the list, logged so it isn't redone or undone:
 - [x] **Back-to-top control** (`src/components/BackToTop.tsx`). A progress bezel that expands on intent, lifts above `data-fab-avoid` bars and offers a return trip. Docs: `components/global-and-shared.md` §5.
 - [x] **Typography (2026-10-16).** Baskervville display, Jost for text and figures, caps wordmark; `font-spec` renamed `font-spec`. Docs: `design-system.md` §2.
@@ -259,7 +269,7 @@ Work that was never on the list, logged so it isn't redone or undone:
 
 ## 11. Planned features (owner requests, 2026-10-16)
 
-- [ ] **P1 · PROTO · "Shop all" page: every piece in one place. Next up.**
+- [x] **P1 · PROTO · "Shop all" page: every piece in one place. Next up.** **Done 2026-10-21:** `#/shop` (`pages/Shop.tsx`) with filters, linked from the mega menu, the desktop and mobile menus, the footer, Treasured and the empty bag.
   - **Route.** `#/shop` (`href.shop`), added in all five routing places (`Route` union, `parseHash`, `href`, `Routes`, `headFor`). In the theme it maps to Shopify's built-in `/collections/all`.
   - **Page.** In the Category page's style: a vault hero ("Every *piece*", with the French *Toutes les pièces*), the "N pieces · Prices in {currency}" toolbar and sort. Every piece across the nine categories, filterable by category, with try-on for the wearable pieces.
   - **Entry points.** The header "Shop" mega menu (an "All pieces" row), the desktop menu's Shop panel (the same row, first), the mobile menu and the footer's Shop column.
@@ -278,6 +288,16 @@ Work that was never on the list, logged so it isn't redone or undone:
 
     Once collections exist, check the hero's `aria-label="Featured collections"`.
   - **Shopify.** Categories and curated collections are both Shopify collections. Tell them apart with a collection metafield (for example `custom.kind`: `category` or `curated`) or a handle convention, and build the menus from it. Membership comes free, because a product can belong to many Shopify collections.
+
+## 12. Open after the legacy redesign (2026-10-21)
+
+- [ ] **P2 · French review** of the redesign's new copy (house, visits, signatures, filters, Home sections), with the earlier French.
+- [ ] **P2 · Real photography** to the shot list in `.claude/plans/legacy-redesign.md` (Appendix B); the Unsplash set is a placeholder.
+- [ ] **P2 · House facts from the family:** names, years and roles (`HOUSE.years`, `HOUSE.hands`), the hours at the bench, the WhatsApp and text number, the email domain (`SALON.email` is a `.example` placeholder).
+- [x] **P3 · Contrast:** small linen and vermeil text (KI-045). **Done 2026-10-21:** measured sweep, no small text fails; see `features/legacy-redesign.md`.
+- [ ] **P3 · Owner decision: the brand gold for large accents.** Large italic accents in vermeil are 2.81:1 (2.57:1 on silk), under 3:1. Darkening the gold 8% (#A98441) passes; it changes the signature colour slightly, so show the owner first.
+- [ ] **P3 · KB:** the long page docs predate the redesign in parts; run `/kb-refresh` to re-audit them.
+- [ ] **THEME · Booking app** behind the visit drawer (Booxi, Calendly or a Shopify appointments app), real availability, emails and reminders; rental credit applied at the salon or by the theme.
 
 ## Notes & gotchas
 

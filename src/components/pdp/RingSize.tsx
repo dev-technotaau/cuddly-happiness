@@ -56,7 +56,7 @@ export default function RingSize({ value, onChange, error, step }: { value?: str
     <fieldset>
       <div className="mb-4 flex items-center justify-between">
         <legend className={`text-[11px] uppercase tracking-[0.22em] ${error ? 'text-red-700' : ''}`}>
-          {step && <span className="font-spec mr-3 text-[10px] text-[var(--gold-vermeil)]">{step}</span>}
+          {step && <span className="font-spec mr-3 text-[10px] text-[var(--gold-ink)]">{step}</span>}
           {t.ringSize} {value ? <span className="normal-case tracking-normal text-[var(--text-taupe)]">— {sizeLabel(value)}</span> : error && t.pleaseSelect}
         </legend>
         <button type="button" onClick={() => setGuide(true)} className="flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-[var(--text-taupe)] hover:text-[var(--gold-vermeil)]">
@@ -76,30 +76,30 @@ export default function RingSize({ value, onChange, error, step }: { value?: str
           </button>
         ))}
       </div>
-      <p className="mt-3 text-xs text-[var(--text-linen)]">{t.resize}</p>
+      <p className="mt-3 text-xs text-[var(--text-taupe)]">{t.resize}</p>
 
       {guide && (
         <div className="fixed inset-0 z-[95] flex items-center justify-center bg-[var(--bg-vault)]/50 p-4" onClick={() => setGuide(false)}>
           <div role="dialog" aria-modal="true" aria-label={t.dialog} onClick={(e) => e.stopPropagation()} className="max-h-[90vh] w-full max-w-2xl overflow-y-auto bg-[var(--bg-travertine)] p-8 lg:p-12" data-lenis-prevent>
             <div className="flex items-start justify-between">
               <div>
-                <p className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">{t.eyebrow}</p>
+                <p className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-ink)]">{t.eyebrow}</p>
                 <h3 className="font-serif-editorial mt-3 text-4xl font-light">{t.title}</h3>
               </div>
               <button onClick={() => setGuide(false)} aria-label={t.close}><X size={20} strokeWidth={1.3} /></button>
             </div>
             <ol className="mt-8 grid gap-6 text-sm text-[var(--text-taupe)] sm:grid-cols-3">
               {t.steps.map((s, i) => (
-                <li key={i}><span className="font-spec text-[var(--gold-vermeil)]">0{i + 1}</span><br />{s}</li>
+                <li key={i}><span className="font-spec text-[var(--gold-ink)]">0{i + 1}</span><br />{s}</li>
               ))}
             </ol>
             <table className="font-spec mt-10 w-full text-left text-xs">
-              <thead className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-linen)]">
+              <thead className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-taupe)]">
                 <tr className="border-b border-[var(--border-hairline)]"><th className="py-3">{t.head[0]}</th><th>{t.head[1]}</th><th>{t.head[2]}</th></tr>
               </thead>
               <tbody>
                 {RING_SIZES.map(([s, d, c]) => (
-                  <tr key={s} className={`border-b border-[var(--border-hairline)] ${value === s ? 'text-[var(--gold-vermeil)]' : ''}`}>
+                  <tr key={s} className={`border-b border-[var(--border-hairline)] ${value === s ? 'text-[var(--gold-ink)]' : ''}`}>
                     <td className="py-2.5">{sizeLabel(s)}</td><td>{mm(d)}</td><td>{mm(c)}</td>
                   </tr>
                 ))}

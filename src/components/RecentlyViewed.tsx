@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { History, X } from 'lucide-react'
-import { getProduct, priceFor, type Product } from '../data/catalog'
+import { cardPrice, getProduct, type Product } from '../data/catalog'
 import { bilingual, useCopy } from '../i18n'
 import { useCatalog } from '../i18n/catalog'
 import { rich } from '../i18n/rich'
@@ -73,9 +73,9 @@ export function RecentlyViewedStrip({ exclude, limit = 3, onNavigate, title }: {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="font-serif-editorial truncate text-lg leading-tight group-hover:text-[var(--gold-vermeil)]">{catalog.name(p)}</p>
-                <p className="font-spec text-[10px] uppercase tracking-[0.14em] text-[var(--text-linen)]">{catalog.product(p).collection}</p>
+                <p className="font-spec text-[10px] uppercase tracking-[0.14em] text-[var(--text-taupe)]">{catalog.product(p).collection}</p>
               </div>
-              <Price amount={p.rental ? p.rental.weekend[currency] : priceFor(p, currency)} className="shrink-0 text-xs" />
+              <Price amount={cardPrice(p, currency).amount} className="shrink-0 text-xs" />
             </a>
           </li>
         ))}

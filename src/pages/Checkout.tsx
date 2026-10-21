@@ -129,7 +129,7 @@ const COPY = bilingual(
   },
 )
 
-const field = 'mt-2 w-full border-b border-[var(--border-hairline)] bg-transparent py-2 outline-none focus:border-[var(--gold-vermeil)]'
+const field = 'mt-2 w-full border-b border-[var(--border-hairline)] bg-transparent py-2 outline-none placeholder:text-[var(--text-taupe)] focus:border-[var(--gold-vermeil)]'
 const label = 'text-[11px] uppercase tracking-[0.22em]'
 
 interface Applied {
@@ -201,7 +201,7 @@ export default function Checkout() {
   if (placed) {
     return (
       <section className="mx-auto max-w-3xl px-6 py-32 text-center">
-        <p className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">{t.order(placed.order)}</p>
+        <p className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-ink)]">{t.order(placed.order)}</p>
         <h1 className="font-serif-editorial mt-6 text-6xl font-light">{t.merci}</h1>
         <p className="mt-6 text-[var(--text-taupe)]">
           {t.confirmation}{placed.paidWithCards > 0 && <> {t.paidBefore}<Price amount={placed.paidWithCards} />{t.paidAfter}</>}
@@ -236,7 +236,7 @@ export default function Checkout() {
     return (
       <section className="py-40 text-center">
         <p className="font-serif-editorial text-4xl italic text-[var(--text-taupe)]">{t.empty}</p>
-        <a href={href.home} className="mt-8 inline-block text-[11px] uppercase tracking-[0.24em] text-[var(--gold-vermeil)]">{t.continue}</a>
+        <a href={href.home} className="mt-8 inline-block text-[11px] uppercase tracking-[0.24em] text-[var(--gold-ink)]">{t.continue}</a>
         <div className="mx-auto mt-16 max-w-md px-6">
           <RecentlyViewedStrip />
         </div>
@@ -360,7 +360,7 @@ export default function Checkout() {
                 placeholder="XXXX XXXX XXXX XXXX"
                 autoComplete="off"
                 spellCheck={false}
-                className="font-spec min-w-0 flex-1 bg-transparent px-3 py-3 text-xs uppercase tracking-[0.14em] outline-none placeholder:opacity-40"
+                className="font-spec min-w-0 flex-1 bg-transparent px-3 py-3 text-xs uppercase tracking-[0.14em] outline-none placeholder:text-[var(--text-taupe)]"
               />
               <button type="button" onClick={applyCode} className="px-4 text-[10px] font-medium uppercase tracking-[0.2em] hover:text-[var(--gold-vermeil)]">{t.apply}</button>
             </div>
@@ -375,7 +375,7 @@ export default function Checkout() {
                     </span>
                     <span className="text-[var(--text-taupe)]">
                       − <Price amount={u.use} className="[&_span]:hidden" />
-                      {u.available - u.use > 0 && <span className="ml-2 text-[var(--text-linen)]">{t.leftBefore}<Price amount={u.available - u.use} className="[&_span]:hidden" />{t.leftAfter}</span>}
+                      {u.available - u.use > 0 && <span className="ml-2 text-[var(--text-taupe)]">{t.leftBefore}<Price amount={u.available - u.use} className="[&_span]:hidden" />{t.leftAfter}</span>}
                     </span>
                   </li>
                 ))}
@@ -394,7 +394,7 @@ export default function Checkout() {
               </div>
             )}
             {cardsTotal > 0 && (
-              <div className="flex justify-between text-[var(--gold-vermeil)]"><dt>{t.cardsApplied}</dt><dd>− <Price amount={cardsTotal} /></dd></div>
+              <div className="flex justify-between text-[var(--gold-ink)]"><dt>{t.cardsApplied}</dt><dd>− <Price amount={cardsTotal} /></dd></div>
             )}
             <div className="flex items-baseline justify-between border-t border-[var(--border-hairline)] pt-4 text-base">
               <dt className="text-[11px] uppercase tracking-[0.2em]">{t.due}</dt>

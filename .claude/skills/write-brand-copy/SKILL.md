@@ -30,14 +30,14 @@ Teresa & Sons is a Montréal family maison founded in 1962 by Teresa Moretti. He
   | Group | Labels |
   |---|---|
   | Bag | Add to bag · Go to bag · Add all to bag |
-  | Appointments | Book a viewing · Book an appointment · Request appointment · Contact concierge |
+  | Visits and contact | Book a visit · Ask a jeweller (the only verbs; "Book a fitting" on rentals and "Book a design consultation" on commissions are the two exceptions). Never "viewing", "appointment" or "concierge" on a button |
   | Configuration | Choose dates · Personalize this piece · Choose size & options · Select options · Begin commission |
   | Try-on | View on you · Try on |
   | Navigation | Explore Rings · Shop {Category} → · Clear history |
 
   Bag actions say "bag", never "cart".
 - **Microcopy:** calm and helpful, with the reason when it helps:
-  - "We couldn’t find that card. Check the number, or contact our concierge."
+  - "We couldn’t find that card. Check the number, or ask a jeweller."
   - "Gift cards are not taxed at purchase and cannot be paid for with another gift card."
 - **Empty states:** a gentle serif line plus a hint. Example: "Nothing saved yet." / "Tap the heart on any piece to keep it here."
 - **Confirmations:** for example "Merci. Our concierge will be in touch within one business day."

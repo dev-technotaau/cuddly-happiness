@@ -89,20 +89,20 @@ export default function LocaleMenu({ className = '' }: { className?: string }) {
         inert={!open}
         className={`absolute right-0 top-full mt-3 w-[300px] origin-top-right border border-[var(--border-hairline)] bg-[var(--bg-travertine)] shadow-[0_30px_60px_-32px_rgba(20,19,17,0.4)] transition-[opacity,translate] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none ${open ? 'translate-y-0 opacity-100' : 'pointer-events-none -translate-y-1.5 opacity-0'}`}
       >
-        <p className="font-spec px-5 pb-2 pt-5 text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">{t.heading}</p>
+        <p className="font-spec px-5 pb-2 pt-5 text-[10px] uppercase tracking-[0.3em] text-[var(--gold-ink)]">{t.heading}</p>
         <div role="group" aria-label={t.heading}>
           {LANGS.map((l) => (
             <button key={l} type="button" lang={l} onClick={() => setLang(l)} aria-pressed={lang === l} className={row(lang === l)}>
               <span className="flex flex-col">
                 <span className="font-serif-editorial text-[19px] leading-tight">{LANGUAGE[l].name}</span>
-                <span className="font-spec mt-0.5 text-[9px] uppercase tracking-[0.22em] text-[var(--text-linen)]">{WHERE[l]}</span>
+                <span className="font-spec mt-0.5 text-[9px] uppercase tracking-[0.22em] text-[var(--text-taupe)]">{WHERE[l]}</span>
               </span>
               <Check size={14} strokeWidth={1.4} aria-hidden="true" className={`shrink-0 text-[var(--gold-vermeil)] transition-opacity ${lang === l ? 'opacity-100' : 'opacity-0'}`} />
             </button>
           ))}
         </div>
 
-        <p className="font-spec mt-2 border-t border-[var(--border-hairline)] px-5 pb-2 pt-4 text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">{t.market}</p>
+        <p className="font-spec mt-2 border-t border-[var(--border-hairline)] px-5 pb-2 pt-4 text-[10px] uppercase tracking-[0.3em] text-[var(--gold-ink)]">{t.market}</p>
         <div role="group" aria-label={t.market}>
           {(['CAD', 'USD'] as const).map((c) => (
             <button key={c} type="button" onClick={() => setCurrency(c)} aria-pressed={currency === c} className={row(currency === c)}>
@@ -117,7 +117,7 @@ export default function LocaleMenu({ className = '' }: { className?: string }) {
 
         <div className="mt-2 border-t border-[var(--border-hairline)] px-5 py-4 text-xs leading-relaxed text-[var(--text-taupe)]">
           <p aria-live="polite">{t.summary(t.variant[locale], t.money[currency])}</p>
-          <p className="mt-1 text-[var(--text-linen)]">{t.keep}</p>
+          <p className="mt-1 text-[var(--text-taupe)]">{t.keep}</p>
         </div>
       </div>
     </div>

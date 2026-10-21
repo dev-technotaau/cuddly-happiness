@@ -16,6 +16,16 @@
     --gold-vermeil: #B89047;
     --gold-champagne: #D4B982;
     --border-hairline: #E6E0D4;
+    /* Gold for small text that must be read (step numbers, inline links): vermeil deepened to pass WCAG AA (4.7:1) on
+       travertine. Vermeil itself stays for accents, rules and display type. */
+    --gold-ink: #846529;
+  }
+
+  /* One visible focus ring for every control reached by keyboard. Fields that draw their own focus (a gold underline)
+     opt out with outline-none, which as a utility wins over this base layer. */
+  :where(a, button, input, select, textarea, summary, [tabindex], [role='slider']):focus-visible {
+    outline: 1px solid var(--gold-vermeil);
+    outline-offset: 3px;
   }
 
   html {

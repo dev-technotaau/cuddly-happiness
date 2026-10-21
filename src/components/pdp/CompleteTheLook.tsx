@@ -1,6 +1,6 @@
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
-import { PRODUCTS, priceFor, type Product, type RentalBooking } from '../../data/catalog'
+import { PRODUCTS, priceFor, quickAddable, rentFirst, type Metal, type Product, type RentalBooking } from '../../data/catalog'
 import { bilingual, useCopy } from '../../i18n'
 import { useCatalog } from '../../i18n/catalog'
 import { rich } from '../../i18n/rich'
@@ -66,44 +66,58 @@ const PAIRS: Record<string, string[]> = {
   custom: ['bridal', 'earrings'],
 }
 
-/** Pieces that complete the look. Rentals pair only with other rentals so the set can be reserved as one. */
-export function getLookPieces(product: Product): Product[] {
-  if (product.rental) {
-    return PRODUCTS.filter((p) => p.rental && p.slug !== product.slug).slice(0, 2)
+const inChapter = (p: Product, of: Product) => p.category === of.category || !!p.alsoIn?.includes(of.category)
+
+/** Pieces that complete the look. Renting, they are other rentable pieces, from other chapters first, so the set can be
+ *  reserved as one; buying, they are pieces that can join the bag as they are, in a matching metal. */
+export function getLookPieces(product: Product, rent = rentFirst(product)): Product[] {
+  if (rent) {
+    return PRODUCTS.filter((p) => p.rental && p.slug !== product.slug && p.type !== product.type)
+      .sort((a, b) => Number(inChapter(a, product)) - Number(inChapter(b, product)))
+      .slice(0, 2)
   }
   const cats = PAIRS[product.category] ?? []
   return cats
-    .map((c) => PRODUCTS.find((p) => p.category === c && p.metals.some((m) => product.metals.includes(m))))
+    .map((c) => PRODUCTS.find((p) => p.category === c && quickAddable(p) && p.metals.some((m) => product.metals.includes(m))))
     .filter((p): p is Product => !!p)
 }
 
 interface Props {
   product: Product
   index: string
+  /** Renting rather than buying. */
+  rent: boolean
+  /** The metal chosen above: the set follows it where each piece offers it. */
+  metal?: Metal
   period: RentalPeriod
   onPeriodChange: (p: RentalPeriod) => void
   booking?: Partial<RentalBooking>
+  /** Adds the piece on this page as configured above; false (and the page shows the missing choice) when it can't. */
+  onAddMain: () => boolean
   /** Called when the ensemble cannot be reserved until dates are chosen. */
   onNeedBooking?: () => void
 }
 
-export default function CompleteTheLook({ product, index, period, onPeriodChange, booking, onNeedBooking }: Props) {
+export default function CompleteTheLook({ product, index, rent, metal, period, onPeriodChange, booking, onAddMain, onNeedBooking }: Props) {
   const { currency, addToCart } = useStore()
   const t = useCopy(COPY)
   const catalog = useCatalog()
   const [conflict, setConflict] = useState<Product | null>(null)
-  const pieces = getLookPieces(product)
+  const pieces = getLookPieces(product, rent)
   if (pieces.length === 0) return null
 
-  const isRental = !!product.rental
+  const isRental = rent
   const look = [product, ...pieces]
-  const priceOf = (p: Product) => (isRental && p.rental ? p.rental[period][currency] : priceFor(p, currency))
+  const metalFor = (p: Product) => (metal && p.metals.includes(metal) ? metal : p.metals[0])
+  const priceOf = (p: Product) => (isRental && p.rental ? p.rental[period][currency] : priceFor(p, currency, metalFor(p)))
   const total = look.reduce((s, p) => s + priceOf(p), 0)
   const deposit = isRental ? look.reduce((s, p) => s + (p.rental?.deposit[currency] ?? 0), 0) : 0
 
   const addSet = () => {
     if (!isRental) {
-      look.forEach((p) => addToCart({ slug: p.slug, metal: p.metals[0] }))
+      // The piece on this page goes in as configured (size, engraving…); the others in the matching metal.
+      if (!onAddMain()) return
+      pieces.forEach((p) => addToCart({ slug: p.slug, metal: metalFor(p) }))
       return
     }
     // The whole ensemble shares one booking, so every piece must be free on those dates.
@@ -135,7 +149,7 @@ export default function CompleteTheLook({ product, index, period, onPeriodChange
             {look.map((p, i) => (
               <div key={p.id} className="contents">
                 {i > 0 && <Plus size={18} strokeWidth={1.2} className="shrink-0 text-[var(--gold-vermeil)]" />}
-                <a href={href.product(p.slug)} data-reveal={i * 0.08} className="group block min-w-0 flex-1">
+                <a href={href.product(p.slug, isRental)} data-reveal={i * 0.08} className="group block min-w-0 flex-1">
                   <div className="aspect-[4/5] overflow-hidden bg-[var(--bg-travertine)]">
                     <img src={p.images[0]} alt={catalog.name(p)} loading="lazy" className="editorial-zoom h-full w-full object-cover" />
                   </div>
@@ -182,7 +196,7 @@ export default function CompleteTheLook({ product, index, period, onPeriodChange
               {isRental ? t.reserve : t.addSet}
             </button>
             {isRental && (
-              <p role={conflict ? 'alert' : undefined} className={`mt-3 text-xs ${conflict ? 'text-red-700' : 'text-[var(--text-linen)]'}`}>
+              <p role={conflict ? 'alert' : undefined} className={`mt-3 text-xs ${conflict ? 'text-red-700' : 'text-[var(--text-taupe)]'}`}>
                 {conflict ? t.busy(catalog.name(conflict)) : booking?.start ? t.usesDates : t.chooseDates}
               </p>
             )}
