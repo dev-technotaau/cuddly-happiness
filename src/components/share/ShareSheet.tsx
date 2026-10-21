@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom'
 import { ArrowUpRight, Check, Copy, Gift, Link2, Share, X } from 'lucide-react'
 import { getLenis } from '../SmoothScroll'
 import { copyText, displayUrl, intentUrl, lastChannel, noteShare, shareUrl, type ShareChannel } from '../../lib/share'
+import { bilingual, useCopy } from '../../i18n'
+import { rich } from '../../i18n/rich'
 
 /** What a share is about: one configured piece, or a list such as the wishlist. Prices arrive already formatted. */
 export interface ShareSubject {
@@ -33,6 +35,126 @@ const tile = 'group flex h-full w-full flex-col justify-between gap-5 bg-[var(--
 const check = 'h-3.5 w-3.5 cursor-pointer accent-[var(--text-espresso)]'
 const em = 'text-[var(--gold-vermeil)]'
 
+// The sheet's own words, and the messages it drafts: those go out in the sender's language.
+const COPY = bilingual(
+  {
+    listLead: 'A few pieces I love at Teresa & Sons:',
+    by: (title: string) => `${title} by Teresa & Sons`,
+    hello: (name: string) => `Hi ${name},\n\n`,
+    fallen: (title: string, metal?: string) => `I’ve fallen for a piece at Teresa & Sons: the ${title}${metal ? `, in ${metal}` : ''}.`,
+    mySize: (size: string) => ` For the record, my ring size is ${size}.`,
+    itIs: (price: string) => ` It’s ${price}.`,
+    ideas: '\n\nIn case you’re ever looking for ideas.',
+    subjectHint: 'A small hint',
+    subjectList: 'My Teresa & Sons wishlist',
+    shared: 'Shared',
+    statuses: { link: 'Link copied', list: 'List copied, with a link to each piece', message: 'Message copied, with the link', text: 'Text copied, with the link' } as Record<Copied, string>,
+    selected: (keys: string) => `Selected. Press ${keys} to copy.`,
+    channels: { whatsapp: 'Send it as a message', sms: 'Text it', emailPiece: 'With every detail', emailList: 'The whole list', pinterest: 'Pin the photograph', facebook: 'Post the piece', x: 'Post a link' },
+    messages: 'Messages',
+    email: 'Email',
+    usedLast: 'Used last time',
+    copied: 'Copied',
+    preview: 'What they’ll see',
+    eachLinked: (n: number) => `${n} piece${n === 1 ? '' : 's'}, each with its own link`,
+    titleHint: 'Drop a <em>hint</em>',
+    titlePiece: 'Share this <em>piece</em>',
+    titleList: 'Share your <em>wishlist</em>',
+    close: 'Close',
+    how: 'How to share',
+    share: 'Share',
+    hint: 'Drop a hint',
+    sendDevice: 'Send from this device',
+    shareDevice: 'Share from this device',
+    attach: 'Attach the photograph',
+    link: 'Link',
+    linkLabel: 'Link to this piece',
+    copyLink: 'Copy link',
+    manual: (keys: string) => `Your browser kept the clipboard to itself; the link is selected, so press ${keys}.`,
+    listCopied: 'List copied',
+    copyList: 'Copy the list, with a link to each piece',
+    note: 'Add a note',
+    optional: '(optional)',
+    notePiece: 'Thought of you when I saw this.',
+    noteList: 'For the birthday list.',
+    sendWith: 'Or send it with',
+    copyText: 'Copy text',
+    copyTextNote: 'For Instagram and the rest',
+    quiet: 'A quiet word to someone who might be looking for ideas. It opens in your own messages, and we never contact them.',
+    for: 'For',
+    theirName: 'Their name (optional)',
+    yourHint: 'Your hint',
+    mention: (size: string) => `Mention my size (${size})`,
+    price: 'Include the price',
+    restore: 'Restore the suggested wording',
+    selectedShort: (keys: string) => `Selected: press ${keys} to copy.`,
+    linkAdded: 'The link is added for you.',
+    sendBy: 'Send it by',
+    subjectLine: 'Subject: A small hint',
+    copy: 'Copy',
+    paste: 'Paste it anywhere',
+    nothingSent: 'Nothing is sent from our site. Each option opens your own app, and you choose who receives it.',
+  },
+  {
+    listLead: 'Quelques pièces que j’adore chez Teresa & Sons :',
+    by: (title) => `${title}, par Teresa & Sons`,
+    hello: (name) => `Bonjour ${name},\n\n`,
+    fallen: (title, metal) => `J’ai eu un coup de cœur pour une pièce chez Teresa & Sons : « ${title} »${metal ? `, en ${metal.toLowerCase()}` : ''}.`,
+    mySize: (size) => ` Pour mémoire, ma taille de bague est ${size}.`,
+    itIs: (price) => ` Elle coûte ${price}.`,
+    ideas: '\n\nAu cas où tu chercherais des idées.',
+    subjectHint: 'Un petit indice',
+    subjectList: 'Ma liste de souhaits Teresa & Sons',
+    shared: 'Partagé',
+    statuses: { link: 'Lien copié', list: 'Liste copiée, avec un lien vers chaque pièce', message: 'Message copié, avec le lien', text: 'Texte copié, avec le lien' },
+    selected: (keys) => `Sélectionné. Appuyez sur ${keys} pour copier.`,
+    channels: { whatsapp: 'L’envoyer en message', sms: 'Par texto', emailPiece: 'Avec tous les détails', emailList: 'Toute la liste', pinterest: 'Épingler la photo', facebook: 'Publier la pièce', x: 'Publier un lien' },
+    messages: 'Messages',
+    email: 'Courriel',
+    usedLast: 'Utilisé la dernière fois',
+    copied: 'Copié',
+    preview: 'Ce que verra la personne',
+    eachLinked: (n) => `${n} pièce${n < 2 ? '' : 's'}, chacune avec son lien`,
+    titleHint: 'Laisser un <em>indice</em>',
+    titlePiece: 'Partager cette <em>pièce</em>',
+    titleList: 'Partager votre <em>liste</em>',
+    close: 'Fermer',
+    how: 'Comment partager',
+    share: 'Partager',
+    hint: 'Laisser un indice',
+    sendDevice: 'Envoyer depuis cet appareil',
+    shareDevice: 'Partager depuis cet appareil',
+    attach: 'Joindre la photo',
+    link: 'Lien',
+    linkLabel: 'Lien vers cette pièce',
+    copyLink: 'Copier le lien',
+    manual: (keys) => `Votre navigateur garde le presse-papiers pour lui; le lien est sélectionné, appuyez sur ${keys}.`,
+    listCopied: 'Liste copiée',
+    copyList: 'Copier la liste, avec un lien vers chaque pièce',
+    note: 'Ajouter un mot',
+    optional: '(facultatif)',
+    notePiece: 'J’ai pensé à toi en voyant ceci.',
+    noteList: 'Pour la liste d’anniversaire.',
+    sendWith: 'Ou l’envoyer par',
+    copyText: 'Copier le texte',
+    copyTextNote: 'Pour Instagram et ailleurs',
+    quiet: 'Un mot discret à quelqu’un qui cherche peut-être des idées. Il s’ouvre dans votre propre messagerie, et nous ne communiquons jamais avec cette personne.',
+    for: 'Pour',
+    theirName: 'Son prénom (facultatif)',
+    yourHint: 'Votre indice',
+    mention: (size) => `Mentionner ma taille (${size})`,
+    price: 'Inclure le prix',
+    restore: 'Rétablir le texte suggéré',
+    selectedShort: (keys) => `Sélectionné : appuyez sur ${keys} pour copier.`,
+    linkAdded: 'Le lien est ajouté pour vous.',
+    sendBy: 'L’envoyer par',
+    subjectLine: 'Objet : Un petit indice',
+    copy: 'Copier',
+    paste: 'À coller où vous voulez',
+    nothingSent: 'Rien n’est envoyé depuis notre site. Chaque option ouvre votre propre application, et c’est vous qui choisissez le destinataire.',
+  },
+)
+
 /** Columns for a hairline tile grid of `n`, so no row is left with an empty cell. */
 const gridFor = (n: number) => `${n === 1 ? 'grid-cols-1' : 'grid-cols-2'} ${n === 2 ? 'sm:grid-cols-2' : n === 4 ? 'sm:grid-cols-4' : 'sm:grid-cols-3'}`
 /** The last tile stretches over whatever its row has left. */
@@ -50,6 +172,7 @@ const spanFor = (n: number, i: number) => {
  * from the site; every option hands off to the visitor's own apps.
  */
 export default function ShareSheet({ subject, initialMode = 'share', onClose }: { subject: ShareSubject; initialMode?: Mode; onClose: () => void }) {
+  const t = useCopy(COPY)
   const titleId = useId()
   const panel = useRef<HTMLDivElement>(null)
   const linkField = useRef<HTMLInputElement>(null)
@@ -152,26 +275,26 @@ export default function ShareSheet({ subject, initialMode = 'share', onClose }: 
     const lead = note.trim()
     if (!piece) {
       const rows = (subject.items ?? []).map((it) => `• ${it.name} — ${it.priceText}\n  ${shareUrl(it.route, channel)}`)
-      return `${lead || 'A few pieces I love at Teresa & Sons:'}\n\n${rows.join('\n')}`
+      return `${lead || t.listLead}\n\n${rows.join('\n')}`
     }
-    if (channel === 'x') return `${lead ? `${lead} ` : ''}${subject.title} by Teresa & Sons, Montréal`
+    if (channel === 'x') return `${lead ? `${lead} ` : ''}${t.by(subject.title)}, Montréal`
     if (channel === 'pinterest') return `${subject.title}. ${subject.tagline ? `${subject.tagline} ` : ''}Teresa & Sons, Montréal.`
-    return `${lead ? `${lead}\n\n` : ''}${subject.title} by Teresa & Sons${line ? ` — ${line}` : ''}.`
+    return `${lead ? `${lead}\n\n` : ''}${t.by(subject.title)}${line ? ` — ${line}` : ''}.`
   }
 
   const suggested = useMemo(() => {
     const h = subject.hint
     return [
-      to.trim() ? `Hi ${to.trim()},\n\n` : '',
-      `I’ve fallen for a piece at Teresa & Sons: the ${subject.title}${h?.metal ? `, in ${h.metal}` : ''}.`,
-      h?.size && withSize ? ` For the record, my ring size is ${h.size}.` : '',
-      withPrice && subject.priceText ? ` It’s ${subject.priceText}.` : '',
-      '\n\nIn case you’re ever looking for ideas.',
+      to.trim() ? t.hello(to.trim()) : '',
+      t.fallen(subject.title, h?.metal),
+      h?.size && withSize ? t.mySize(h.size) : '',
+      withPrice && subject.priceText ? t.itIs(subject.priceText) : '',
+      t.ideas,
     ].join('')
-  }, [to, withSize, withPrice, subject])
+  }, [to, withSize, withPrice, subject, t])
   const hint = draft ?? suggested
 
-  const emailSubject = mode === 'hint' ? 'A small hint' : piece ? `${subject.title} — Teresa & Sons` : 'My Teresa & Sons wishlist'
+  const emailSubject = mode === 'hint' ? t.subjectHint : piece ? `${subject.title} — Teresa & Sons` : t.subjectList
 
   const shareNative = async () => {
     const data: ShareData = { title: subject.title, text: mode === 'hint' ? hint : shareText('native') }
@@ -180,7 +303,7 @@ export default function ShareSheet({ subject, initialMode = 'share', onClose }: 
     try {
       await navigator.share(data)
       noteShare('native', meta)
-      setStatus('Shared')
+      setStatus(t.shared)
     } catch {
       // Dismissed, or the target refused; the sheet stays open for another route.
     }
@@ -196,7 +319,7 @@ export default function ShareSheet({ subject, initialMode = 'share', onClose }: 
     if (await copyText(text)) {
       setCopied(what)
       setManual(false)
-      setStatus({ link: 'Link copied', list: 'List copied, with a link to each piece', message: 'Message copied, with the link', text: 'Text copied, with the link' }[what])
+      setStatus(t.statuses[what])
       noteShare('copy', meta)
       return
     }
@@ -205,20 +328,20 @@ export default function ShareSheet({ subject, initialMode = 'share', onClose }: 
     target?.focus()
     target?.select()
     setManual(true)
-    setStatus(`Selected. Press ${shortcut} to copy.`)
+    setStatus(t.selected(shortcut))
   }
 
   const channels = useMemo(() => {
     const all: { id: ShareChannel; label: string; note: string }[] = [
-      { id: 'whatsapp', label: 'WhatsApp', note: 'Send it as a message' },
-      ...(touch ? [{ id: 'sms' as const, label: 'Messages', note: 'Text it' }] : []),
-      { id: 'email', label: 'Email', note: piece ? 'With every detail' : 'The whole list' },
-      ...(piece && subject.image ? [{ id: 'pinterest' as const, label: 'Pinterest', note: 'Pin the photograph' }] : []),
-      ...(piece ? [{ id: 'facebook' as const, label: 'Facebook', note: 'Post the piece' }, { id: 'x' as const, label: 'X', note: 'Post a link' }] : []),
+      { id: 'whatsapp', label: 'WhatsApp', note: t.channels.whatsapp },
+      ...(touch ? [{ id: 'sms' as const, label: t.messages, note: t.channels.sms }] : []),
+      { id: 'email', label: t.email, note: piece ? t.channels.emailPiece : t.channels.emailList },
+      ...(piece && subject.image ? [{ id: 'pinterest' as const, label: 'Pinterest', note: t.channels.pinterest }] : []),
+      ...(piece ? [{ id: 'facebook' as const, label: 'Facebook', note: t.channels.facebook }, { id: 'x' as const, label: 'X', note: t.channels.x }] : []),
     ]
     const recent = lastChannel()
     return recent ? [...all.filter((c) => c.id === recent), ...all.filter((c) => c.id !== recent)] : all
-  }, [touch, piece, subject.image])
+  }, [touch, piece, subject.image, t])
 
   const hintChannels = channels.filter((c) => c.id === 'whatsapp' || c.id === 'sms' || c.id === 'email')
   const href = (id: ShareChannel) => intentUrl(id, { text: mode === 'hint' ? hint : shareText(id), url: link(id), subject: emailSubject, image: subject.image })
@@ -236,7 +359,7 @@ export default function ShareSheet({ subject, initialMode = 'share', onClose }: 
           <span className="text-[11px] font-medium uppercase tracking-[0.2em]">{name}</span>
           <ArrowUpRight size={14} strokeWidth={1.4} className="shrink-0 text-[var(--text-linen)] transition-[translate,color] duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[var(--gold-vermeil)]" />
         </span>
-        <span className="text-xs text-[var(--text-taupe)]">{id === lastChannel() ? 'Used last time' : sub}</span>
+        <span className="text-xs text-[var(--text-taupe)]">{id === lastChannel() ? t.usedLast : sub}</span>
       </a>
     </li>
   )
@@ -244,7 +367,7 @@ export default function ShareSheet({ subject, initialMode = 'share', onClose }: 
     <li key={what} className={span}>
       <button type="button" onClick={() => copy(what)} className={tile}>
         <span className="flex items-start justify-between gap-3">
-          <span className="text-[11px] font-medium uppercase tracking-[0.2em]">{copied === what ? 'Copied' : name}</span>
+          <span className="text-[11px] font-medium uppercase tracking-[0.2em]">{copied === what ? t.copied : name}</span>
           {copied === what ? <Check size={14} strokeWidth={1.8} className="shrink-0 text-[var(--gold-vermeil)]" /> : <Copy size={14} strokeWidth={1.4} className="shrink-0 text-[var(--text-linen)] transition-colors duration-300 group-hover:text-[var(--gold-vermeil)]" />}
         </span>
         <span className="text-xs text-[var(--text-taupe)]">{sub}</span>
@@ -267,7 +390,7 @@ export default function ShareSheet({ subject, initialMode = 'share', onClose }: 
       >
         {/* What they'll see (md+): the message as it will read, above the card the link unfurls into */}
         <aside className="hidden flex-col bg-[var(--bg-silk)] p-8 md:flex">
-          <p className={label}>What they’ll see</p>
+          <p className={label}>{t.preview}</p>
           {bubble && <p className="mt-5 line-clamp-[8] whitespace-pre-line border-l-2 border-[var(--gold-vermeil)] bg-[var(--bg-travertine)] px-4 py-3 text-sm leading-relaxed">{bubble}</p>}
           {piece ? (
             <div className="mt-5 border border-[var(--border-hairline)] bg-[var(--bg-travertine)] p-3 shadow-[0_24px_48px_-32px_rgba(20,19,17,0.35)]">
@@ -286,7 +409,7 @@ export default function ShareSheet({ subject, initialMode = 'share', onClose }: 
                   <div key={it.route} className="aspect-square overflow-hidden bg-[var(--bg-silk)]"><img src={it.image.replace('w=1600', 'w=400')} alt="" className="h-full w-full object-cover" /></div>
                 ))}
               </div>
-              <p className="font-serif-editorial mt-4 px-1 text-xl leading-tight">{subject.items?.length} {subject.items?.length === 1 ? 'piece' : 'pieces'}, each with its own link</p>
+              <p className="font-serif-editorial mt-4 px-1 text-xl leading-tight">{t.eachLinked(subject.items?.length ?? 0)}</p>
               <p className="mt-1 truncate px-1 pb-1 text-xs text-[var(--text-taupe)]">{subject.items?.map((it) => it.name).join(' · ')}</p>
             </div>
           )}
@@ -299,10 +422,10 @@ export default function ShareSheet({ subject, initialMode = 'share', onClose }: 
             <div>
               <p className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">{mode === 'hint' ? 'Un petit indice' : 'Partager'}</p>
               <h2 id={titleId} className="font-serif-editorial mt-3 text-3xl leading-tight sm:text-4xl">
-                {mode === 'hint' ? <>Drop a <em className={em}>hint</em></> : piece ? <>Share this <em className={em}>piece</em></> : <>Share your <em className={em}>wishlist</em></>}
+                {rich(mode === 'hint' ? t.titleHint : piece ? t.titlePiece : t.titleList, em)}
               </h2>
             </div>
-            <button type="button" onClick={close} aria-label="Close" className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[var(--border-hairline)] transition-colors hover:border-[var(--text-espresso)] ${ring}`}>
+            <button type="button" onClick={close} aria-label={t.close} className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[var(--border-hairline)] transition-colors hover:border-[var(--text-espresso)] ${ring}`}>
               <X size={18} strokeWidth={1.4} />
             </button>
           </div>
@@ -317,7 +440,7 @@ export default function ShareSheet({ subject, initialMode = 'share', onClose }: 
           )}
 
           {subject.hint && (
-            <div role="tablist" aria-label="How to share" className="mt-6 grid grid-cols-2 border border-[var(--border-hairline)] p-1">
+            <div role="tablist" aria-label={t.how} className="mt-6 grid grid-cols-2 border border-[var(--border-hairline)] p-1">
               {(['share', 'hint'] as const).map((m) => (
                 <button
                   key={m}
@@ -327,7 +450,7 @@ export default function ShareSheet({ subject, initialMode = 'share', onClose }: 
                   onClick={() => setMode(m)}
                   className={`flex items-center justify-center gap-2 py-2.5 text-[10px] uppercase tracking-[0.22em] transition-colors duration-300 ${ring} ${mode === m ? 'bg-[var(--text-espresso)] text-[var(--bg-travertine)]' : 'text-[var(--text-taupe)] hover:text-[var(--text-espresso)]'}`}
                 >
-                  {m === 'share' ? <><Share size={13} strokeWidth={1.4} /> Share</> : <><Gift size={13} strokeWidth={1.4} /> Drop a hint</>}
+                  {m === 'share' ? <><Share size={13} strokeWidth={1.4} /> {t.share}</> : <><Gift size={13} strokeWidth={1.4} /> {t.hint}</>}
                 </button>
               ))}
             </div>
@@ -337,12 +460,12 @@ export default function ShareSheet({ subject, initialMode = 'share', onClose }: 
             {canNative && (
               <div className="mt-7">
                 <button type="button" onClick={shareNative} className={`flex w-full items-center justify-center gap-3 bg-[var(--text-espresso)] py-4 text-[11px] font-medium uppercase tracking-[0.26em] text-[var(--bg-travertine)] transition-colors duration-500 hover:bg-[var(--gold-vermeil)] ${ring}`}>
-                  <Share size={15} strokeWidth={1.4} /> {mode === 'hint' ? 'Send from this device' : 'Share from this device'}
+                  <Share size={15} strokeWidth={1.4} /> {mode === 'hint' ? t.sendDevice : t.shareDevice}
                 </button>
                 {piece && photo && (
                   <label className="mt-3 flex w-max cursor-pointer items-center gap-2.5 text-xs text-[var(--text-taupe)]">
                     <input type="checkbox" checked={withPhoto} onChange={(e) => setWithPhoto(e.target.checked)} className={check} />
-                    Attach the photograph
+                    {t.attach}
                   </label>
                 )}
               </div>
@@ -352,45 +475,45 @@ export default function ShareSheet({ subject, initialMode = 'share', onClose }: 
               <>
                 {piece && subject.route ? (
                   <div className="mt-7">
-                    <p className={label}>Link</p>
+                    <p className={label}>{t.link}</p>
                     <div className="mt-2 flex border border-[var(--border-hairline)]">
-                      <input ref={linkField} readOnly value={displayUrl(subject.route)} aria-label="Link to this piece" onFocus={(e) => e.target.select()} className="font-spec min-w-0 flex-1 truncate bg-transparent px-4 py-3.5 text-xs text-[var(--text-taupe)] outline-none" />
+                      <input ref={linkField} readOnly value={displayUrl(subject.route)} aria-label={t.linkLabel} onFocus={(e) => e.target.select()} className="font-spec min-w-0 flex-1 truncate bg-transparent px-4 py-3.5 text-xs text-[var(--text-taupe)] outline-none" />
                       <button type="button" onClick={() => copy('link')} className={`flex shrink-0 items-center gap-2 border-l border-[var(--border-hairline)] px-5 text-[10px] uppercase tracking-[0.22em] transition-colors duration-300 ${ring} ${copied === 'link' ? 'bg-[var(--gold-vermeil)] text-white' : 'hover:bg-[var(--text-espresso)] hover:text-[var(--bg-travertine)]'}`}>
-                        {copied === 'link' ? <><Check size={13} strokeWidth={1.8} /> Copied</> : <><Link2 size={13} strokeWidth={1.4} /> Copy link</>}
+                        {copied === 'link' ? <><Check size={13} strokeWidth={1.8} /> {t.copied}</> : <><Link2 size={13} strokeWidth={1.4} /> {t.copyLink}</>}
                       </button>
                     </div>
-                    {manual && <p className="mt-2 text-xs text-[var(--text-taupe)]">Your browser kept the clipboard to itself; the link is selected, so press {shortcut}.</p>}
+                    {manual && <p className="mt-2 text-xs text-[var(--text-taupe)]">{t.manual(shortcut)}</p>}
                   </div>
                 ) : (
                   <button type="button" onClick={() => copy('list')} className={`mt-7 flex w-full items-center justify-center gap-2 border py-3.5 text-[10px] uppercase tracking-[0.22em] transition-colors duration-300 ${ring} ${copied === 'list' ? 'border-[var(--gold-vermeil)] bg-[var(--gold-vermeil)] text-white' : 'border-[var(--border-hairline)] hover:border-[var(--text-espresso)]'}`}>
-                    {copied === 'list' ? <><Check size={13} strokeWidth={1.8} /> List copied</> : <><Link2 size={13} strokeWidth={1.4} /> Copy the list, with a link to each piece</>}
+                    {copied === 'list' ? <><Check size={13} strokeWidth={1.8} /> {t.listCopied}</> : <><Link2 size={13} strokeWidth={1.4} /> {t.copyList}</>}
                   </button>
                 )}
 
                 <label className="mt-7 block">
                   <span className="flex items-baseline justify-between gap-4">
-                    <span className={label}>Add a note <span className="normal-case tracking-normal text-[var(--text-linen)]">(optional)</span></span>
+                    <span className={label}>{t.note} <span className="normal-case tracking-normal text-[var(--text-linen)]">{t.optional}</span></span>
                     <span className="font-spec text-[10px] text-[var(--text-linen)]">{note.length}/{NOTE_MAX}</span>
                   </span>
-                  <input value={note} onChange={(e) => setNote(e.target.value.slice(0, NOTE_MAX))} placeholder={piece ? 'Thought of you when I saw this.' : 'For the birthday list.'} className={field} />
+                  <input value={note} onChange={(e) => setNote(e.target.value.slice(0, NOTE_MAX))} placeholder={piece ? t.notePiece : t.noteList} className={field} />
                 </label>
 
-                <p className={`${label} mt-7`}>Or send it with</p>
+                <p className={`${label} mt-7`}>{t.sendWith}</p>
                 <ul className={`mt-3 grid gap-px border border-[var(--border-hairline)] bg-[var(--border-hairline)] ${gridFor(shareCount)}`}>
                   {channels.map((c, i) => channelTile(c.id, c.label, c.note, spanFor(shareCount, i)))}
-                  {piece && copyTile('text', 'Copy text', 'For Instagram and the rest', spanFor(shareCount, shareCount - 1))}
+                  {piece && copyTile('text', t.copyText, t.copyTextNote, spanFor(shareCount, shareCount - 1))}
                 </ul>
               </>
             ) : (
               <>
-                <p className="mt-7 text-sm leading-relaxed text-[var(--text-taupe)]">A quiet word to someone who might be looking for ideas. It opens in your own messages, and we never contact them.</p>
+                <p className="mt-7 text-sm leading-relaxed text-[var(--text-taupe)]">{t.quiet}</p>
                 <label className="mt-6 block">
-                  <span className={label}>For</span>
-                  <input value={to} onChange={(e) => setTo(e.target.value.slice(0, 40))} placeholder="Their name (optional)" autoComplete="off" className={field} />
+                  <span className={label}>{t.for}</span>
+                  <input value={to} onChange={(e) => setTo(e.target.value.slice(0, 40))} placeholder={t.theirName} autoComplete="off" className={field} />
                 </label>
                 <label className="mt-6 block">
                   <span className="flex items-baseline justify-between gap-4">
-                    <span className={label}>Your hint</span>
+                    <span className={label}>{t.yourHint}</span>
                     <span className="font-spec text-[10px] text-[var(--text-linen)]">{hint.length}/{HINT_MAX}</span>
                   </span>
                   <textarea ref={hintField} value={hint} onChange={(e) => setDraft(e.target.value.slice(0, HINT_MAX))} rows={6} className={`${field} resize-none leading-relaxed`} />
@@ -401,34 +524,34 @@ export default function ShareSheet({ subject, initialMode = 'share', onClose }: 
                       {subject.hint?.size && (
                         <label className="flex cursor-pointer items-center gap-2.5">
                           <input type="checkbox" checked={withSize} onChange={(e) => setWithSize(e.target.checked)} className={check} />
-                          Mention my size ({subject.hint.size})
+                          {t.mention(subject.hint.size)}
                         </label>
                       )}
                       {subject.priceText && (
                         <label className="flex cursor-pointer items-center gap-2.5">
                           <input type="checkbox" checked={withPrice} onChange={(e) => setWithPrice(e.target.checked)} className={check} />
-                          Include the price
+                          {t.price}
                         </label>
                       )}
                     </>
                   ) : (
                     <button type="button" onClick={() => setDraft(null)} className={`border-b border-[var(--border-hairline)] pb-0.5 text-[var(--text-espresso)] transition-colors hover:border-[var(--gold-vermeil)] ${ring}`}>
-                      Restore the suggested wording
+                      {t.restore}
                     </button>
                   )}
-                  <span className="text-[var(--text-linen)] sm:ml-auto">{manual ? `Selected: press ${shortcut} to copy.` : 'The link is added for you.'}</span>
+                  <span className="text-[var(--text-linen)] sm:ml-auto">{manual ? t.selectedShort(shortcut) : t.linkAdded}</span>
                 </div>
 
-                <p className={`${label} mt-7`}>Send it by</p>
+                <p className={`${label} mt-7`}>{t.sendBy}</p>
                 <ul className={`mt-3 grid gap-px border border-[var(--border-hairline)] bg-[var(--border-hairline)] ${gridFor(hintCount)}`}>
-                  {hintChannels.map((c, i) => channelTile(c.id, c.label, c.id === 'email' ? 'Subject: A small hint' : c.note, spanFor(hintCount, i)))}
-                  {copyTile('message', 'Copy', 'Paste it anywhere', spanFor(hintCount, hintCount - 1))}
+                  {hintChannels.map((c, i) => channelTile(c.id, c.label, c.id === 'email' ? t.subjectLine : c.note, spanFor(hintCount, i)))}
+                  {copyTile('message', t.copy, t.paste, spanFor(hintCount, hintCount - 1))}
                 </ul>
               </>
             )}
           </div>
 
-          <p className="mt-7 text-[11px] leading-relaxed text-[var(--text-linen)]">Nothing is sent from our site. Each option opens your own app, and you choose who receives it.</p>
+          <p className="mt-7 text-[11px] leading-relaxed text-[var(--text-linen)]">{t.nothingSent}</p>
           <p className="sr-only" aria-live="polite">{status}</p>
         </div>
       </div>

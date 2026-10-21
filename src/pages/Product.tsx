@@ -2,6 +2,11 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 import { ArrowRight, CalendarHeart, Check, Gift, MessageCircle, ShieldCheck, ShoppingBag, Star, Truck } from 'lucide-react'
 import { METALS, formatDay, formatPrice, getCategory, getProduct, getProductsByCategory, parseIso, personalizationPrice, priceFor, validatePersonalization, type Metal, type Personalization, type RentalBooking } from '../data/catalog'
+import { bilingual, useCopy } from '../i18n'
+import { useCatalog } from '../i18n/catalog'
+import { COMMON } from '../i18n/common'
+import { rich } from '../i18n/rich'
+import { onStageClear } from '../lib/stage'
 import { href, lineKey, useStore } from '../store'
 import Price from '../components/Price'
 import ProductCard from '../components/ProductCard'
@@ -10,7 +15,7 @@ import Gallery from '../components/pdp/Gallery'
 import { getLenis } from '../components/SmoothScroll'
 import SectionHeader from '../components/home/SectionHeader'
 import Accordion from '../components/pdp/Accordion'
-import RingSize from '../components/pdp/RingSize'
+import RingSize, { sizeLabel } from '../components/pdp/RingSize'
 import RentalCalendar, { isBookingValid } from '../components/pdp/RentalCalendar'
 import Personalizer from '../components/pdp/Personalizer'
 import TryOnButton from '../components/tryon/TryOnButton'
@@ -29,9 +34,125 @@ import type { ShareSubject } from '../components/share/ShareSheet'
 
 type RentalPeriod = 'weekend' | 'week' | 'month'
 
+const COPY = bilingual(
+  {
+    missing: 'This piece has returned to the vault.',
+    from: (date: string) => `From ${date}`,
+    eyebrow: (collection: string, chapter: string) => `${collection} · Chapter ${chapter}`,
+    available: 'Available for reservation · fitted in salon',
+    madeToOrder: (weeks: number) => `Made to order · approx. ${weeks} weeks`,
+    inStock: 'In stock · ships within 48 hours',
+    ship: {
+      CAD: 'Complimentary insured shipping across Canada, 2–3 business days, signature required. Returns accepted within 30 days on non-personalized pieces.',
+      USD: 'Complimentary insured shipping to the United States, 3–5 business days. Duties and import fees are prepaid — nothing due on delivery. 30-day returns on non-personalized pieces.',
+    },
+    breadcrumb: 'Breadcrumb',
+    maison: 'Maison',
+    ref: (id: string) => `Ref. ${id}`,
+    hint: 'Drop a hint',
+    per: { weekend: 'per weekend', week: 'per week', month: 'per month' } as Record<RentalPeriod, string>,
+    deposit: 'Refundable deposit',
+    insurance: 'insurance included',
+    feeCovers: 'What the fee covers',
+    instalments: 'Or 4 interest-free payments of',
+    shopPay: 'with Shop Pay',
+    dutiesPrepaid: 'Duties prepaid',
+    taxesAtCheckout: 'Taxes calculated at checkout',
+    fullBreakdown: 'See full cost breakdown',
+    rentalPeriod: 'Rental period',
+    metal: 'Metal',
+    reverseEngraving: 'Reverse engraving',
+    engraving: 'Engraving',
+    optional: 'optional',
+    complimentary: 'complimentary',
+    engravingPlaceholder: 'Initials, a date, a word',
+    yourEngraving: 'Your engraving',
+    viewing: 'Book a viewing',
+    jeweller: 'Ask a jeweller',
+    trust: {
+      CAD: ['Free insured', 'shipping in Canada'],
+      USD: ['Duties paid', 'shipping to the U.S.'],
+      care: ['Lifetime', 'warranty & care'],
+      gift: ['Signature', 'gift presentation'],
+    } as Record<'CAD' | 'USD' | 'care' | 'gift', [string, string]>,
+    giaReport: 'Diamond grading report',
+    reportNo: 'Report №',
+    gia: { shape: 'Shape', carat: 'Carat', color: 'Colour', clarity: 'Clarity', cut: 'Cut' },
+    details: 'Details & dimensions',
+    reference: 'Reference',
+    care: 'Care & servicing',
+    careText: 'Store separately in the pouch provided. Remove before swimming or applying lotions. Bring it to our salon each year for complimentary ultrasonic cleaning, claw inspection and polishing.',
+    shipTitle: { CAD: 'Shipping & returns · Canada', USD: 'Shipping & returns · United States' },
+    giftTitle: 'Gift presentation',
+    giftText: 'Every piece arrives in our signature travertine box with a linen pouch, care card and an optional handwritten note. Gift receipts never show prices.',
+    filmsEyebrow: 'Watch & shop',
+    filmsTitle: 'See it in <em>motion</em>',
+    alsoIn: (name: string) => `Also in <em>${name}</em>`,
+    viewAll: 'View all',
+  },
+  {
+    missing: 'Cette pièce est retournée au coffre.',
+    from: (date) => `À partir du ${date}`,
+    eyebrow: (collection, chapter) => `${collection} · Chapitre ${chapter}`,
+    available: 'Offerte en location · ajustée au salon',
+    madeToOrder: (weeks) => `Sur commande · environ ${weeks} semaines`,
+    inStock: 'En stock · expédiée sous 48 heures',
+    ship: {
+      CAD: 'Livraison assurée offerte partout au Canada, en 2 à 3 jours ouvrables, signature requise. Retours acceptés sous 30 jours pour les pièces non personnalisées.',
+      USD: 'Livraison assurée offerte vers les États-Unis, en 3 à 5 jours ouvrables. Droits et frais d’importation prépayés — rien à payer à la livraison. Retours sous 30 jours pour les pièces non personnalisées.',
+    },
+    breadcrumb: 'Fil d’Ariane',
+    maison: 'Maison',
+    ref: (id) => `Réf. ${id}`,
+    hint: 'Laisser un indice',
+    per: { weekend: 'par fin de semaine', week: 'par semaine', month: 'par mois' },
+    deposit: 'Dépôt remboursable',
+    insurance: 'assurance incluse',
+    feeCovers: 'Ce que couvrent les frais',
+    instalments: 'Ou 4 versements sans intérêt de',
+    shopPay: 'avec Shop Pay',
+    dutiesPrepaid: 'Droits prépayés',
+    taxesAtCheckout: 'Taxes calculées au paiement',
+    fullBreakdown: 'Voir le détail complet des coûts',
+    rentalPeriod: 'Période de location',
+    metal: 'Métal',
+    reverseEngraving: 'Gravure au verso',
+    engraving: 'Gravure',
+    optional: 'facultative',
+    complimentary: 'offerte',
+    engravingPlaceholder: 'Des initiales, une date, un mot',
+    yourEngraving: 'Votre gravure',
+    viewing: 'Réserver une présentation',
+    jeweller: 'Demander à un joaillier',
+    trust: {
+      CAD: ['Livraison assurée', 'offerte au Canada'],
+      USD: ['Droits payés', 'livraison aux É.-U.'],
+      care: ['Garantie', 'et entretien à vie'],
+      gift: ['Écrin', 'signature'],
+    },
+    giaReport: 'Rapport de classement du diamant',
+    reportNo: 'Rapport n°',
+    gia: { shape: 'Forme', carat: 'Carat', color: 'Couleur', clarity: 'Pureté', cut: 'Taille' },
+    details: 'Détails et dimensions',
+    reference: 'Référence',
+    care: 'Entretien et service',
+    careText: 'Rangez-la à part, dans la pochette fournie. Retirez-la avant de vous baigner ou d’appliquer une lotion. Apportez-la à notre salon chaque année : nettoyage aux ultrasons, inspection des griffes et polissage vous sont offerts.',
+    shipTitle: { CAD: 'Livraison et retours · Canada', USD: 'Livraison et retours · États-Unis' },
+    giftTitle: 'Présentation cadeau',
+    giftText: 'Chaque pièce arrive dans notre écrin travertin signature, avec une pochette de lin, une carte d’entretien et, si vous le souhaitez, un mot écrit à la main. Les reçus-cadeaux n’indiquent jamais les prix.',
+    filmsEyebrow: 'Voir et magasiner',
+    filmsTitle: 'En <em>mouvement</em>',
+    alsoIn: (name) => `Également dans <em>${name}</em>`,
+    viewAll: 'Tout voir',
+  },
+)
+
 export default function Product({ slug }: { slug: string }) {
   const root = useRef<HTMLDivElement>(null)
   const { currency, addToCart, recent, recordView, cart, setCartOpen } = useStore()
+  const t = useCopy(COPY)
+  const common = useCopy(COMMON)
+  const catalog = useCatalog()
   const product = getProduct(slug)
   const [metal, setMetal] = useState<Metal | undefined>(product?.metals[0])
   const [added, setAdded] = useState(false)
@@ -64,12 +185,15 @@ export default function Product({ slug }: { slug: string }) {
 
   useReveal(root, [slug])
 
+  // The details rise in as the page is uncovered (after the splash or a page transition).
   useLayoutEffect(() => {
     if (!root.current || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    const ctx = gsap.context(() => {
-      gsap.from('[data-pdp-in]', { y: 24, opacity: 0, duration: 1.1, stagger: 0.06, ease: 'expo.out', delay: 0.1 })
-    }, root)
-    return () => ctx.revert()
+    return onStageClear(() => {
+      const ctx = gsap.context(() => {
+        gsap.from('[data-pdp-in]', { y: 24, opacity: 0, duration: 1.1, stagger: 0.06, ease: 'expo.out', delay: 0.1 })
+      }, root)
+      return () => ctx.revert()
+    })
   }, [slug])
 
   useEffect(() => {
@@ -79,35 +203,37 @@ export default function Product({ slug }: { slug: string }) {
   }, [added])
 
   if (!product) {
-    return <p className="font-serif-editorial py-40 text-center text-4xl">This piece has returned to the vault.</p>
+    return <p className="font-serif-editorial py-40 text-center text-4xl">{t.missing}</p>
   }
 
   const category = getCategory(product.category)!
+  const copy = catalog.product(product)
+  const chapterName = catalog.category(category).name
   const related = getProductsByCategory(product.category).filter((p) => p.slug !== slug)
   const rental = product.rental
   const needsSize = product.category === 'rings' || product.category === 'bridal'
   const pcfg = product.personalization
   const amount = rental ? rental[period][currency] : priceFor(product, currency, metal) + personalizationPrice(product, pcfg ? personal : undefined, currency)
-  const ctaLabel = rental ? 'Reserve this piece' : product.category === 'custom' ? 'Begin commission' : 'Add to bag'
+  const ctaLabel = rental ? common.reserve : product.category === 'custom' ? common.commission : common.addToBag
   const detail = [
-    rental ? `${period} rental` : metal && METALS[metal].label,
-    rental && booking.start && `From ${formatDay(parseIso(booking.start))}`,
-    pcfg && personal.text.trim() && `“${personal.text.trim()}”`,
-    size && `Size ${size}`,
+    rental ? common.rentalLabel[period] : metal && catalog.metal(metal),
+    rental && booking.start && t.from(formatDay(parseIso(booking.start))),
+    pcfg && personal.text.trim() && common.quote(personal.text.trim()),
+    size && common.size(sizeLabel(size)),
   ].filter(Boolean).join(' · ')
 
   // Shares carry the piece as configured right now; hints are for pieces one can buy, not rentals.
   const share: ShareSubject = {
     kind: 'piece',
     id: product.slug,
-    title: product.name,
-    eyebrow: `${product.collection} · Chapter ${category.eyebrow}`,
+    title: copy.name,
+    eyebrow: t.eyebrow(copy.collection, category.eyebrow),
     image: product.images[0],
     route: href.product(product.slug),
     detail,
     priceText: `${formatPrice(amount, currency)} ${currency}`,
-    tagline: product.tagline,
-    hint: rental ? undefined : { metal: metal && METALS[metal].label, size },
+    tagline: copy.tagline,
+    hint: rental ? undefined : { metal: metal && catalog.metal(metal), size: size && sizeLabel(size) },
   }
 
   // Films featuring this piece first, then others from its category.
@@ -176,11 +302,7 @@ export default function Product({ slug }: { slug: string }) {
   }
 
   const { rating, count } = getRatingSummary(product.slug)
-  const availability = rental
-    ? 'Available for reservation · fitted in salon'
-    : product.leadTimeWeeks
-      ? `Made to order · approx. ${product.leadTimeWeeks} weeks`
-      : 'In stock · ships within 48 hours'
+  const availability = rental ? t.available : product.leadTimeWeeks ? t.madeToOrder(product.leadTimeWeeks) : t.inStock
 
   // Personalized pieces keep the plain engraving field only for the reverse side.
   const showEngraving = !!product.engravable && !rental && (!pcfg || !!pcfg.backEngraving)
@@ -199,10 +321,9 @@ export default function Product({ slug }: { slug: string }) {
   const stepNum = 'font-spec mr-3 text-[10px] text-[var(--gold-vermeil)]'
   const metalSwatch = metal ? METALS[metal].swatch : '#D4B982'
 
-  const shipCopy =
-    currency === 'CAD'
-      ? 'Complimentary insured shipping across Canada, 2–3 business days, signature required. Returns accepted within 30 days on non-personalized pieces.'
-      : 'Complimentary insured shipping to the United States, 3–5 business days. Duties and import fees are prepaid — nothing due on delivery. 30-day returns on non-personalized pieces.'
+  const shipCopy = t.ship[currency]
+  // The GIA box shows the short form: the shape's first word, the cut's grade.
+  const short = (value: string) => (value === 'Round Brilliant' && catalog.gia(value) !== value ? 'Rond' : catalog.gia(value).split(' ')[0])
 
 
   return (
@@ -210,14 +331,14 @@ export default function Product({ slug }: { slug: string }) {
       {/* Breadcrumb bar */}
       <div className="border-b border-[var(--border-hairline)]">
         <div className="font-spec mx-auto flex max-w-[1600px] items-center justify-between gap-6 px-6 py-4 text-[10px] uppercase tracking-[0.24em] text-[var(--text-linen)] lg:px-12">
-          <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-3">
-            <a href={href.home} className="hover:text-[var(--text-espresso)]">Maison</a>
+          <nav aria-label={t.breadcrumb} className="flex min-w-0 items-center gap-3">
+            <a href={href.home} className="hover:text-[var(--text-espresso)]">{t.maison}</a>
             <span>/</span>
-            <a href={href.category(category.slug)} className="hover:text-[var(--text-espresso)]">{category.name}</a>
+            <a href={href.category(category.slug)} className="shrink-0 hover:text-[var(--text-espresso)]">{chapterName}</a>
             <span>/</span>
-            <span className="truncate text-[var(--text-espresso)]">{product.name}</span>
+            <span className="truncate text-[var(--text-espresso)]">{copy.name}</span>
           </nav>
-          <span className="hidden shrink-0 sm:inline">Ref. {product.id.toUpperCase()}</span>
+          <span className="hidden shrink-0 sm:inline">{t.ref(product.id.toUpperCase())}</span>
         </div>
       </div>
 
@@ -235,48 +356,48 @@ export default function Product({ slug }: { slug: string }) {
               <span className="h-1.5 w-1.5 rounded-full bg-[var(--gold-vermeil)]" /> {availability}
             </span>
             <div className="flex items-center gap-6">
-              {share.hint && <ShareButton subject={share} mode="hint" label="Drop a hint" icon={Gift} />}
+              {share.hint && <ShareButton subject={share} mode="hint" label={t.hint} icon={Gift} />}
               <ShareButton subject={share} />
             </div>
           </div>
           <p data-pdp-in className="font-spec mt-8 text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">
-            {product.collection} · Chapter {category.eyebrow}
+            {t.eyebrow(copy.collection, category.eyebrow)}
           </p>
-          <h1 data-pdp-in className="font-serif-editorial mt-4 text-[3rem] font-light leading-[0.95] tracking-[-0.025em] sm:text-[3.75rem] lg:text-[4.25rem]">
-            {product.name}
+          <h1 data-pdp-in className="font-serif-editorial mt-4 text-balance text-[3rem] font-light leading-[0.95] tracking-[-0.025em] sm:text-[3.75rem] lg:text-[4.25rem]">
+            {copy.name}
           </h1>
-          <p data-pdp-in className="font-serif-editorial mt-4 text-2xl italic text-[var(--text-taupe)]">{product.tagline}</p>
+          <p data-pdp-in className="font-serif-editorial mt-4 text-2xl italic text-[var(--text-taupe)]">{copy.tagline}</p>
           <button data-pdp-in onClick={scrollToReviews} className="group mt-6 flex items-center gap-3 text-[11px] uppercase tracking-[0.2em]">
             <span className="flex gap-0.5 text-[var(--gold-vermeil)]">
               {Array.from({ length: 5 }).map((_, k) => <Star key={k} size={12} strokeWidth={1.2} className="fill-current" />)}
             </span>
             <span className="font-spec">{rating}</span>
-            <span className="border-b border-[var(--border-hairline)] pb-0.5 text-[var(--text-taupe)] transition-colors group-hover:border-[var(--gold-vermeil)]">{count} reviews</span>
+            <span className="border-b border-[var(--border-hairline)] pb-0.5 text-[var(--text-taupe)] transition-colors group-hover:border-[var(--gold-vermeil)]">{common.reviews(count)}</span>
           </button>
 
           {/* Price */}
           <div data-pdp-in className="mt-10 border-y border-[var(--border-hairline)] py-7">
             <div className="flex items-baseline justify-between gap-6">
               <Price amount={amount} className="text-[1.75rem] tracking-tight" />
-              {rental && <span className="text-[11px] uppercase tracking-[0.2em] text-[var(--text-taupe)]">per {period === 'weekend' ? 'weekend' : period}</span>}
+              {rental && <span className="text-[11px] uppercase tracking-[0.2em] text-[var(--text-taupe)]">{t.per[period]}</span>}
             </div>
             <p className="mt-2 text-xs text-[var(--text-taupe)]">
               {rental ? (
                 <>
-                  Refundable deposit <Price amount={rental.deposit[currency]} className="text-[var(--text-espresso)]" /> · insurance included ·{' '}
+                  {t.deposit} <Price amount={rental.deposit[currency]} className="text-[var(--text-espresso)]" /> · {t.insurance} ·{' '}
                   <button onClick={() => scrollToId('price-breakdown')} className="border-b border-[var(--border-hairline)] text-[var(--text-espresso)] transition-colors hover:border-[var(--gold-vermeil)]">
-                    What the fee covers
+                    {t.feeCovers}
                   </button>
                 </>
               ) : (
                 <>
-                  {amount >= 400 && <>Or 4 interest-free payments of <Price amount={Math.round(amount / 4)} className="text-[var(--text-espresso)]" /> with Shop Pay · </>}
-                  {currency === 'USD' ? 'Duties prepaid' : 'Taxes calculated at checkout'}
+                  {amount >= 400 && <>{t.instalments} <Price amount={Math.round(amount / 4)} className="text-[var(--text-espresso)]" /> {t.shopPay} · </>}
+                  {currency === 'USD' ? t.dutiesPrepaid : t.taxesAtCheckout}
                   {hasCostBreakdown(product) && (
                     <>
                       {' · '}
                       <button onClick={() => scrollToId('price-breakdown')} className="border-b border-[var(--border-hairline)] text-[var(--text-espresso)] transition-colors hover:border-[var(--gold-vermeil)]">
-                        See full cost breakdown
+                        {t.fullBreakdown}
                       </button>
                     </>
                   )}
@@ -285,13 +406,13 @@ export default function Product({ slug }: { slug: string }) {
             </p>
           </div>
 
-          <p data-pdp-in className="mt-8 max-w-lg leading-[1.8] text-[var(--text-taupe)]">{product.description}</p>
+          <p data-pdp-in className="mt-8 max-w-lg leading-[1.8] text-[var(--text-taupe)]">{copy.description}</p>
 
           {/* Configurator */}
           <div data-pdp-in className="mt-10 space-y-9">
             {rental && (
               <fieldset>
-                <legend className={stepLabel}><span><span className={stepNum}>{stepNo('period')}</span>Rental period</span></legend>
+                <legend className={stepLabel}><span><span className={stepNum}>{stepNo('period')}</span>{t.rentalPeriod}</span></legend>
                 <div className="grid grid-cols-3 gap-1.5">
                   {(['weekend', 'week', 'month'] as const).map((p) => (
                     <button
@@ -299,7 +420,7 @@ export default function Product({ slug }: { slug: string }) {
                       onClick={() => setPeriod(p)}
                       className={`border px-3 py-3.5 text-left transition-colors ${period === p ? 'border-[var(--text-espresso)] bg-[var(--text-espresso)] text-[var(--bg-travertine)]' : 'border-[var(--border-hairline)] hover:border-[var(--text-espresso)]'}`}
                     >
-                      <span className="block text-[10px] uppercase tracking-[0.2em]">{p === 'weekend' ? 'Weekend' : p === 'week' ? 'One week' : 'One month'}</span>
+                      <span className="block text-[10px] uppercase tracking-[0.2em]">{common.periods[p]}</span>
                       <Price amount={rental[p][currency]} className={`mt-1 block text-xs ${period === p ? '[&_span]:text-white/60' : ''}`} />
                     </button>
                   ))}
@@ -326,7 +447,7 @@ export default function Product({ slug }: { slug: string }) {
             {!rental && product.metals.length > 0 && (
               <fieldset>
                 <legend className={stepLabel}>
-                  <span><span className={stepNum}>{stepNo('metal')}</span>Metal</span>
+                  <span><span className={stepNum}>{stepNo('metal')}</span>{t.metal}</span>
                 </legend>
                 <div className="flex flex-wrap gap-2">
                   {product.metals.map((m) => (
@@ -337,7 +458,7 @@ export default function Product({ slug }: { slug: string }) {
                       className={`flex items-center gap-3 border py-2.5 pl-2.5 pr-4 text-[11px] tracking-[0.04em] transition-colors ${metal === m ? 'border-[var(--text-espresso)]' : 'border-[var(--border-hairline)] text-[var(--text-taupe)] hover:border-[var(--text-linen)]'}`}
                     >
                       <span className="h-5 w-5 rounded-full shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)]" style={{ background: `linear-gradient(135deg, ${METALS[m].swatch} 10%, #ffffffaa 45%, ${METALS[m].swatch} 85%)` }} />
-                      {METALS[m].label}
+                      {catalog.metal(m)}
                     </button>
                   ))}
                 </div>
@@ -377,7 +498,7 @@ export default function Product({ slug }: { slug: string }) {
             {showEngraving && (
               <div>
                 <label htmlFor="engraving" className={stepLabel}>
-                  <span><span className={stepNum}>{stepNo('engraving')}</span>{pcfg ? 'Reverse engraving' : 'Engraving'} <span className="normal-case tracking-normal text-[var(--text-linen)]">— {pcfg ? 'optional' : 'complimentary'}</span></span>
+                  <span><span className={stepNum}>{stepNo('engraving')}</span>{pcfg ? t.reverseEngraving : t.engraving} <span className="normal-case tracking-normal text-[var(--text-linen)]">— {pcfg ? t.optional : t.complimentary}</span></span>
                   <span className="font-spec text-[10px] text-[var(--text-linen)]">{engraving.length}/18</span>
                 </label>
                 <input
@@ -385,7 +506,7 @@ export default function Product({ slug }: { slug: string }) {
                   value={engraving}
                   maxLength={18}
                   onChange={(e) => setEngraving(e.target.value)}
-                  placeholder="Initials, a date, a word"
+                  placeholder={t.engravingPlaceholder}
                   className="w-full border border-[var(--border-hairline)] bg-transparent px-4 py-3.5 text-sm outline-none transition-colors placeholder:text-[var(--text-linen)] focus:border-[var(--text-espresso)]"
                 />
                 {/* Live preview on a band tinted to the chosen metal */}
@@ -395,7 +516,7 @@ export default function Product({ slug }: { slug: string }) {
                   aria-hidden
                 >
                   <span className="font-serif-editorial truncate px-6 text-xl italic text-[#3b3226]/70 [text-shadow:0_1px_0_rgba(255,255,255,0.6)]">
-                    {engraving || 'Your engraving'}
+                    {engraving || t.yourEngraving}
                   </span>
                 </div>
               </div>
@@ -409,7 +530,7 @@ export default function Product({ slug }: { slug: string }) {
               onClick={onCta}
               className={`group flex w-full items-center justify-center gap-3 py-5 text-[11px] font-medium uppercase tracking-[0.28em] text-[var(--bg-travertine)] transition-colors duration-500 ${added ? 'bg-[var(--gold-vermeil)]' : 'bg-[var(--text-espresso)] hover:bg-[var(--gold-vermeil)]'}`}
             >
-              {added ? <><Check size={15} strokeWidth={1.6} /> Added to bag</> : inBag ? <><ShoppingBag size={15} strokeWidth={1.4} /> Go to bag <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" /></> : <>{ctaLabel} <span className="opacity-40">—</span> <Price amount={amount} className="[&_span]:text-white/50" /></>}
+              {added ? <><Check size={15} strokeWidth={1.6} /> {common.addedToBag}</> : inBag ? <><ShoppingBag size={15} strokeWidth={1.4} /> {common.goToBag} <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" /></> : <>{ctaLabel} <span className="opacity-40">—</span> <Price amount={amount} className="[&_span]:text-white/50" /></>}
             </button>
             <TryOnButton
               product={product}
@@ -420,29 +541,22 @@ export default function Product({ slug }: { slug: string }) {
             />
             <div className="mt-3 grid grid-cols-2 gap-3">
               <a href={href.atelier} className="flex items-center justify-center gap-2 border border-[var(--border-hairline)] py-3.5 text-[10px] uppercase tracking-[0.2em] transition-colors hover:border-[var(--text-espresso)]">
-                <CalendarHeart size={14} strokeWidth={1.3} /> Book a viewing
+                <CalendarHeart size={14} strokeWidth={1.3} /> {t.viewing}
               </a>
               <a href={href.atelier} className="flex items-center justify-center gap-2 border border-[var(--border-hairline)] py-3.5 text-[10px] uppercase tracking-[0.2em] transition-colors hover:border-[var(--text-espresso)]">
-                <MessageCircle size={14} strokeWidth={1.3} /> Ask a jeweller
+                <MessageCircle size={14} strokeWidth={1.3} /> {t.jeweller}
               </a>
             </div>
           </div>
 
           {/* Trust row */}
           <ul data-pdp-in className="mt-10 grid grid-cols-3 divide-x divide-[var(--border-hairline)] border-y border-[var(--border-hairline)] text-center">
-            {[
-              [Truck, currency === 'CAD' ? 'Free insured' : 'Duties paid', currency === 'CAD' ? 'shipping in Canada' : 'shipping to the U.S.'],
-              [ShieldCheck, 'Lifetime', 'warranty & care'],
-              [Gift, 'Signature', 'gift presentation'],
-            ].map(([Icon, a, b]) => {
-              const I = Icon as typeof Truck
-              return (
-                <li key={a as string} className="px-2 py-5">
-                  <I size={18} strokeWidth={1.2} className="mx-auto text-[var(--gold-vermeil)]" />
-                  <p className="mt-3 text-[10px] uppercase leading-relaxed tracking-[0.16em]">{a as string}<br /><span className="text-[var(--text-linen)]">{b as string}</span></p>
-                </li>
-              )
-            })}
+            {([[Truck, t.trust[currency]], [ShieldCheck, t.trust.care], [Gift, t.trust.gift]] as const).map(([Icon, [a, b]]) => (
+              <li key={a} className="px-2 py-5">
+                <Icon size={18} strokeWidth={1.2} className="mx-auto text-[var(--gold-vermeil)]" />
+                <p className="mt-3 text-[10px] uppercase leading-relaxed tracking-[0.16em]">{a}<br /><span className="text-[var(--text-linen)]">{b}</span></p>
+              </li>
+            ))}
           </ul>
 
           {product.gia && (
@@ -451,14 +565,14 @@ export default function Product({ slug }: { slug: string }) {
                 <div className="flex items-start justify-between gap-6">
                   <div>
                     <p className="font-serif-editorial text-3xl tracking-[0.12em]">GIA</p>
-                    <p className="mt-1 text-[10px] uppercase tracking-[0.22em] text-[var(--text-taupe)]">Diamond grading report</p>
+                    <p className="mt-1 text-[10px] uppercase tracking-[0.22em] text-[var(--text-taupe)]">{t.giaReport}</p>
                   </div>
                   <p className="font-spec text-right text-[10px] uppercase tracking-[0.16em] text-[var(--text-linen)]">
-                    Report №<br /><span className="text-xs text-[var(--gold-vermeil)]">{product.gia.reportNumber}</span>
+                    {t.reportNo}<br /><span className="text-xs text-[var(--gold-vermeil)]">{product.gia.reportNumber}</span>
                   </p>
                 </div>
                 <dl className="font-spec mt-6 grid grid-cols-5 divide-x divide-[var(--border-hairline)] border-t border-[var(--border-hairline)] pt-5 text-center">
-                  {Object.entries({ Shape: product.gia.shape.split(' ')[0], Carat: product.gia.carat.toFixed(2), Color: product.gia.color, Clarity: product.gia.clarity, Cut: product.gia.cut.split(' ')[0] }).map(([k, v]) => (
+                  {[[t.gia.shape, short(product.gia.shape)], [t.gia.carat, catalog.carat(product.gia)], [t.gia.color, product.gia.color], [t.gia.clarity, product.gia.clarity], [t.gia.cut, short(product.gia.cut)]].map(([k, v]) => (
                     <div key={k} className="px-1">
                       <dt className="text-[8px] uppercase tracking-[0.18em] text-[var(--text-linen)]">{k}</dt>
                       <dd className="mt-1.5 truncate text-xs">{v}</dd>
@@ -475,25 +589,25 @@ export default function Product({ slug }: { slug: string }) {
               items={[
                 {
                   id: 'details',
-                  title: 'Details & dimensions',
+                  title: t.details,
                   content: (
                     <dl className="divide-y divide-[var(--border-hairline)]">
-                      {Object.entries(product.specs).map(([k, v]) => (
+                      {copy.specs.map(([k, v]) => (
                         <div key={k} className="flex justify-between gap-6 py-2.5">
                           <dt>{k}</dt>
                           <dd className="font-spec text-right text-xs">{v}</dd>
                         </div>
                       ))}
                       <div className="flex justify-between gap-6 py-2.5">
-                        <dt>Reference</dt>
+                        <dt>{t.reference}</dt>
                         <dd className="font-spec text-right text-xs uppercase">{product.id}</dd>
                       </div>
                     </dl>
                   ),
                 },
-                { id: 'care', title: 'Care & servicing', content: 'Store separately in the pouch provided. Remove before swimming or applying lotions. Bring it to our salon each year for complimentary ultrasonic cleaning, claw inspection and polishing.' },
-                { id: 'ship', title: currency === 'CAD' ? 'Shipping & returns · Canada' : 'Shipping & returns · United States', content: shipCopy },
-                { id: 'gift', title: 'Gift presentation', content: 'Every piece arrives in our signature travertine box with a linen pouch, care card and an optional handwritten note. Gift receipts never show prices.' },
+                { id: 'care', title: t.care, content: t.careText },
+                { id: 'ship', title: t.shipTitle[currency], content: shipCopy },
+                { id: 'gift', title: t.giftTitle, content: t.giftText },
               ]}
             />
           </div>
@@ -513,8 +627,8 @@ export default function Product({ slug }: { slug: string }) {
       <ShoppableVideos
         videos={films}
         index={num('films')}
-        eyebrow="Watch & shop"
-        title={<>See it in <em className="text-[var(--gold-vermeil)]">motion</em></>}
+        eyebrow={t.filmsEyebrow}
+        title={rich(t.filmsTitle, 'text-[var(--gold-vermeil)]')}
       />
       <CompleteTheLook product={product} index={num('look')} period={period} onPeriodChange={setPeriod} booking={booking} onNeedBooking={handleAdd} />
       <Reviews product={product} index={num('reviews')} />
@@ -524,9 +638,9 @@ export default function Product({ slug }: { slug: string }) {
         <section className="mx-auto max-w-[1600px] border-t border-[var(--border-hairline)] px-6 py-28 lg:px-12 lg:py-36">
           <SectionHeader
             index={num('related')}
-            eyebrow={`Chapter ${category.eyebrow}`}
-            title={<>Also in <em className="text-[var(--gold-vermeil)]">{category.name}</em></>}
-            aside={<a href={href.category(category.slug)} className="link-line">View all</a>}
+            eyebrow={common.chapter(category.eyebrow)}
+            title={rich(t.alsoIn(chapterName), 'text-[var(--gold-vermeil)]')}
+            aside={<a href={href.category(category.slug)} className="link-line">{t.viewAll}</a>}
           />
           <div className="grid gap-x-8 gap-y-16 sm:grid-cols-2 lg:grid-cols-3">
             {related.map((p, i) => <ProductCard key={p.id} product={p} index={i} />)}
@@ -535,7 +649,7 @@ export default function Product({ slug }: { slug: string }) {
       )}
 
       <RecentlyViewed exclude={product.slug} index={num('recent')} />
-      <StickyBar product={product} amount={amount} detail={detail} label={inBag ? 'Go to bag' : ctaLabel} target={ctaRef} onAction={onCta} />
+      <StickyBar product={product} amount={amount} detail={detail} label={inBag ? common.goToBag : ctaLabel} target={ctaRef} onAction={onCta} />
     </div>
   )
 }

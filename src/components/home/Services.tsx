@@ -1,16 +1,41 @@
 import { Gem, PenLine, Ruler, ShieldCheck, Truck, CalendarHeart } from 'lucide-react'
+import { bilingual, useCopy } from '../../i18n'
 import { href, useStore } from '../../store'
+
+const ICONS = [Truck, ShieldCheck, PenLine, Ruler, Gem, CalendarHeart]
+
+const COPY = bilingual(
+  {
+    // [title, detail]; shipping has a line per market.
+    shipping: { CAD: ['Insured shipping', 'Complimentary across Canada, signature required.'], USD: ['Insured shipping', 'Complimentary to the U.S., duties prepaid.'] } as Record<'CAD' | 'USD', [string, string]>,
+    others: [
+      ['Lifetime warranty', 'Annual cleaning, claw checks and rhodium refresh.'],
+      ['Free engraving', 'Hand or laser engraved, up to 18 characters.'],
+      ['Complimentary sizing', 'One resize within the first year, on us.'],
+      ['GIA certified', 'Every diamond over 0.50 ct comes with its report.'],
+      ['Private appointments', 'In salon on Sherbrooke or by video, seven days.'],
+    ] as [string, string][],
+    questions: 'Questions?',
+    concierge: 'Speak with our concierge',
+  },
+  {
+    shipping: { CAD: ['Livraison assurée', 'Offerte partout au Canada, signature requise.'], USD: ['Livraison assurée', 'Offerte aux États-Unis, droits de douane prépayés.'] },
+    others: [
+      ['Garantie à vie', 'Nettoyage annuel, vérification des griffes et rhodiage.'],
+      ['Gravure offerte', 'À la main ou au laser, jusqu’à 18 caractères.'],
+      ['Mise à la taille offerte', 'Un ajustement de taille la première année, à nos frais.'],
+      ['Certifié GIA', 'Chaque diamant de plus de 0,50 ct est accompagné de son rapport.'],
+      ['Rendez-vous privés', 'Au salon de la rue Sherbrooke ou par vidéo, sept jours sur sept.'],
+    ],
+    questions: 'Des questions?',
+    concierge: 'Parlez à notre concierge',
+  },
+)
 
 export default function Services() {
   const { currency } = useStore()
-  const items = [
-    { icon: Truck, t: 'Insured shipping', d: currency === 'CAD' ? 'Complimentary across Canada, signature required.' : 'Complimentary to the U.S., duties prepaid.' },
-    { icon: ShieldCheck, t: 'Lifetime warranty', d: 'Annual cleaning, claw checks and rhodium refresh.' },
-    { icon: PenLine, t: 'Free engraving', d: 'Hand or laser engraved, up to 18 characters.' },
-    { icon: Ruler, t: 'Complimentary sizing', d: 'One resize within the first year, on us.' },
-    { icon: Gem, t: 'GIA certified', d: 'Every diamond over 0.50 ct comes with its report.' },
-    { icon: CalendarHeart, t: 'Private appointments', d: 'In salon on Sherbrooke or by video, seven days.' },
-  ]
+  const copy = useCopy(COPY)
+  const items = [copy.shipping[currency], ...copy.others].map(([t, d], i) => ({ icon: ICONS[i], t, d }))
   return (
     <section className="mx-auto max-w-[1600px] px-6 py-24 lg:px-12">
       <div className="grid gap-px bg-[var(--border-hairline)] sm:grid-cols-2 lg:grid-cols-3">
@@ -23,7 +48,7 @@ export default function Services() {
         ))}
       </div>
       <p className="mt-8 text-center text-sm text-[var(--text-taupe)]">
-        Questions? <a href={href.atelier} className="border-b border-[var(--gold-vermeil)] text-[var(--text-espresso)]">Speak with our concierge</a>
+        {copy.questions} <a href={href.atelier} className="border-b border-[var(--gold-vermeil)] text-[var(--text-espresso)]">{copy.concierge}</a>
       </p>
     </section>
   )

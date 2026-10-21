@@ -619,6 +619,7 @@ The info column's elements stack with fixed vertical rhythm: `mt-8` collection, 
 ## 10. Motion on the page (summary)
 
 - **Entrance:** the info-column blocks marked `data-pdp-in` (availability, collection, h1, tagline, rating, price, description, configurator, actions, trust row, GIA, accordion) run `gsap.from` with y 24 → 0, opacity 0 → 1, 1.1 s, stagger 0.06, `expo.out`, delay 0.1. The gallery is not part of this stagger. Its own effect fades and scales the stage image (opacity 0 → 1, scale 1.04 → 1, 0.9 s `expo.out`) on mount and on every view change.
+- **Entrance timing (2026-10-20):** the entrance builds inside `onStageClear()`, so after the splash or a page transition it plays as the page is uncovered. Arriving by the product-photo morph, the gallery's stage is where the photo lands (`data-morph-target`).
 - **Scroll reveals:** `useReveal(root, [slug])` drives every `data-reveal` inside the page (SectionHeaders, ProductCards, film tiles, CompleteTheLook items, FAQ, Reviews…) and the CraftStory parallax.
 - **Micro-interactions:** CTA background `transition-colors duration-500`; the arrow nudge on "Go to bag"; sticky-bar slide (700 ms); accordion (500 ms); `WishButton` elastic pop.
 - **Reduced motion:** the page's own GSAP (entrance stagger and `useReveal`) is skipped under `prefers-reduced-motion: reduce`, and Lenis is off, so the scroll helpers use native `scrollIntoView`. The gallery's stage fade and the `WishButton` pop are **not** guarded. See [Motion & interaction](../motion-and-interaction.md).

@@ -32,13 +32,13 @@ Severity: **H** = breaks something real; **M** = wrong behaviour or significant 
 
 | ID | Sev | Issue | Where | Failure scenario → fix |
 |---|---|---|---|---|
-| KI-010 | M | `tns-currency` is trusted without validation | `src/store.tsx` `useState(() => localStorage.getItem('tns-currency') as Currency …)` | A stale or invalid value makes `product.price[currency]` undefined or makes `Intl.NumberFormat` throw. Fix: whitelist `'CAD' \| 'USD'`. |
+| KI-010 | — | Fixed 2026-10-21: `tns-currency` is validated on read (`src/store.tsx` `loadCurrency`). | — | — |
 | KI-011 | M | Unguarded `localStorage` writes, no error boundary | Store persistence effects, `setCurrency`, `saveLedger` | Quota or privacy-mode exceptions can crash the app. Fix: try/catch the writes and add an error boundary. |
 | KI-012 | M | `lineKey` depends on JSON key order and on `false` fields | `src/store.tsx` `lineKey` | Toggling the nameplate accent on then off leaves `accent: false`. That no longer stacks with an untouched identical config, so `inBag` is false. Fix: normalise before stringifying. |
 | KI-013 | L | Ghost lines from stale `tns-cart` | CartLineItem / Checkout | A slug no longer in the catalog renders nothing and is priced at 0, but still counts in the badge. Fix: reconcile on load. |
 | KI-014 | L | `updateQty(key, 0)` removes a line without undo | `src/store.tsx` | Only `removeLine` records `lastRemoved`. Fix: use `removeLine` for user removals (the existing rule). |
 | KI-015 | L | `lastRemoved` persists after the toast | Store + `UndoToast` | Revisiting `#/cart` re-shows a stale "Removed …" toast for 6 s. Fix: clear it when the toast hides. |
-| KI-016 | M | Drawer and studio survive route changes; Back never restores scroll | `cartOpen`, try-on `req`, `SmoothScroll` | Browser Back keeps overlays open, and scroll always resets to the top. Fix: close overlays on `hashchange`; consider scroll restoration. |
+| KI-016 | M | Drawer and studio survive route changes | `cartOpen`, try-on `req` | Browser Back keeps overlays open. Fix: close overlays on `hashchange`. Scroll is restored on Back since the page transitions (2026-10-20). |
 | KI-017 | L | `parseHash` keeps query strings and does not decode | `src/store.tsx` | `#/c/rings?sort=low` → slug `rings?sort=low` → not-found. Fix: strip and parse the query. |
 | KI-018 | L | No cross-tab sync | Store | Two tabs overwrite each other's `tns-*` keys. |
 | KI-019 | L | One monolithic context re-renders all 31 `useStore()` sites on any change | `src/store.tsx` | Performance only. Fix: split contexts if it becomes a problem. |
@@ -88,7 +88,7 @@ Severity: **H** = breaks something real; **M** = wrong behaviour or significant 
 | KI-060 | L | Synthetic reviews carry "Verified purchase" badges; Testimonials hard-codes "4.9 / 5 · 1,200+ reviews" | Reviews, Testimonials | Replace with real data before launch. |
 | KI-061 | — | **Fixed 2026-10-16.** Wishlist "Copy link" shared `#/wishlist`, which shows the recipient's own list | Wishlist | Replaced by "Share list", which sends every piece with its own link (`features/sharing.md`). |
 | KI-062 | L | Review storage `tns-reviews-<slug>` grows without bound and holds data-URL images | Reviews | |
-| KI-063 | N | Spelling varies: "Jewellery" on cart surfaces vs "Jewelry" in the catalog | Cart surfaces, catalog | Pick one per locale. |
+| KI-063 | — | Fixed 2026-10-21: English is Canadian everywhere (`Bridal Jewellery`, `Jewellery Rentals`), and US English is derived (`src/i18n/us.ts`). | — | — |
 | KI-064 | N | tax.ts comment says "2024 rates" while listing NS at 14% (the 2025 rate) | `src/data/tax.ts` | Update the comment. |
 
 ## From the build history
@@ -100,6 +100,7 @@ Severity: **H** = breaks something real; **M** = wrong behaviour or significant 
 | KI-067 | M | Catalog doesn't cover the brief's sub-types | `src/data/catalog.ts` | Missing from the brief (step 1): religious necklace, hoops, bangles, pinky ring, full eternity band, rental bracelet, wedding-day jewellery under Bridal. Fix: add products (skill `add-product`). |
 | KI-068 | L | Adding from the video viewer or try-on opens the drawer underneath | `addToCart` + z-index ladder | The drawer is `z-[90]`, below the viewer `z-[100]` and the studio `z-[110]`. In step 23 Figma Make offered "close the overlay, then Go to bag". |
 | KI-069 | L | Link previews are site-wide, and `og:image` is relative | `.figma/make/site.json` (`openGraph.image`), `src/App.tsx` (`headFor`) | Pages retitle only in the running app and hash routes share one document, so a shared PDP link previews with the site-wide title, description and card. `/og-image.jpg` is relative, which Facebook and LinkedIn may ignore. Fix: set the absolute URL once the deployed origin is known; per-page previews come with the Shopify theme's Liquid head. |
+| KI-070 | L | Salon hours and telephone live in three places | `src/data/salon.ts` (desktop menu), `src/components/Footer.tsx`, `src/components/home/VisitSalon.tsx` | Changing the hours means editing two components and `SALON.hours`; miss one and the menu's "Open now" line disagrees with the footer. Fix: render the Footer and VisitSalon lines from `SALON`. |
 
 ## Not issues (by design)
 

@@ -2,7 +2,11 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { ArrowRight, ArrowUpRight, Pause, Play } from 'lucide-react'
-import { getProduct, IMG, type Product } from '../data/catalog'
+import { getProduct, IMG, type CategorySlug, type Product } from '../data/catalog'
+import { bilingual, useCopy } from '../i18n'
+import { catalogFor, useCatalog } from '../i18n/catalog'
+import { COMMON } from '../i18n/common'
+import { onStageClear } from '../lib/stage'
 import { href, useStore } from '../store'
 import Price from './Price'
 import WishButton from './WishButton'
@@ -10,48 +14,67 @@ import TryOnButton from './tryon/TryOnButton'
 
 gsap.registerPlugin(ScrollTrigger)
 
-const SLIDES = [
-  {
-    nav: 'Lumière',
-    eyebrow: 'Collection Lumière · Automne',
-    lines: ['Light, set', 'by hand,', 'since 1962.'],
-    italic: 1,
-    body: 'Three generations of Montréal jewellers crafting GIA-certified diamonds and solid gold heirlooms on rue Sherbrooke.',
-    image: IMG.necklace2,
-    piece: 'mont-royal-solitaire-pendant',
-    pieceImage: 0,
-    cta: { label: 'Discover necklaces', to: href.category('necklaces') },
-  },
-  {
-    nav: 'Mariage',
-    eyebrow: 'Chapitre V · Mariage',
-    lines: ['A promise,', 'certified', 'to the facet.'],
-    italic: 1,
-    body: 'Engagement rings with GIA-graded centre stones, hand-set in platinum by our master setter.',
-    image: IMG.ring1,
-    piece: 'notre-dame-oval-solitaire',
-    pieceImage: 0,
-    cta: { label: 'Explore bridal', to: href.category('bridal') },
-  },
-  {
-    nav: 'Location',
-    eyebrow: 'Chapitre VII · La Location',
-    lines: ['Borrow the', 'vault', 'for a night.'],
-    italic: 1,
-    body: 'High jewelry for galas and premieres, insured and couriered across Canada and the United States.',
-    image: IMG.earrings2,
-    // The collar's boxed-strand photo; its first image is a chain that reads nothing like a collar.
-    piece: 'gala-diamond-collar',
-    pieceImage: 1,
-    cta: { label: 'View rentals', to: href.category('rentals') },
-  },
+// The slides' pictures and links; their words are in COPY, slide for slide.
+const SLIDES: { image: string; piece: string; pieceImage: number; italic: number; chapter: CategorySlug }[] = [
+  { image: IMG.necklace2, piece: 'mont-royal-solitaire-pendant', pieceImage: 0, italic: 1, chapter: 'necklaces' },
+  { image: IMG.ring1, piece: 'notre-dame-oval-solitaire', pieceImage: 0, italic: 1, chapter: 'bridal' },
+  // The collar's boxed-strand photo; its first image is a chain that reads nothing like a collar.
+  { image: IMG.earrings2, piece: 'gala-diamond-collar', pieceImage: 1, italic: 1, chapter: 'rentals' },
 ]
+
+// Each headline is three lines, the second set in gold italic. French lines are written for the display size, not
+// translated word for word, so no line outgrows the hero.
+const COPY = bilingual(
+  {
+    slides: [
+      { nav: 'Lumière', eyebrow: 'Collection Lumière · Automne', lines: ['Light, set', 'by hand,', 'since 1962.'], body: 'Three generations of Montréal jewellers crafting GIA-certified diamonds and solid gold heirlooms on rue Sherbrooke.', cta: 'Discover necklaces' },
+      { nav: 'Mariage', eyebrow: 'Chapitre V · Mariage', lines: ['A promise,', 'certified', 'to the facet.'], body: 'Engagement rings with GIA-graded centre stones, hand-set in platinum by our master setter.', cta: 'Explore bridal' },
+      { nav: 'Location', eyebrow: 'Chapitre VII · La Location', lines: ['Borrow the', 'vault', 'for a night.'], body: 'High jewellery for galas and premieres, insured and couriered across Canada and the United States.', cta: 'View rentals' },
+    ],
+    label: 'Featured collections',
+    piece: 'La pièce',
+    pieceLabel: (name: string, facts: string) => `The piece: ${name}, ${facts}`,
+    weekend: 'Weekend',
+    side: 'Joailliers · Montréal · Est. 1962',
+    slideOf: (i: number, n: number, nav: string) => `${i} of ${n}: ${nav}`,
+    book: 'Book a private appointment',
+    slides_: 'Slides',
+    slideButton: (i: number, n: number, nav: string) => `0${i} ${nav}, slide ${i} of ${n}`,
+    play: 'Play slideshow',
+    pause: 'Pause slideshow',
+    scroll: 'Scroll',
+    now: (i: number, n: number, text: string) => `Slide ${i} of ${n}: ${text}`,
+  },
+  {
+    slides: [
+      { nav: 'Lumière', eyebrow: 'Collection Lumière · Automne', lines: ['Sertir la', 'lumière,', 'depuis 1962.'], body: 'Trois générations de joailliers montréalais façonnent diamants certifiés GIA et bijoux d’or massif à transmettre, rue Sherbrooke.', cta: 'Découvrir les colliers' },
+      { nav: 'Mariage', eyebrow: 'Chapitre V · Mariage', lines: ['Une promesse,', 'certifiée', 'au carat près.'], body: 'Des bagues de fiançailles aux pierres centrales classées par le GIA, serties à la main dans le platine par notre maître sertisseur.', cta: 'Découvrir le mariage' },
+      { nav: 'Location', eyebrow: 'Chapitre VII · La Location', lines: ['Empruntez', 'le coffre', 'pour un soir.'], body: 'De la haute joaillerie pour les galas et les premières, assurée et livrée par messager partout au Canada et aux États-Unis.', cta: 'Voir la location' },
+    ],
+    label: 'Collections en vedette',
+    piece: 'La pièce',
+    pieceLabel: (name, facts) => `La pièce : ${name}, ${facts}`,
+    weekend: 'Fin de semaine',
+    side: 'Joailliers · Montréal · Depuis 1962',
+    slideOf: (i, n, nav) => `${i} sur ${n} : ${nav}`,
+    book: 'Prendre un rendez-vous privé',
+    slides_: 'Diapositives',
+    slideButton: (i, n, nav) => `0${i} ${nav}, diapositive ${i} sur ${n}`,
+    play: 'Lire le diaporama',
+    pause: 'Mettre le diaporama en pause',
+    scroll: 'Défiler',
+    now: (i, n, text) => `Diapositive ${i} sur ${n} : ${text}`,
+  },
+)
 
 const PIECES = SLIDES.map((s) => getProduct(s.piece))
 const DURATION = 7
 
-/** Carat, colour and clarity from the GIA report, or the total weight for pieces without one. */
-const facts = (p: Product) => (p.gia ? [`${p.gia.carat.toFixed(2)} ct`, p.gia.color, p.gia.clarity] : [p.specs['Total carat weight']].filter(Boolean))
+/** Carat, colour and clarity from the GIA report, or the total weight for pieces without one, in the visitor's locale. */
+const facts = (p: Product) => {
+  const catalog = catalogFor()
+  return p.gia ? [`${catalog.carat(p.gia)} ct`, p.gia.color, p.gia.clarity] : [catalog.spec(p, 'Total carat weight') ?? ''].filter(Boolean)
+}
 /** Catalog photos are 1600 px wide; the framed piece never shows more than 250 px of one. */
 const thumb = (url: string) => url.replace('w=1600', 'w=640')
 
@@ -59,6 +82,9 @@ const ring = 'focus-visible:outline focus-visible:outline-offset-4 focus-visible
 
 export default function HomeHero() {
   const { currency } = useStore()
+  const t = useCopy(COPY)
+  const common = useCopy(COMMON)
+  const catalog = useCatalog()
   const root = useRef<HTMLElement>(null)
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
@@ -78,52 +104,55 @@ export default function HomeHero() {
     else t.resume()
   }, [])
 
-  // Intro, scroll-out, pointer parallax and the cursor light
+  // Intro, scroll-out, pointer parallax and the cursor light. Under the splash or a page transition it waits, so the
+  // frame opens and the scene lights up as the page is uncovered.
   useLayoutEffect(() => {
     if (!root.current || reduced) return
     const el = root.current
-    const ctx = gsap.context(() => {
-      gsap.from('[data-hero-frame]', { clipPath: 'inset(12% 12% 12% 12%)', duration: 1.8, ease: 'expo.inOut' })
-      // The scene lights up as the frame opens.
-      gsap.from('[data-bg="0"] img', { filter: 'brightness(0.3) saturate(0.6)', duration: 2.6, ease: 'power2.out', clearProps: 'filter' })
-      gsap.from('[data-hero-meta]', { opacity: 0, y: 16, duration: 1, stagger: 0.08, delay: 1.1, ease: 'expo.out' })
-      gsap.from('[data-hero-inset]', { opacity: 0, duration: 1.4, delay: 0.9, ease: 'expo.out' })
+    return onStageClear(() => {
+      const ctx = gsap.context(() => {
+        gsap.from('[data-hero-frame]', { clipPath: 'inset(12% 12% 12% 12%)', duration: 1.8, ease: 'expo.inOut' })
+        // The scene lights up as the frame opens.
+        gsap.from('[data-bg="0"] img', { filter: 'brightness(0.3) saturate(0.6)', duration: 2.6, ease: 'power2.out', clearProps: 'filter' })
+        gsap.from('[data-hero-meta]', { opacity: 0, y: 16, duration: 1, stagger: 0.08, delay: 1.1, ease: 'expo.out' })
+        gsap.from('[data-hero-inset]', { opacity: 0, duration: 1.4, delay: 0.9, ease: 'expo.out' })
 
-      const st = { trigger: el, start: 'top top', end: 'bottom top', scrub: true }
-      gsap.to('[data-hero-bg]', { yPercent: 18, scale: 1.08, ease: 'none', scrollTrigger: st })
-      gsap.to('[data-hero-copy]', { yPercent: -30, opacity: 0, ease: 'none', scrollTrigger: { ...st, end: '70% top' } })
-      gsap.to('[data-hero-inset]', { yPercent: -30, ease: 'none', scrollTrigger: st })
-    }, root)
+        const st = { trigger: el, start: 'top top', end: 'bottom top', scrub: true }
+        gsap.to('[data-hero-bg]', { yPercent: 18, scale: 1.08, ease: 'none', scrollTrigger: st })
+        gsap.to('[data-hero-copy]', { yPercent: -30, opacity: 0, ease: 'none', scrollTrigger: { ...st, end: '70% top' } })
+        gsap.to('[data-hero-inset]', { yPercent: -30, ease: 'none', scrollTrigger: st })
+      }, root)
 
-    const qx = gsap.quickTo(el.querySelector('[data-hero-inset]'), 'x', { duration: 1.2, ease: 'power3.out' })
-    const qy = gsap.quickTo(el.querySelector('[data-hero-inset]'), 'y', { duration: 1.2, ease: 'power3.out' })
-    const bx = gsap.quickTo(el.querySelectorAll('[data-hero-bg]'), 'x', { duration: 1.6, ease: 'power3.out' })
-    // A soft key light trails the cursor across the jewellery.
-    const spot = el.querySelector<HTMLElement>('[data-hero-light]')
-    const light = { x: 68, y: 42 }
-    const paint = () => {
-      spot?.style.setProperty('--hx', `${light.x}%`)
-      spot?.style.setProperty('--hy', `${light.y}%`)
-    }
-    const lx = gsap.quickTo(light, 'x', { duration: 1.1, ease: 'power3.out', onUpdate: paint })
-    const ly = gsap.quickTo(light, 'y', { duration: 1.1, ease: 'power3.out', onUpdate: paint })
-    const onMove = (e: PointerEvent) => {
-      const nx = e.clientX / window.innerWidth - 0.5
-      const ny = e.clientY / window.innerHeight - 0.5
-      // Gentle on the piece: it's a link, so it shouldn't run from the cursor.
-      qx(nx * -24)
-      qy(ny * -18)
-      bx(nx * 18)
-      if (e.pointerType !== 'mouse') return
-      const r = el.getBoundingClientRect()
-      lx(((e.clientX - r.left) / r.width) * 100)
-      ly(((e.clientY - r.top) / r.height) * 100)
-    }
-    el.addEventListener('pointermove', onMove)
-    return () => {
-      el.removeEventListener('pointermove', onMove)
-      ctx.revert()
-    }
+      const qx = gsap.quickTo(el.querySelector('[data-hero-inset]'), 'x', { duration: 1.2, ease: 'power3.out' })
+      const qy = gsap.quickTo(el.querySelector('[data-hero-inset]'), 'y', { duration: 1.2, ease: 'power3.out' })
+      const bx = gsap.quickTo(el.querySelectorAll('[data-hero-bg]'), 'x', { duration: 1.6, ease: 'power3.out' })
+      // A soft key light trails the cursor across the jewellery.
+      const spot = el.querySelector<HTMLElement>('[data-hero-light]')
+      const light = { x: 68, y: 42 }
+      const paint = () => {
+        spot?.style.setProperty('--hx', `${light.x}%`)
+        spot?.style.setProperty('--hy', `${light.y}%`)
+      }
+      const lx = gsap.quickTo(light, 'x', { duration: 1.1, ease: 'power3.out', onUpdate: paint })
+      const ly = gsap.quickTo(light, 'y', { duration: 1.1, ease: 'power3.out', onUpdate: paint })
+      const onMove = (e: PointerEvent) => {
+        const nx = e.clientX / window.innerWidth - 0.5
+        const ny = e.clientY / window.innerHeight - 0.5
+        // Gentle on the piece: it's a link, so it shouldn't run from the cursor.
+        qx(nx * -24)
+        qy(ny * -18)
+        bx(nx * 18)
+        if (e.pointerType !== 'mouse') return
+        const r = el.getBoundingClientRect()
+        lx(((e.clientX - r.left) / r.width) * 100)
+        ly(((e.clientY - r.top) / r.height) * 100)
+      }
+      el.addEventListener('pointermove', onMove)
+      return () => {
+        el.removeEventListener('pointermove', onMove)
+        ctx.revert()
+      }
+    })
   }, [reduced])
 
   const go = useCallback(
@@ -150,7 +179,7 @@ export default function HomeHero() {
       }
       busy.current = true
       // Swap slides only after every line of the old headline has lifted out (0.7 s + 0.05 s stagger per extra line).
-      const linesOut = 0.7 + 0.05 * (SLIDES[index].lines.length - 1)
+      const linesOut = 0.7 + 0.05 * (q(`[data-slide="${index}"] [data-line]`).length - 1)
       gsap
         .timeline({ onComplete: () => { busy.current = false } })
         .to(q(`[data-slide="${index}"] [data-line]`), { yPercent: -115, duration: 0.7, stagger: 0.05, ease: 'expo.in' })
@@ -170,40 +199,43 @@ export default function HomeHero() {
   )
 
   // Headline reveal per slide; the progress line doubles as the autoplay timer, so pausing it pauses the slideshow.
+  // The first slide waits for the splash or a page transition to uncover the hero.
   useLayoutEffect(() => {
     if (!root.current) return
     const el = root.current
-    const scope = `[data-slide="${index}"]`
-    const lines = el.querySelectorAll(`${scope} [data-line]`)
-    const fades = el.querySelectorAll(`${scope} [data-fade]`)
-    const rules = [el.querySelector(`${scope} [data-eyebrow-rule]`), el.querySelector(`${scope} [data-rule]`)].filter((n): n is Element => !!n)
-    const gleam = el.querySelector(`${scope} [data-gleam]`)
-    const bar = el.querySelector(`[data-progress="${index}"]`)
-    // A tween from this slide's previous exit may still hold its lines; take them over cleanly.
-    gsap.killTweensOf(lines)
-    let tl: gsap.core.Timeline | null = null
-    if (reduced) {
-      gsap.set(lines, { yPercent: 0, rotate: 0 })
-      gsap.set(fades, { opacity: 1, y: 0 })
-      gsap.set(rules, { scaleX: 1 })
-      gsap.set(bar, { scaleX: 1, transformOrigin: 'left center' })
-    } else {
-      // Lines rise into focus, the gold hairlines draw in, then one glint of light crosses the gold word.
-      tl = gsap
-        .timeline()
-        .fromTo(lines, { yPercent: 115, rotate: 2, filter: 'blur(10px)' }, { yPercent: 0, rotate: 0, filter: 'blur(0px)', duration: 1.4, stagger: 0.1, ease: 'expo.out', clearProps: 'filter' })
-        .fromTo(fades, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 1, stagger: 0.08, ease: 'expo.out' }, 0.5)
-        .fromTo(rules, { scaleX: 0 }, { scaleX: 1, transformOrigin: 'left center', duration: 1.2, stagger: 0.2, ease: 'expo.inOut' }, 0.15)
-      if (gleam) tl.fromTo(gleam, { backgroundPosition: '100% 0%' }, { backgroundPosition: '0% 0%', duration: 1.8, ease: 'power2.inOut' }, 1)
-      progress.current = gsap.fromTo(bar, { scaleX: 0, transformOrigin: 'left center' }, { scaleX: 1, duration: DURATION, ease: 'none', onComplete: () => go(index + 1) })
-      sync()
-    }
-    return () => {
-      tl?.kill()
-      progress.current?.kill()
-      progress.current = null
-      if (reduced) gsap.set(bar, { scaleX: 0 })
-    }
+    return onStageClear(() => {
+      const scope = `[data-slide="${index}"]`
+      const lines = el.querySelectorAll(`${scope} [data-line]`)
+      const fades = el.querySelectorAll(`${scope} [data-fade]`)
+      const rules = [el.querySelector(`${scope} [data-eyebrow-rule]`), el.querySelector(`${scope} [data-rule]`)].filter((n): n is Element => !!n)
+      const gleam = el.querySelector(`${scope} [data-gleam]`)
+      const bar = el.querySelector(`[data-progress="${index}"]`)
+      // A tween from this slide's previous exit may still hold its lines; take them over cleanly.
+      gsap.killTweensOf(lines)
+      let tl: gsap.core.Timeline | null = null
+      if (reduced) {
+        gsap.set(lines, { yPercent: 0, rotate: 0 })
+        gsap.set(fades, { opacity: 1, y: 0 })
+        gsap.set(rules, { scaleX: 1 })
+        gsap.set(bar, { scaleX: 1, transformOrigin: 'left center' })
+      } else {
+        // Lines rise into focus, the gold hairlines draw in, then one glint of light crosses the gold word.
+        tl = gsap
+          .timeline()
+          .fromTo(lines, { yPercent: 115, rotate: 2, filter: 'blur(10px)' }, { yPercent: 0, rotate: 0, filter: 'blur(0px)', duration: 1.4, stagger: 0.1, ease: 'expo.out', clearProps: 'filter' })
+          .fromTo(fades, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 1, stagger: 0.08, ease: 'expo.out' }, 0.5)
+          .fromTo(rules, { scaleX: 0 }, { scaleX: 1, transformOrigin: 'left center', duration: 1.2, stagger: 0.2, ease: 'expo.inOut' }, 0.15)
+        if (gleam) tl.fromTo(gleam, { backgroundPosition: '100% 0%' }, { backgroundPosition: '0% 0%', duration: 1.8, ease: 'power2.inOut' }, 1)
+        progress.current = gsap.fromTo(bar, { scaleX: 0, transformOrigin: 'left center' }, { scaleX: 1, duration: DURATION, ease: 'none', onComplete: () => go(index + 1) })
+        sync()
+      }
+      return () => {
+        tl?.kill()
+        progress.current?.kill()
+        progress.current = null
+        if (reduced) gsap.set(bar, { scaleX: 0 })
+      }
+    })
   }, [index, reduced, go, sync])
 
   useEffect(() => {
@@ -256,14 +288,14 @@ export default function HomeHero() {
     if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.4) go(index + (dx < 0 ? 1 : -1))
   }
 
-  const slide = SLIDES[index]
+  const slide = t.slides[index]
   const piece = PIECES[index]
 
   return (
     <section
       ref={root}
       aria-roledescription="carousel"
-      aria-label="Featured collections"
+      aria-label={t.label}
       onFocus={(e) => { holds.current.focus = e.target.matches(':focus-visible'); sync() }}
       onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) { holds.current.focus = false; sync() } }}
       onPointerDown={(e) => { if (e.pointerType !== 'mouse') swipe.current = { x: e.clientX, y: e.clientY } }}
@@ -310,6 +342,7 @@ export default function HomeHero() {
       {piece && (
         <div
           data-hero-inset
+          data-morph-scope
           onPointerEnter={hold(true)}
           onPointerLeave={hold(false)}
           className="group absolute right-[6%] top-[11%] z-[7] hidden w-[min(17vw,250px,calc((100svh_-_26rem)*0.72))] lg:block"
@@ -337,23 +370,23 @@ export default function HomeHero() {
               return (
                 <div key={s.piece} data-slide={i} className={i === index ? 'relative' : 'pointer-events-none absolute inset-x-0 top-0 opacity-0'}>
                   <p data-fade className="font-spec flex items-center justify-between text-[9px] uppercase tracking-[0.32em] text-[var(--gold-champagne)]">
-                    La pièce
+                    {t.piece}
                     <ArrowUpRight size={14} strokeWidth={1.4} className="transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                   </p>
-                  <p data-fade className="font-serif-editorial mt-2.5 text-[1.375rem] leading-tight">{p.name}</p>
+                  <p data-fade className="font-serif-editorial mt-2.5 text-balance text-[1.375rem] leading-tight">{catalog.name(p)}</p>
                   <p data-fade className="font-spec mt-2 text-[10px] uppercase tracking-[0.18em] text-white/60">
                     {facts(p).join(' · ')}
-                    {p.rental && <> · Weekend <Price amount={p.rental.weekend[currency]} className="[&_span]:text-white/45" /></>}
+                    {p.rental && <> · {t.weekend} <Price amount={p.rental.weekend[currency]} className="[&_span]:text-white/45" /></>}
                   </p>
                 </div>
               )
             })}
           </div>
-          <a href={href.product(piece.slug)} aria-label={`La pièce: ${piece.name}, ${facts(piece).join(', ')}`} className={`absolute -inset-2 z-[1] ${ring}`} />
+          <a href={href.product(piece.slug)} aria-label={t.pieceLabel(catalog.name(piece), facts(piece).join(', '))} className={`absolute -inset-2 z-[1] ${ring}`} />
           <div className="pointer-events-none absolute inset-x-0 top-0 z-[2] aspect-[3/4] opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-focus-within:opacity-100">
             <WishButton slug={piece.slug} className="pointer-events-auto absolute right-3 top-3" />
             <span className="pointer-events-auto absolute bottom-3 left-3">
-              <TryOnButton product={piece} variant="chip" label="Try on" />
+              <TryOnButton product={piece} variant="chip" label={common.tryOn} />
             </span>
           </div>
         </div>
@@ -361,19 +394,19 @@ export default function HomeHero() {
 
       {/* Vertical side label, set in a vertical writing mode so it centres on the hero at any height */}
       <p data-hero-meta aria-hidden="true" className="font-spec absolute left-6 top-1/2 z-[5] hidden -translate-y-1/2 rotate-180 whitespace-nowrap text-[9px] uppercase tracking-[0.5em] text-white/40 [writing-mode:vertical-rl] lg:block lg:left-7">
-        Joailliers · Montréal · Est. 1962
+        {t.side}
       </p>
 
       {/* Copy */}
       <div data-hero-copy className="relative z-[6] mx-auto flex h-full max-w-[1600px] flex-col justify-end px-6 pb-[clamp(1.25rem,3.5vh,2.5rem)] lg:px-16">
         <div className="relative">
-          {SLIDES.map((s, i) => (
+          {t.slides.map((s, i) => (
             <div
-              key={s.nav}
+              key={i}
               data-slide={i}
               role="group"
               aria-roledescription="slide"
-              aria-label={`${i + 1} of ${SLIDES.length}: ${s.nav}`}
+              aria-label={t.slideOf(i + 1, SLIDES.length, s.nav)}
               aria-hidden={i !== index}
               inert={i !== index}
               className={i === index ? 'relative' : 'pointer-events-none absolute inset-x-0 bottom-0 opacity-0'}
@@ -390,9 +423,10 @@ export default function HomeHero() {
                 style={{ fontSize: 'clamp(3.25rem, min(9.2vw, 14vh), 8.75rem)' }}
               >
                 {s.lines.map((l, li) => {
-                  const accent = li === s.italic
+                  const accent = li === SLIDES[i].italic
                   return (
-                    <span key={l} className="block overflow-hidden pb-[0.24em] -mb-[0.16em]">
+                    // Keyed by position: a language switch rewrites the words in place, keeping the line's settled state.
+                    <span key={li} className="block overflow-hidden pb-[0.24em] -mb-[0.16em]">
                       <span data-line className="relative inline-flex items-start">
                         {accent && <span data-rule aria-hidden="true" className="mr-[0.3em] mt-[0.56em] h-px w-[0.9em] shrink-0 bg-[linear-gradient(90deg,rgba(212,185,130,0)_0%,rgba(212,185,130,0.55)_45%,var(--gold-champagne)_100%)] sm:w-[1.5em]" />}
                         <span
@@ -409,7 +443,7 @@ export default function HomeHero() {
               <div className="mt-[clamp(1.5rem,4vh,2.5rem)] flex flex-col gap-7 sm:flex-row sm:items-center sm:gap-12">
                 <p data-fade className="max-w-sm text-pretty text-sm leading-relaxed text-white/75">{s.body}</p>
                 <div data-fade className="flex flex-wrap items-center gap-x-10 gap-y-4">
-                  <a href={s.cta.to} className={`group inline-flex shrink-0 items-center gap-5 rounded-full text-[11px] font-medium uppercase tracking-[0.26em] ${ring}`}>
+                  <a href={href.category(SLIDES[i].chapter)} className={`group inline-flex shrink-0 items-center gap-5 rounded-full text-[11px] font-medium uppercase tracking-[0.26em] ${ring}`}>
                     <span className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-full border border-[var(--gold-champagne)]/70">
                       <span className="absolute inset-0 origin-bottom scale-y-0 bg-[var(--gold-champagne)] transition-transform duration-500 ease-out group-hover:scale-y-100" />
                       {/* The arrow passes through: one leaves to the right as its twin arrives from the left. Both wait fully outside the
@@ -417,10 +451,10 @@ export default function HomeHero() {
                       <ArrowRight size={16} strokeWidth={1.4} className="relative transition-[translate,color,opacity] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-[260%] group-hover:text-[var(--bg-vault)] group-hover:opacity-0" />
                       <ArrowRight size={16} strokeWidth={1.4} aria-hidden="true" className="absolute -translate-x-[260%] text-[var(--bg-vault)] opacity-0 transition-[translate,opacity] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-0 group-hover:opacity-100" />
                     </span>
-                    {s.cta.label}
+                    {s.cta}
                   </a>
                   <a href={href.atelier} className={`font-spec hidden border-b border-[var(--gold-champagne)]/40 pb-1 text-[10px] uppercase tracking-[0.24em] text-white/75 transition-colors hover:border-[var(--gold-champagne)] hover:text-white sm:inline-block ${ring}`}>
-                    Book a private appointment
+                    {t.book}
                   </a>
                 </div>
               </div>
@@ -430,13 +464,13 @@ export default function HomeHero() {
 
         {/* Controls: one line per slide fills as it plays */}
         <div data-hero-meta className="mt-[clamp(1.75rem,5vh,3rem)] flex items-end gap-5 border-t border-white/15 pt-5 sm:gap-10">
-          <ol aria-label="Slides" className="flex min-w-0 flex-1 gap-4 sm:flex-none sm:gap-8" onKeyDown={onKeys} onPointerEnter={hold(true)} onPointerLeave={hold(false)}>
-            {SLIDES.map((s, i) => (
-              <li key={s.nav} className="min-w-0 flex-1 sm:w-36 sm:flex-none">
+          <ol aria-label={t.slides_} className="flex min-w-0 flex-1 gap-4 sm:flex-none sm:gap-8" onKeyDown={onKeys} onPointerEnter={hold(true)} onPointerLeave={hold(false)}>
+            {t.slides.map((s, i) => (
+              <li key={i} className="min-w-0 flex-1 sm:w-36 sm:flex-none">
                 <button
                   type="button"
                   onClick={() => go(i)}
-                  aria-label={`0${i + 1} ${s.nav}, slide ${i + 1} of ${SLIDES.length}`}
+                  aria-label={t.slideButton(i + 1, SLIDES.length, s.nav)}
                   aria-current={i === index ? 'true' : undefined}
                   className={`group block w-full py-1 text-left ${ring}`}
                 >
@@ -455,14 +489,14 @@ export default function HomeHero() {
             <button
               type="button"
               onClick={() => setPaused((p) => !p)}
-              aria-label={paused ? 'Play slideshow' : 'Pause slideshow'}
+              aria-label={paused ? t.play : t.pause}
               className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/25 text-white/75 transition-colors sm:h-8 sm:w-8 hover:border-[var(--gold-champagne)] hover:text-[var(--gold-champagne)] ${ring}`}
             >
               {paused ? <Play size={11} strokeWidth={1.6} className="translate-x-px" /> : <Pause size={11} strokeWidth={1.6} />}
             </button>
           )}
           <span aria-hidden="true" className="font-spec ml-auto hidden items-center gap-4 text-[9px] uppercase tracking-[0.3em] text-white/55 sm:flex">
-            Scroll
+            {t.scroll}
             <span className="relative h-7 w-px overflow-hidden bg-white/20">
               <span className="absolute inset-x-0 top-0 h-1/2 animate-[scrollCue_2.6s_cubic-bezier(0.65,0,0.35,1)_infinite] bg-[var(--gold-champagne)] motion-reduce:animate-none" />
             </span>
@@ -470,7 +504,7 @@ export default function HomeHero() {
         </div>
       </div>
       {/* Screen readers hear the current slide, but only when it changes */}
-      <p className="sr-only" aria-live={paused || reduced ? 'polite' : 'off'}>{`Slide ${index + 1} of ${SLIDES.length}: ${slide.lines.join(' ')}`}</p>
+      <p className="sr-only" aria-live={paused || reduced ? 'polite' : 'off'}>{t.now(index + 1, SLIDES.length, slide.lines.join(' '))}</p>
     </section>
   )
 }

@@ -28,6 +28,13 @@ Render with `createPortal(…, document.body)` when the overlay lives deep in th
 - **Touch targets:** primary round controls are `h-11 w-11` (44 px). Don't make essential content hover-only, because Tailwind v4 hover never fires on touch devices.
 - **Focus:** if you write `outline-none`, add a visible focus state (`focus:border-[var(--text-espresso)]`, the gold underline, or a `focus-visible:` ring). Don't remove focus without a replacement.
 - **Skip link:** `App.tsx`'s "Skip to content" button must stay the first focusable element on every page. It focuses `<main>` in code; never turn it into a `#main` link (the hash router would treat it as a route).
+- **Page changes:** `PageTransition` moves focus to `<main>` and announces the title after each navigation. Pages shouldn't move focus on mount themselves.
+
+## Languages
+
+- Name each language in its own words and tag it with `lang` (`<button lang="fr">Français</button>`), as `LanguageToggle` and `LocaleMenu` do. Never use flags.
+- Text in the other language (a review's original, a bilingual notice) carries its own `lang`.
+- A language switch keeps focus, scroll position and every open overlay, and is announced in the new language (`LanguageVeil`). Don't reset state or move focus when the language changes.
 
 ## Fixed UI at the bottom edge
 

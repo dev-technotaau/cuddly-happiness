@@ -1,33 +1,60 @@
-import { METALS, formatDay, parseIso, rentalReturnDate, type Product } from '../data/catalog'
+import { formatDay, formatSlot, parseIso, rentalReturnDate, type Product } from '../data/catalog'
+import { bilingual, pick } from '../i18n'
+import { catalogFor } from '../i18n/catalog'
+import { COMMON } from '../i18n/common'
 import type { CartLine } from '../store'
 import { describePersonalization } from './pdp/Personalizer'
-import { DESIGNS } from '../data/giftcards'
+import { sizeLabel } from './pdp/RingSize'
 
-const RENTAL_LABEL = { weekend: 'Weekend rental', week: 'One-week rental', month: 'One-month rental' }
+const COPY = bilingual(
+  {
+    design: (name: string, digital: boolean) => `${name} design · ${digital ? 'Digital' : 'Physical card'}`,
+    forMe: 'For me',
+    to: (name: string, email?: string) => `To ${name}${email ? ` · ${email}` : ''}`,
+    sends: (date: string) => `Sends ${date}`,
+    salon: 'Salon fitting',
+    courier: 'Courier',
+    reverse: 'Reverse',
+    engraving: 'Engraving',
+  },
+  {
+    design: (name, digital) => `Motif ${name} · ${digital ? 'Numérique' : 'Carte physique'}`,
+    forMe: 'Pour moi',
+    to: (name, email) => `Pour ${name}${email ? ` · ${email}` : ''}`,
+    sends: (date) => `Envoi le ${date}`,
+    salon: 'Essayage au salon',
+    courier: 'Messager',
+    reverse: 'Verso',
+    engraving: 'Gravure',
+  },
+)
 
-/** Human-readable option lines for a cart line, shared by the bag and checkout. */
+/** Human-readable option lines for a cart line, shared by the bag and checkout, in the visitor's language. */
 export function lineDetails(line: CartLine, product: Product): string[] {
+  const t = pick(COPY)
+  const common = pick(COMMON)
+  const catalog = catalogFor()
   const out: string[] = []
   const g = line.giftCard
   if (g) {
-    out.push(`${DESIGNS.find((d) => d.id === g.design)?.name ?? ''} design · ${g.delivery === 'email' ? 'Digital' : 'Physical card'}`)
-    if (g.toSelf) out.push('For me')
-    else out.push(`To ${g.recipientName}${g.recipientEmail ? ` · ${g.recipientEmail}` : ''}`)
-    if (g.sendOn) out.push(`Sends ${formatDay(parseIso(g.sendOn))}`)
-    if (g.message) out.push(`“${g.message.length > 40 ? g.message.slice(0, 40) + '…' : g.message}”`)
+    out.push(t.design(catalog.design(g.design), g.delivery === 'email'))
+    if (g.toSelf) out.push(t.forMe)
+    else out.push(t.to(g.recipientName ?? '', g.recipientEmail))
+    if (g.sendOn) out.push(t.sends(formatDay(parseIso(g.sendOn))))
+    if (g.message) out.push(common.quote(g.message.length > 40 ? g.message.slice(0, 40) + '…' : g.message))
     return out
   }
-  if (line.rental) out.push(RENTAL_LABEL[line.rental])
-  else if (line.metal) out.push(METALS[line.metal].label)
-  if (line.size) out.push(`Size ${line.size}`)
+  if (line.rental) out.push(common.rentalLabel[line.rental])
+  else if (line.metal) out.push(catalog.metal(line.metal))
+  if (line.size) out.push(common.size(sizeLabel(line.size)))
   if (line.booking && line.rental) {
     const start = parseIso(line.booking.start)
     const end = rentalReturnDate(line.booking.start, line.rental)
     out.push(`${formatDay(start)} → ${formatDay(end)}`)
-    out.push(`${line.booking.method === 'salon' ? 'Salon fitting' : 'Courier'} · ${line.booking.slot}`)
+    out.push(`${line.booking.method === 'salon' ? t.salon : t.courier} · ${formatSlot(line.booking.slot)}`)
   }
   if (line.personalization) out.push(describePersonalization(line.personalization))
-  if (line.engraving) out.push(`${product.personalization ? 'Reverse' : 'Engraving'}: “${line.engraving}”`)
-  if (out.length === 0) out.push(product.collection)
+  if (line.engraving) out.push(`${product.personalization ? t.reverse : t.engraving} · ${common.quote(line.engraving)}`)
+  if (out.length === 0) out.push(catalog.product(product).collection)
   return out
 }

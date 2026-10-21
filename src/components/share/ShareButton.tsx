@@ -1,5 +1,6 @@
 import { lazy, Suspense, useRef, useState, type ComponentType } from 'react'
 import { Share } from 'lucide-react'
+import { bilingual, useCopy } from '../../i18n'
 import type { ShareSubject } from './ShareSheet'
 
 const ShareSheet = lazy(() => import('./ShareSheet'))
@@ -15,7 +16,10 @@ interface Props {
 }
 
 /** Opens the share sheet, loading it on first use, and hands focus back here when it closes. */
-export default function ShareButton({ subject, mode = 'share', label = 'Share', icon: Icon = Share, variant = 'link', className = '' }: Props) {
+const COPY = bilingual({ share: 'Share' }, { share: 'Partager' })
+
+export default function ShareButton({ subject, mode = 'share', label, icon: Icon = Share, variant = 'link', className = '' }: Props) {
+  const t = useCopy(COPY)
   const [open, setOpen] = useState(false)
   const trigger = useRef<HTMLButtonElement>(null)
   const styles =
@@ -33,7 +37,7 @@ export default function ShareButton({ subject, mode = 'share', label = 'Share', 
         className={`${styles} focus-visible:outline focus-visible:outline-offset-4 focus-visible:outline-[var(--text-espresso)] ${className}`}
       >
         <Icon size={14} strokeWidth={1.4} />
-        <span className={variant === 'link' ? 'border-b border-transparent pb-0.5 transition-colors group-hover:border-[var(--gold-vermeil)]' : ''}>{label}</span>
+        <span className={variant === 'link' ? 'border-b border-transparent pb-0.5 transition-colors group-hover:border-[var(--gold-vermeil)]' : ''}>{label ?? t.share}</span>
       </button>
       {open && (
         <Suspense fallback={null}>

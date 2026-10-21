@@ -147,6 +147,7 @@ export default function Price({ amount, className = '' }: { amount: number; clas
 | Trigger | Where | Mechanism |
 |---|---|---|
 | Header bag icon (`aria-label="Open bag"`, `ShoppingBag` icon with a gold count badge when `count > 0`) | `src/components/Header.tsx` | `setCartOpen(true)` |
+| Desktop menu Bag tile (`aria-label="Open bag"` or `Open bag, {n} pieces`) | `src/components/menu/SiteMenu.tsx` | closes the menu, then `setCartOpen(true)` |
 | Any `addToCart` call | `src/store.tsx` | `addToCart` ends with `setCartOpen(true)`. Callers: PDP add (`src/pages/Product.tsx`); gift-card builder (`src/pages/GiftCards.tsx`, which calls `addToCart` once per selected quantity); wishlist "Add all to bag" (`src/pages/Wishlist.tsx`); Complete the look (`src/components/pdp/CompleteTheLook.tsx`); shoppable video viewer (`src/components/video/VideoViewer.tsx`); try-on studio (`src/components/tryon/TryOnStudio.tsx`); `CartUpsell` quick add, both in the drawer and on the cart page |
 | PDP "Go to bag" | `src/pages/Product.tsx` (`onCta`, also passed to `StickyBar` as `onAction`) | When the exact configuration is already in the bag (`inBag`), the CTA calls `setCartOpen(true)` instead of adding |
 
@@ -956,7 +957,7 @@ Dynamic parts appear as `{…}`. Text shown uppercase by CSS keeps its source ca
 - **USD orders can show $0 due before tax.** In USD, `tax` is `0` in the math while the row says "Calculated by Shopify". `Total due` excludes sales tax, and gift cards can bring it to 0, which produces "Place order — no payment due".
 - **Promo codes are promised but missing.** The cart page says "Gift cards and promo codes can be applied at checkout.", but checkout has no promo-code field.
 - **Installments use the pre-tax subtotal.** The figure is `Math.round(subtotal / 4)`, while the cart page's "Estimated total" includes estimated tax in CAD.
-- **Mixed spelling.** The cart uses "Jewellery" (Summary row, reward copy), while catalog category names use "Jewelry" (e.g. "Bridal Jewelry").
+- **Spelling (fixed 2026-10-21).** English is Canadian on every surface ("Jewellery", "Bridal Jewellery"); US visitors get US spelling ("Jewelry") through `src/i18n/us.ts`. All cart and checkout copy is bilingual; see [../features/languages.md](../features/languages.md).
 
 ### Behaviour to know before changing anything
 

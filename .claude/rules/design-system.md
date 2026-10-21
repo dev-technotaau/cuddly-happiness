@@ -73,15 +73,17 @@ Place new layers inside this ladder:
 |---|---|
 | Local overlays | `z-10` |
 | StickyBar | `z-40` |
-| Back-to-top | `z-[45]` |
+| Back-to-top, language notice (opposite corners; the notice carries `data-fab-avoid`) | `z-[45]` |
 | Header | `z-50` |
 | Film grain | 60 |
-| Mobile menu | `z-[70]` |
+| Mobile menu, desktop menu (never together) | `z-[70]` |
 | Cart backdrop / drawer | `z-[80]` / `z-[90]` |
 | Lightboxes | `z-[95]` |
 | Modals and viewers | `z-[100]` |
 | Try-on studio | `z-[110]` |
 | Skip link (while focused) | `z-[120]` |
+| Page transition (veil and curtain / seam / clone); the language veil shares `z-[125]` and never runs at the same time | `z-[125]` / `z-[126]` / `z-[127]` |
+| Splash | `z-[130]` |
 
 ## Motion
 
@@ -89,6 +91,7 @@ Place new layers inside this ladder:
 - **Durations:** `duration-500` or `duration-700`.
 - **Scroll entrances:** `data-reveal="<delay s>"`, `data-reveal-img` and `data-parallax` inside a root that calls `useReveal(ref)`.
 - **Reduced motion:** guard every new GSAP animation with `prefers-reduced-motion`.
+- **Entrances wait for the stage.** A mount-time GSAP entrance builds inside `onStageClear()` (`src/lib/stage.ts`), as `useReveal` does, so it plays as the splash or a page transition uncovers the page.
 
 ## Cascade quirks
 

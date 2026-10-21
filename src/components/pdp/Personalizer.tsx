@@ -7,6 +7,9 @@ import {
   type PersonalizationFont,
   type Product,
 } from '../../data/catalog'
+import { bilingual, pick, useCopy } from '../../i18n'
+import { catalogFor, useCatalog } from '../../i18n/catalog'
+import { COMMON } from '../../i18n/common'
 import { useStore } from '../../store'
 import Price from '../Price'
 
@@ -15,6 +18,31 @@ export const FONT_STYLES: Record<PersonalizationFont, { label: string; style: CS
   serif: { label: 'Serif', style: { fontFamily: "'Baskervville', serif", fontStyle: 'italic', fontWeight: 500 } },
   block: { label: 'Block', style: { fontFamily: "'Jost', sans-serif", fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.18em' } },
 }
+
+const COPY = bilingual(
+  {
+    fonts: { script: 'Script', serif: 'Serif', block: 'Block' } as Record<PersonalizationFont, string>,
+    preview: 'Live preview',
+    chain: (length: string) => `${length} chain`,
+    personalize: 'Personalize',
+    example: (text: string) => `e.g. ${text}`,
+    lettering: 'Lettering',
+    chainLength: 'Chain length',
+    proof: 'A digital proof is emailed for your approval before we cut. Personalized pieces are final sale.',
+    diamondAccent: 'Diamond accent',
+  },
+  {
+    fonts: { script: 'Cursive', serif: 'Romaine', block: 'Bâton' },
+    preview: 'Aperçu en direct',
+    chain: (length) => `Chaîne de ${length}`,
+    personalize: 'Personnaliser',
+    example: (text) => `p. ex. ${text}`,
+    lettering: 'Lettrage',
+    chainLength: 'Longueur de chaîne',
+    proof: 'Une épreuve numérique vous est envoyée par courriel pour approbation avant la découpe. Les pièces personnalisées sont des ventes finales.',
+    diamondAccent: 'Accent de diamant',
+  },
+)
 
 interface Props {
   product: Product
@@ -36,6 +64,8 @@ function goldText(swatch: string): CSSProperties {
 }
 
 function Preview({ product, value, swatch }: { product: Product; value: Personalization; swatch: string }) {
+  const t = useCopy(COPY)
+  const catalog = useCatalog()
   const cfg = product.personalization!
   const fallback = cfg.kind === 'nameplate' ? 'Teresa' : cfg.kind === 'initial' ? 'T' : 'TMS'
   const text = value.text.trim() || fallback
@@ -78,16 +108,19 @@ function Preview({ product, value, swatch }: { product: Product; value: Personal
         </div>
       )}
 
-      <span className="font-spec absolute bottom-3 left-4 text-[9px] uppercase tracking-[0.24em] text-[var(--text-linen)]">Live preview</span>
-      {value.chainLength && <span className="font-spec absolute bottom-3 right-4 text-[9px] uppercase tracking-[0.24em] text-[var(--text-linen)]">{value.chainLength} chain</span>}
+      <span className="font-spec absolute bottom-3 left-4 text-[9px] uppercase tracking-[0.24em] text-[var(--text-linen)]">{t.preview}</span>
+      {value.chainLength && <span className="font-spec absolute bottom-3 right-4 text-[9px] uppercase tracking-[0.24em] text-[var(--text-linen)]">{t.chain(catalog.unit(value.chainLength))}</span>}
     </div>
   )
 }
 
 export default function Personalizer({ product, value, onChange, step, metalSwatch, showError }: Props) {
   const { currency } = useStore()
+  const t = useCopy(COPY)
+  const catalog = useCatalog()
   const cfg = product.personalization
   if (!cfg) return null
+  const words = catalog.personalization(product)
   const error = value.text ? validatePersonalization(cfg, value.text) : showError ? validatePersonalization(cfg, '') : null
   const label = 'text-[11px] uppercase tracking-[0.22em]'
 
@@ -96,7 +129,7 @@ export default function Personalizer({ product, value, onChange, step, metalSwat
       <legend className={`mb-4 flex w-full items-baseline justify-between gap-4 ${label} ${error && showError ? 'text-red-700' : ''}`}>
         <span>
           <span className="font-spec mr-3 text-[10px] text-[var(--gold-vermeil)]">{step}</span>
-          Personalize <span className="normal-case tracking-normal text-[var(--text-linen)]">— {cfg.label.toLowerCase()}</span>
+          {t.personalize} <span className="normal-case tracking-normal text-[var(--text-linen)]">— {words.label.toLowerCase()}</span>
         </span>
       </legend>
 
@@ -107,7 +140,7 @@ export default function Personalizer({ product, value, onChange, step, metalSwat
           {/* Text */}
           <div>
             <div className="flex items-baseline justify-between">
-              <label htmlFor="personal-text" className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-taupe)]">{cfg.label}</label>
+              <label htmlFor="personal-text" className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-taupe)]">{words.label}</label>
               <span className="font-spec text-[10px] text-[var(--text-linen)]">{value.text.length}/{cfg.maxLength}</span>
             </div>
             {cfg.kind === 'initial' ? (
@@ -130,18 +163,18 @@ export default function Personalizer({ product, value, onChange, step, metalSwat
                 value={value.text}
                 maxLength={cfg.maxLength}
                 onChange={(e) => onChange({ ...value, text: cfg.kind === 'monogram' ? e.target.value.toUpperCase() : e.target.value })}
-                placeholder={cfg.kind === 'nameplate' ? 'e.g. Sofia' : 'e.g. TMS'}
+                placeholder={t.example(cfg.kind === 'nameplate' ? 'Sofia' : 'TMS')}
                 autoComplete="off"
                 className={`mt-2 w-full border bg-transparent px-4 py-3.5 text-lg outline-none transition-colors placeholder:text-[var(--text-linen)] ${error ? 'border-red-700/50' : 'border-[var(--border-hairline)] focus:border-[var(--text-espresso)]'}`}
                 style={value.text ? FONT_STYLES[value.font].style : undefined}
               />
             )}
-            <p className={`mt-2 text-xs ${error ? 'text-red-700' : 'text-[var(--text-linen)]'}`}>{error ?? cfg.hint}</p>
+            <p className={`mt-2 text-xs ${error ? 'text-red-700' : 'text-[var(--text-linen)]'}`}>{error ?? words.hint}</p>
           </div>
 
           {/* Font */}
           <div>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-taupe)]">Lettering</p>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-taupe)]">{t.lettering}</p>
             <div className="mt-3 grid grid-cols-3 gap-1.5">
               {cfg.fonts.map((f) => (
                 <button
@@ -154,7 +187,7 @@ export default function Personalizer({ product, value, onChange, step, metalSwat
                   <span className="block text-2xl leading-none" style={{ ...FONT_STYLES[f].style, fontSize: f === 'block' ? '0.95rem' : undefined }}>
                     {f === 'block' ? 'AA' : 'Aa'}
                   </span>
-                  <span className="mt-1.5 block text-[9px] uppercase tracking-[0.2em]">{FONT_STYLES[f].label}</span>
+                  <span className="mt-1.5 block text-[9px] uppercase tracking-[0.2em]">{t.fonts[f]}</span>
                 </button>
               ))}
             </div>
@@ -163,16 +196,17 @@ export default function Personalizer({ product, value, onChange, step, metalSwat
           {/* Chain length */}
           {cfg.chainLengths && (
             <div>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-taupe)]">Chain length</p>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--text-taupe)]">{t.chainLength}</p>
               <div className="mt-3 flex gap-1.5">
                 {cfg.chainLengths.map((c) => (
                   <button
                     type="button"
                     key={c}
                     onClick={() => onChange({ ...value, chainLength: c })}
+                    aria-pressed={value.chainLength === c}
                     className={`font-spec flex-1 border py-2.5 text-xs transition-colors ${value.chainLength === c ? 'border-[var(--text-espresso)] bg-[var(--text-espresso)] text-[var(--bg-travertine)]' : 'border-[var(--border-hairline)] hover:border-[var(--text-espresso)]'}`}
                   >
-                    {c}
+                    {catalog.unit(c)}
                   </button>
                 ))}
               </div>
@@ -185,14 +219,14 @@ export default function Personalizer({ product, value, onChange, step, metalSwat
               <span className="flex items-center gap-3">
                 <input type="checkbox" checked={!!value.accent} onChange={(e) => onChange({ ...value, accent: e.target.checked })} className="h-4 w-4 accent-[var(--text-espresso)]" />
                 <Sparkles size={15} strokeWidth={1.3} className="text-[var(--gold-vermeil)]" />
-                <span className="text-[11px] uppercase tracking-[0.18em]">{cfg.accent.label}</span>
+                <span className="text-[11px] uppercase tracking-[0.18em]">{words.accent}</span>
               </span>
               <span className="text-xs">+ <Price amount={personalizationPrice(product, { ...value, accent: true }, currency)} /></span>
             </label>
           )}
 
           <p className="border-t border-[var(--border-hairline)] pt-4 text-xs leading-relaxed text-[var(--text-taupe)]">
-            A digital proof is emailed for your approval before we cut. Personalized pieces are final sale.
+            {t.proof}
           </p>
         </div>
       </div>
@@ -200,6 +234,8 @@ export default function Personalizer({ product, value, onChange, step, metalSwat
   )
 }
 
+/** The personalization on one line, in the visitor's language: “Sofia” · Script · 18 in · Diamond accent. */
 export function describePersonalization(p: Personalization): string {
-  return [`“${p.text.trim()}”`, FONT_STYLES[p.font].label, p.chainLength, p.accent && 'Diamond accent'].filter(Boolean).join(' · ')
+  const t = pick(COPY)
+  return [pick(COMMON).quote(p.text.trim()), t.fonts[p.font], p.chainLength && catalogFor().unit(p.chainLength), p.accent && t.diamondAccent].filter(Boolean).join(' · ')
 }

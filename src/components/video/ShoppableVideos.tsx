@@ -3,14 +3,23 @@ import { createPortal } from 'react-dom'
 import { ChevronLeft, ChevronRight, Play } from 'lucide-react'
 import { priceFor } from '../../data/catalog'
 import { videoProducts, type ShoppableVideo } from '../../data/media'
+import { bilingual, useCopy } from '../../i18n'
+import { useCatalog } from '../../i18n/catalog'
+import { rich } from '../../i18n/rich'
 import { useStore } from '../../store'
 import Price from '../Price'
 import SectionHeader from '../home/SectionHeader'
 import useInViewPlay from './useInViewPlay'
 import VideoViewer from './VideoViewer'
 
+const COPY = bilingual(
+  { eyebrow: 'Watch & shop', title: 'Seen in <em>motion</em>', left: 'Scroll films left', right: 'Scroll films right' },
+  { eyebrow: 'Voir et magasiner', title: 'En <em>mouvement</em>', left: 'Faire défiler les films vers la gauche', right: 'Faire défiler les films vers la droite' },
+)
+
 function Tile({ video, onOpen, index }: { video: ShoppableVideo; onOpen: () => void; index: number }) {
   const { currency } = useStore()
+  const catalog = useCatalog()
   const ref = useRef<HTMLVideoElement>(null)
   useInViewPlay(ref)
   const [first, ...rest] = videoProducts(video)
@@ -24,12 +33,12 @@ function Tile({ video, onOpen, index }: { video: ShoppableVideo; onOpen: () => v
         <Play size={12} strokeWidth={1.5} className="ml-0.5 fill-current" />
       </span>
       <div className="absolute inset-x-3 bottom-3">
-        <p className="font-serif-editorial text-xl leading-tight text-white">{video.title}</p>
+        <p className="font-serif-editorial text-xl leading-tight text-white">{catalog.video(video).title}</p>
         {first && (
           <div className="mt-3 flex items-center gap-2.5 bg-[var(--bg-travertine)]/95 p-1.5 pr-3 text-[var(--text-espresso)] backdrop-blur">
             <img src={first.images[0]} alt="" className="h-10 w-8 object-cover" />
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-[11px] font-medium">{first.name}</span>
+              <span className="block truncate text-[11px] font-medium">{catalog.name(first)}</span>
               <Price amount={first.rental ? first.rental.weekend[currency] : priceFor(first, currency)} className="text-[10px]" />
             </span>
             {rest.length > 0 && <span className="font-spec text-[10px] text-[var(--text-taupe)]">+{rest.length}</span>}
@@ -50,14 +59,8 @@ interface Props {
 }
 
 /** Horizontal rail of autoplaying vertical films; each opens a shoppable viewer. */
-export default function ShoppableVideos({
-  videos,
-  index = '—',
-  eyebrow = 'Watch & shop',
-  title = <>Seen in <em className="text-[var(--gold-vermeil)]">motion</em></>,
-  tone = 'light',
-  className = '',
-}: Props) {
+export default function ShoppableVideos({ videos, index = '—', eyebrow, title, tone = 'light', className = '' }: Props) {
+  const t = useCopy(COPY)
   const [open, setOpen] = useState<number | null>(null)
   const rail = useRef<HTMLDivElement>(null)
   if (videos.length === 0) return null
@@ -70,14 +73,14 @@ export default function ShoppableVideos({
       <div className="mx-auto max-w-[1600px] px-6 pt-28 lg:px-12 lg:pt-36">
         <SectionHeader
           index={index}
-          eyebrow={eyebrow}
-          title={title}
+          eyebrow={eyebrow ?? t.eyebrow}
+          title={title ?? rich(t.title, tone === 'dark' ? 'text-[var(--gold-champagne)]' : 'text-[var(--gold-vermeil)]')}
           tone={tone}
           aside={
             videos.length > 3 && (
               <div className="flex gap-2">
-                <button onClick={() => scroll(-1)} aria-label="Scroll films left" className={`flex h-11 w-11 items-center justify-center rounded-full border transition-colors ${btn}`}><ChevronLeft size={18} strokeWidth={1.3} /></button>
-                <button onClick={() => scroll(1)} aria-label="Scroll films right" className={`flex h-11 w-11 items-center justify-center rounded-full border transition-colors ${btn}`}><ChevronRight size={18} strokeWidth={1.3} /></button>
+                <button onClick={() => scroll(-1)} aria-label={t.left} className={`flex h-11 w-11 items-center justify-center rounded-full border transition-colors ${btn}`}><ChevronLeft size={18} strokeWidth={1.3} /></button>
+                <button onClick={() => scroll(1)} aria-label={t.right} className={`flex h-11 w-11 items-center justify-center rounded-full border transition-colors ${btn}`}><ChevronRight size={18} strokeWidth={1.3} /></button>
               </div>
             )
           }

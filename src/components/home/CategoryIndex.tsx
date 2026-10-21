@@ -2,10 +2,22 @@ import { useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 import { ArrowUpRight } from 'lucide-react'
 import { CATEGORIES, getProductsByCategory } from '../../data/catalog'
+import { bilingual, useCopy } from '../../i18n'
+import { useCatalog } from '../../i18n/catalog'
+import { COMMON } from '../../i18n/common'
+import { rich } from '../../i18n/rich'
 import { href } from '../../store'
 import SectionHeader from './SectionHeader'
 
+const COPY = bilingual(
+  { eyebrow: 'Nine chapters', title: 'The <em>Index</em>', aside: 'From everyday gold to GIA-certified bridal — each piece made or curated in Montréal.' },
+  { eyebrow: 'Neuf chapitres', title: 'Le <em>sommaire</em>', aside: 'De l’or de tous les jours au mariage certifié GIA — chaque pièce faite ou choisie à Montréal.' },
+)
+
 export default function CategoryIndex() {
+  const t = useCopy(COPY)
+  const common = useCopy(COMMON)
+  const catalog = useCatalog()
   const list = useRef<HTMLUListElement>(null)
   const preview = useRef<HTMLDivElement>(null)
   const [hover, setHover] = useState<number | null>(null)
@@ -33,9 +45,9 @@ export default function CategoryIndex() {
     <section className="mx-auto max-w-[1600px] px-6 py-32 lg:px-12 lg:py-44">
       <SectionHeader
         index="01"
-        eyebrow="Nine chapters"
-        title={<>The <em className="text-[var(--gold-vermeil)]">Index</em></>}
-        aside={<p className="max-w-xs text-sm leading-relaxed text-[var(--text-taupe)]">From everyday gold to GIA-certified bridal — each piece made or curated in Montréal.</p>}
+        eyebrow={t.eyebrow}
+        title={rich(t.title, 'text-[var(--gold-vermeil)]')}
+        aside={<p className="max-w-xs text-sm leading-relaxed text-[var(--text-taupe)]">{t.aside}</p>}
       />
 
       {/* Desktop: typographic list with a cursor-following preview */}
@@ -53,12 +65,12 @@ export default function CategoryIndex() {
               className={`group grid grid-cols-12 items-baseline border-b border-[var(--border-hairline)] py-7 transition-colors duration-500 ${hover !== null && hover !== i ? 'text-[var(--text-linen)]' : ''}`}
             >
               <span className="font-spec col-span-1 text-[10px] text-[var(--gold-vermeil)]">{c.eyebrow}</span>
-              <span className="font-serif-editorial col-span-5 text-6xl font-light leading-none tracking-[-0.02em] transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-4">
-                {c.name}
+              <span className="font-serif-editorial col-span-5 text-[clamp(44px,4.2vw,60px)] font-light leading-[1.02] tracking-[-0.02em] transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-4">
+                {catalog.category(c).name}
               </span>
-              <span className="font-serif-editorial col-span-3 text-xl italic text-[var(--text-linen)]">{c.french}</span>
+              <span className="font-serif-editorial col-span-3 text-xl italic text-[var(--text-linen)]">{catalog.category(c).accent}</span>
               <span className="font-spec col-span-2 text-[10px] uppercase tracking-[0.22em] text-[var(--text-taupe)]">
-                {getProductsByCategory(c.slug).length} pieces
+                {common.pieces(getProductsByCategory(c.slug).length)}
               </span>
               <span className="col-span-1 flex justify-end">
                 <ArrowUpRight size={20} strokeWidth={1.2} className="transition-transform duration-500 group-hover:-translate-y-1 group-hover:translate-x-1 group-hover:text-[var(--gold-vermeil)]" />
@@ -73,11 +85,11 @@ export default function CategoryIndex() {
         {CATEGORIES.map((c, i) => (
           <a key={c.slug} href={href.category(c.slug)} className="group block" data-reveal={(i % 3) * 0.06}>
             <div className="aspect-[3/4] overflow-hidden bg-[var(--bg-silk)]">
-              <img src={c.hero} alt={c.name} loading="lazy" className="editorial-zoom h-full w-full object-cover" />
+              <img src={c.hero} alt={catalog.category(c).name} loading="lazy" className="editorial-zoom h-full w-full object-cover" />
             </div>
             <div className="mt-4 flex items-baseline gap-3">
               <span className="font-spec text-[10px] text-[var(--gold-vermeil)]">{c.eyebrow}</span>
-              <span className="font-serif-editorial text-2xl">{c.name}</span>
+              <span className="font-serif-editorial text-2xl">{catalog.category(c).name}</span>
             </div>
           </a>
         ))}

@@ -78,9 +78,9 @@ Scope: compiled 2026-10-15 from `history/figma-make-log.md`, `design-intent.md`,
 3. [ ] **P2 · `lineKey` is order-sensitive and treats `accent: false` as different.** A toggled-then-untoggled accent won't stack, and "Go to bag" shows the wrong state. Normalise before stringifying. Source: KI-012.
 4. [ ] **P2 · Bag "+" lowers quantities above 10.** It uses `Math.min(10, qty + 1)` while gift cards can be added up to 20. Clamp at add time, or fix the stepper. File: `cart/CartLineItem.tsx`. Source: KI-023.
 5. [ ] **P2 · Header currency switch on checkout doesn't re-convert applied gift cards** (front-end simulation math). File: `pages/Checkout.tsx`. Source: KI-024.
-6. [ ] **P2 · Overlays survive navigation.** The drawer and studio stay open on Back. Scroll always resets to the top, so Back never restores it. Close overlays on `hashchange`; consider scroll restoration. Source: KI-016.
+6. [ ] **P2 · Overlays survive navigation.** The drawer and studio stay open on Back. Close overlays on `hashchange`. Scroll restoration on Back shipped with the page transitions (2026-10-20). Source: KI-016.
 7. [ ] **P2 · Escape closes both the try-on studio and the drawer** when try-on was opened from a bag line. Scroll locks aren't reference-counted (body vs html). Source: KI-043, KI-044.
-8. [ ] **P2 · Validate `tns-currency`** on load (whitelist CAD/USD). Guard the localStorage writes. Optionally add an error boundary. Source: KI-010, KI-011.
+8. [ ] **P2 · Guard the localStorage writes** and optionally add an error boundary. (`tns-currency` is validated since 2026-10-21.) Source: KI-011.
 9. [ ] **P2 · The cart promises promo codes that checkout lacks.** Either add a simulated promo-code field (UI only) or change the copy. Source: KI-029.
 10. [ ] **P2 · `getBookedDates` uses a signed `>>`.** Hashes ≥ 2^31 break, so `bridal-tiara-and-drops` gets no booked dates and some dates land in the past. Use `>>>`. File: `data/catalog.ts`. Source: KI-033.
 11. [ ] **P3 · Rentals can reach qty > 1** for a single unique piece, and "Reserve the ensemble" can bump an identical rental to ×2. Cap rentals at 1. Source: KI-028.
@@ -135,7 +135,9 @@ Scope: compiled 2026-10-15 from `history/figma-make-log.md`, `design-intent.md`,
   - On the Gifts page in USD, the card art shows $250 while the tile shows $200.
   - Source: KI-032.
 - [ ] **P3 · Nameplate copy.** The spec "Diamond accent +$180" also shows in USD, where the price is +$130. `describePersonalization` hard-codes "Diamond accent". Source: KI-034.
-- [ ] **P3 · Spelling.** "Jewellery" on cart surfaces vs "Jewelry" in catalog names. Pick one per locale. Source: KI-063.
+- [x] **P3 · Spelling.** Done 2026-10-21: Canadian English throughout, US English derived per market. Source: KI-063.
+- [ ] **P2 · French review.** The French copy (UI, catalog, hero lines, category accents, FAQ, legal-sounding lines such as the gift-card expiry answer) is a first draft by Claude Code. Have a native Québec copywriter, and for policies a legal reviewer (Charter of the French Language), check it before launch.
+- [ ] **P3 · Locale details.** Collection label `Gifts under $1,000` / `Cadeaux à moins de 1 000 $` doesn't follow the market; the custom-gift-card field's `$` sits by language but not by currency name.
 - [ ] **P3 · Trust row, shipping/returns and care copy are identical for rentals and watches.** Tailor them.
 - [ ] **P3 · Labels and links.**
   - The "Begin commission" label also applies to the fixed-price nameplate.
@@ -144,6 +146,7 @@ Scope: compiled 2026-10-15 from `history/figma-make-log.md`, `design-intent.md`,
   - The nameplate is `engravable` but shows no engraving field, while the cost breakdown still lists "Engraving — Included".
   - The engraving counter shows the untrimmed length.
 - [ ] **P3 · `tax.ts` says "2024 rates"** while listing the 2025 NS rate. Source: KI-064.
+- [ ] **P3 · Salon hours in one place.** The desktop menu reads `SALON` (`src/data/salon.ts`), but the Footer and `home/VisitSalon.tsx` still hard-code the hours and telephone. Render them from `SALON`. Source: KI-070.
 
 ## 6. Tooling & platform (PROTO)
 
@@ -199,6 +202,7 @@ These are recorded so the owner's real build has the full list. **Do not impleme
 - [ ] Newsletter provider and appointment-booking backend.
 - [ ] Persistent and shared wishlists (KI-061), and cross-device or cross-tab state (KI-018).
 - [ ] Inventory and stock status behind "In stock · ships within 48 hours".
+- [ ] Languages and markets: Shopify Markets (Canada: English + French; US: English), `locales/*.json` from the `bilingual()` objects, Translate & Adapt for the catalog, the `localization` form, `customer.locale`. See `shopify-integration.md` B12.
 
 ## 9. Knowledge-base housekeeping
 
@@ -237,19 +241,34 @@ Work that was never on the list, logged so it isn't redone or undone:
   - `site.json` sets the title "Teresa & Sons — Fine Jewellery in Montréal since 1962", an on-voice description, `en-CA`, the icons and `og:image`, plus `theme-color` and `og:site_name`/`og:type`/`og:locale` through `customScripts.headEnd`.
   - `Routes` (`src/App.tsx`, `headFor`) retitles each page ("Necklaces — Teresa & Sons", the piece's name on a PDP) and swaps in the category's or the piece's own description. New routes need a `headFor` case (`rules/routing-and-state.md`).
   - New files in `public/`: the gold italic ampersand on espresso as `favicon.svg`, a 32 px `favicon.ico`, a 180 px `apple-touch-icon.png` and the 1200×630 `og-image.jpg`. Docs: `platform-and-tooling.md` §5 and §12.3.
+- [x] **Desktop menu (2026-10-20).** A two-hairline button before "Shop" opens `src/components/menu/SiteMenu.tsx`: a full-height rail that unfolds sideways into the Shop chapters and a preview photograph. It adds search (`/`, ⌘K), the salon's live hours, recently viewed or new arrivals, the visitor's tiles, arrow-key navigation and menu aim. The bar and the mobile menu are unchanged. Docs: `components/global-and-shared.md` §2.1.
+  - Same day, after the owner saw two menu icons at once: the header's button now hides while the menu is open. The cross hands back to it in one commit once folded, or travels with the rail past 1600 px. The menu also mounts ahead of the first click, which removed a 400 ms first-open lag.
+- [x] **Splash and page transitions (2026-10-20).**
+  - Splash (`src/components/splash/Splash.tsx`): the mark draws, the seam fills with real loading while the year counts from 1962, then the case opens. Once per session; a veil later.
+  - Page transitions (`src/components/transition/`): Barba-shaped curtain, chapter turn, product-photo morph and checkout fade. They are direction-aware, remember scroll for Back, quicken for fast browsing, prefetch on hover, and move focus and announce the title.
+  - Entrances wait for the stage (`src/lib/stage.ts`).
+  - Docs: `motion-and-interaction.md` "Splash and page transitions".
+- [x] **English (Canada, US) and French (Canada) (2026-10-21, owner request).**
+  - Every visible string, the catalog included, in both languages (`bilingual()`, `useCopy()`, `useCatalog()`); US English derived from Canadian English per market.
+  - The switch: header language and market menu, toggles in the mobile and desktop menus, the footer and the account page; a veil that keeps the reader's place; the language in the address (`#/fr/`); a one-time notice for browser- or link-chosen languages.
+  - Locale-aware prices, dates, hours, delivery windows, numbers, taxes (TPS/TVQ…), ring sizes and units; bilingual menu search; reviews with "See original".
+  - Docs: `features/languages.md`.
+- [x] **Nav highlighting and never-blank transitions (2026-10-20, owner feedback).**
+  - Header: a gliding gold hairline marks the current section, with `aria-current`. The mega menu opens on the current chapter, and the mega and mobile menus mark the current page.
+  - Transitions: the destination card always shows, even when quick and on Back, and the checkout fade has a small card. A link to the current page glides to the top.
 
 ## 11. Planned features (owner requests, 2026-10-16)
 
 - [ ] **P1 · PROTO · "Shop all" page: every piece in one place. Next up.**
   - **Route.** `#/shop` (`href.shop`), added in all five routing places (`Route` union, `parseHash`, `href`, `Routes`, `headFor`). In the theme it maps to Shopify's built-in `/collections/all`.
   - **Page.** In the Category page's style: a vault hero ("Every *piece*", with the French *Toutes les pièces*), the "N pieces · Prices in {currency}" toolbar and sort. Every piece across the nine categories, filterable by category, with try-on for the wearable pieces.
-  - **Entry points.** The header "Shop" mega menu (an "All pieces" row), the mobile menu and the footer's Shop column.
+  - **Entry points.** The header "Shop" mega menu (an "All pieces" row), the desktop menu's Shop panel (the same row, first), the mobile menu and the footer's Shop column.
   - **Re-point** two CTAs that open Necklaces for now: Treasured's "Continue the discovery" and the empty bag's "Find your piece". Their labels were already renamed with this page in mind (2026-10-16).
 - [ ] **P1 · PROTO · Curated collections: system and pages.** In jewellery, a *collection* is a curated story (Mont-Royal, Lumière), not a category. The header's category menu became "Shop" so the word is free for this.
   - **Model.** Add a `Collection` entity: slug, name, optional French name, story, hero and feature images, season or year, and a curated order of pieces. Membership is many-to-many: a collection can hold a single piece or pieces from several categories, and a piece can sit in several collections.
   - **Today.** `Product.collection` is one string per piece, and each of its 21 values maps to exactly one category (for example Mont-Royal → necklaces, Notre-Dame → bridal). The hero's "Collection Lumière · Automne" has no pieces at all. Keep a primary collection for card eyebrows, and add the membership list.
   - **Pages.** A `#/collections` index and a `#/collection/:slug` page: the story, the imagery, and the collection's pieces across categories, filterable by category. Follow the five-place routing rule.
-  - **Navigation.** Add a "Collections" entry beside "Shop" (in the desktop bar or as a mega-menu column), plus the mobile menu and the footer. Link the card and PDP eyebrows (`product.collection`) to their collection, and add breadcrumbs.
+  - **Navigation.** Add a "Collections" entry beside "Shop" (in the desktop bar or as a mega-menu column, and in the desktop menu as a `RAIL` item whose `panel` lists the collections), plus the mobile menu and the footer. Link the card and PDP eyebrows (`product.collection`) to their collection, and add breadcrumbs.
   - **Copy.** The category-meaning uses of "collection" were renamed on 2026-10-16:
     - "Explore all collections" → "Continue the discovery";
     - "Shop the collections" → "Find your piece";

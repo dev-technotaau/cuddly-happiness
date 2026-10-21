@@ -36,7 +36,7 @@ Report honestly what you verified and what you could not. Never run `pnpm run fo
    | Atelier | `#/atelier` |
 
 3. **What to check:**
-   - Both currencies, using the Header **CA · CAD / US · USD** toggle.
+   - Both languages and both markets, using the Header language and market menu (`EN · CAD` ▾): English (Canada), English (United States) and Français. French addresses start `#/fr/` (`#/fr/p/<slug>`). Look for overflowing French labels, untranslated strings and prices in the right format (`$1,250` / `1 250 $`).
    - Widths around 375 px (below `lg`) and 1440 px.
    - The browser console has no errors.
    - Animated changes also work with reduced motion: Lenis and the reveals switch off and the content must still be visible.

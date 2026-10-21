@@ -1,5 +1,8 @@
 import { ScanFace } from 'lucide-react'
 import type { Metal, Product } from '../../data/catalog'
+import { useCopy } from '../../i18n'
+import { useCatalog } from '../../i18n/catalog'
+import { COMMON } from '../../i18n/common'
 import { useTryOn } from './TryOnProvider'
 
 interface Props {
@@ -12,9 +15,12 @@ interface Props {
   className?: string
 }
 
-export default function TryOnButton({ product, metal, text, list, variant = 'outline', label = 'View on you', className = '' }: Props) {
+export default function TryOnButton({ product, metal, text, list, variant = 'outline', label, className = '' }: Props) {
   const { openTryOn, canTryOn } = useTryOn()
+  const common = useCopy(COMMON)
+  const catalog = useCatalog()
   if (!canTryOn(product)) return null
+  const text_ = label ?? common.viewOnYou
 
   const open = (e: React.MouseEvent) => {
     // Often rendered inside product links.
@@ -32,9 +38,9 @@ export default function TryOnButton({ product, metal, text, list, variant = 'out
   }[variant]
 
   return (
-    <button type="button" onClick={open} aria-label={variant === 'icon' ? `${label}: ${product.name}` : undefined} title={variant === 'icon' ? label : undefined} className={`${styles} ${className}`}>
+    <button type="button" onClick={open} aria-label={variant === 'icon' ? `${text_}: ${catalog.name(product)}` : undefined} title={variant === 'icon' ? text_ : undefined} className={`${styles} ${className}`}>
       {variant !== 'link' && <ScanFace size={variant === 'chip' ? 13 : 16} strokeWidth={1.3} />}
-      {variant !== 'icon' && label}
+      {variant !== 'icon' && text_}
     </button>
   )
 }

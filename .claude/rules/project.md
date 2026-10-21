@@ -37,7 +37,7 @@ This repo is a Shopify-store **theme design prototype** for Teresa & Sons, a Mon
 | Task | Command | Notes |
 |---|---|---|
 | Typecheck | `npx tsc --noEmit -p .` | Baseline is 0 errors. `pnpm run build` does **not** typecheck. |
-| Build | `pnpm run build` | Initial JS baseline: about 630 kB (192 kB gzip), split into the entry chunk (463 kB) and a shared vendor chunk (167 kB). The lazy chunks, TryOnStudio (22 kB) and ShareSheet (20 kB), load on demand. Measured 2026-10-16. |
+| Build | `pnpm run build` | Initial JS baseline: about 750 kB (236 kB gzip): the entry chunk (561 kB), a shared vendor chunk (150 kB) and a chunk shared with the lazy menu (39 kB). Both languages ship in it. The lazy chunks, SiteMenu (34 kB), TryOnStudio (26 kB) and ShareSheet (24 kB), load on demand. Measured 2026-10-21. |
 | Dev server | `pnpm dev`, then open `http://localhost:8443/#/` | Figma Make already runs it on `$PORT` (8443). Locally you start it yourself. `strictPort` is on; set `PORT` to change the port. |
 
 No tests and no linter exist.
@@ -50,6 +50,7 @@ No tests and no linter exist.
 - **Never hard-code `#/…` strings or use `href="#id"` anchors.** Use `href.*` from `src/store.tsx`. To jump within a page, scroll programmatically with `getLenis()`.
 - **Never format money by hand or convert currency ad hoc.** Use `<Price amount={…} />` or `formatPrice`, plus the catalog/giftcards helpers.
 - **Never touch `tns-*` localStorage from components.** Go through `useStore()`.
+- **Never write a visible string in one language only.** Declare it with `bilingual()` and read it with `useCopy()`; show catalog text through `useCatalog()` (`.claude/rules/brand-and-copy.md`, "Languages").
 - **Never add dependencies without asking** (router, state lib, clsx, UI kits…). The stack is deliberately minimal.
 
 ## Always
@@ -63,12 +64,14 @@ No tests and no linter exist.
 ## Map
 
 ```
-index.html → src/main.tsx → src/App.tsx   StoreProvider ▸ TryOnProvider ▸ SmoothScroll ▸ Header / <Routes/> / Footer / CartDrawer / BackToTop / film-grain
-src/store.tsx      Route union, parseHash, href, cart (lineKey, linePrice), meta, wishlist, recent, account, currency
-src/data/          catalog (products, metals, prices, rentals, personalization, tryOnKind) · giftcards · media · costing · tax
+index.html → src/main.tsx → src/App.tsx   StoreProvider ▸ TryOnProvider ▸ SmoothScroll ▸ Splash / Header / <Pages/> (PageTransition ▸ Routes) / Footer / CartDrawer / BackToTop / film-grain
+src/store.tsx      Route union, parseHash/splitHash/bareHash, href (language prefix), cart (lineKey, linePrice), meta, wishlist, recent, account, currency, lang
+src/i18n/          bilingual/useCopy/pick, locales and formatters · us (US spelling) · rich (<em> accents) · catalog (useCatalog) · common
+src/data/          catalog (products, metals, prices, rentals, personalization, tryOnKind) · catalog.fr (French catalog) · giftcards · media · costing · tax · salon
 src/pages/         Home · Category · Product · Cart · Checkout · GiftCards · Wishlist · Account · Atelier
 src/components/    Header Footer CartDrawer ProductCard Price WishButton RecentlyViewed SmoothScroll useReveal lineDetails
-                   home/ pdp/ cart/ tryon/ video/ giftcard/
+                   home/ pdp/ cart/ tryon/ video/ giftcard/ share/ menu/ splash/ transition/ (LanguageVeil) brand/ locale/ (LocaleMenu, LanguageToggle, LanguageNotice)
 src/lib/shopify.ts Shopify Ajax-cart payload for gift-card lines (placeholder variant IDs)
+src/lib/stage.ts   stage cover that holds entrances under the splash and page transitions; intro mode
 src/index.css      Google Fonts, :root tokens, global utilities, keyframes
 ```

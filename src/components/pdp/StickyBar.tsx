@@ -1,5 +1,6 @@
 import { useEffect, useState, type RefObject } from 'react'
 import type { Product } from '../../data/catalog'
+import { useCatalog } from '../../i18n/catalog'
 import Price from '../Price'
 import TryOnButton from '../tryon/TryOnButton'
 
@@ -14,6 +15,7 @@ interface Props {
 
 /** Slides up once the primary CTA has scrolled out of view. */
 export default function StickyBar({ product, amount, detail, label, target, onAction }: Props) {
+  const catalog = useCatalog()
   const [show, setShow] = useState(false)
   useEffect(() => {
     const el = target.current
@@ -32,7 +34,7 @@ export default function StickyBar({ product, amount, detail, label, target, onAc
       <div className="mx-auto flex max-w-[1600px] items-center gap-5 px-6 py-3 lg:px-12">
         <img src={product.images[0]} alt="" className="hidden h-12 w-10 object-cover sm:block" />
         <div className="min-w-0 flex-1">
-          <p className="font-serif-editorial truncate text-xl leading-tight">{product.name}</p>
+          <p className="font-serif-editorial truncate text-xl leading-tight">{catalog.name(product)}</p>
           {detail && <p className="font-spec truncate text-[10px] uppercase tracking-[0.16em] text-[var(--text-taupe)]">{detail}</p>}
         </div>
         <Price amount={amount} className="hidden text-sm sm:inline" />

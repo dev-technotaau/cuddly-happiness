@@ -59,7 +59,18 @@ Teresa & Sons is a Montréal family maison founded in 1962 by Teresa Moretti. He
 - **Units:** `ct`, `mm`, `in`, `g`.
 - **Prices:** never typed into copy. Use `<Price />`. If market-specific, branch on `currency === 'CAD'`.
 - **Case:** write labels in sentence or title case; CSS uppercases them.
-- **Spelling:** match the surface you're on. Cart surfaces say "Jewellery"; catalog names say "Jewelry".
+- **Spelling:** Canadian English everywhere (`jewellery`, `colour`, `centre`, `-ize`). US spelling is derived by `src/i18n/us.ts`; don't write it by hand.
+
+## French (Canada)
+
+Every string ships with its French, written for the French reader rather than translated word for word (`bilingual()`; reference `.claude/docs/features/languages.md` §9).
+
+- **Register:** vouvoiement; the visitor's own drafted messages (notes, hints) may use "tu".
+- **Québec usage:** `courriel`, `magasiner` / `magasinage`, `fin de semaine`, `texto`, `téléverser`, `soumission`, `boutons d’oreilles`, `jonc`, `baguier`; taxes `TPS`, `TVQ`, `TVH`, `TVP`.
+- **Vocabulary:** bag → `panier`; piece → `pièce`; complimentary → `offert(e)`; concierge → `concierge`; chapter → `chapitre`; the maison stays `la maison`.
+- **Typography:** sentence case in titles and product names (place names keep their capitals: `Solitaire ovale Notre-Dame`); a no-break space before `:` and inside `« »`, none before `? ! ;`; `1 250 $`, `18 h`, `1,82 ct`, `16 po`; typographic `’`.
+- **Accents and eyebrows:** each French headline stresses its own word; French eyebrows never repeat the title, and the English site's French touches are not mirrored into English.
+- **Length:** French runs 20–30% longer. Keep display lines short (the hero's three lines were written to fit), and check buttons and tiles at 375 px.
 
 ## Honesty
 

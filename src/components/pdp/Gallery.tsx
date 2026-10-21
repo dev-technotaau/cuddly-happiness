@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 import { ChevronLeft, ChevronRight, Expand, X } from 'lucide-react'
 import type { Product } from '../../data/catalog'
+import { bilingual, useCopy } from '../../i18n'
+import { useCatalog } from '../../i18n/catalog'
 import WishButton from '../WishButton'
 import TryOnButton from '../tryon/TryOnButton'
 import { videosForProduct } from '../../data/media'
@@ -14,16 +16,48 @@ interface View {
   video?: string
 }
 
-function buildViews(product: Product): View[] {
-  const views: View[] = product.images.map((src, i) => ({ src, label: i === 0 ? 'Front' : i === 1 ? 'Styled' : `View ${i + 1}` }))
-  views.push({ src: product.images[0], label: 'Detail', crop: { scale: 1.9, origin: '50% 45%' } })
+const COPY = bilingual(
+  {
+    front: 'Front',
+    styled: 'Styled',
+    view: (n: number) => `View ${n}`,
+    detail: 'Detail',
+    film: 'Film',
+    show: (label: string) => `Show ${label} view`,
+    previous: 'Previous image',
+    next: 'Next image',
+    fullScreen: 'Full screen',
+    gallery: (name: string) => `${name} gallery`,
+    close: 'Close gallery',
+  },
+  {
+    front: 'De face',
+    styled: 'Portée',
+    view: (n) => `Vue ${n}`,
+    detail: 'Détail',
+    film: 'Film',
+    show: (label) => `Afficher la vue : ${label}`,
+    previous: 'Image précédente',
+    next: 'Image suivante',
+    fullScreen: 'Plein écran',
+    gallery: (name) => `Galerie : ${name}`,
+    close: 'Fermer la galerie',
+  },
+)
+
+function buildViews(product: Product, t: (typeof COPY)['en']): View[] {
+  const views: View[] = product.images.map((src, i) => ({ src, label: i === 0 ? t.front : i === 1 ? t.styled : t.view(i + 1) }))
+  views.push({ src: product.images[0], label: t.detail, crop: { scale: 1.9, origin: '50% 45%' } })
   const film = videosForProduct(product.slug)[0]
-  if (film) views.splice(1, 0, { src: film.poster, label: 'Film', video: film.src })
+  if (film) views.splice(1, 0, { src: film.poster, label: t.film, video: film.src })
   return views
 }
 
 export default function Gallery({ product }: { product: Product }) {
-  const views = buildViews(product)
+  const t = useCopy(COPY)
+  const catalog = useCatalog()
+  const name = catalog.name(product)
+  const views = buildViews(product, t)
   const [index, setIndex] = useState(0)
   const [lightbox, setLightbox] = useState(false)
   const stage = useRef<HTMLDivElement>(null)
@@ -64,11 +98,11 @@ export default function Gallery({ product }: { product: Product }) {
           <button
             key={v.label}
             onClick={() => setIndex(i)}
-            aria-label={`Show ${v.label} view`}
+            aria-label={t.show(v.label)}
             className={`relative aspect-[4/5] overflow-hidden transition-opacity duration-500 ${i === index ? 'opacity-100' : 'opacity-45 hover:opacity-80'}`}
           >
             <img src={v.src} alt="" className="h-full w-full object-cover" style={cropStyle(v)} />
-            {v.video && <span className="font-spec absolute inset-0 flex items-center justify-center bg-black/25 text-[9px] uppercase tracking-[0.2em] text-white">Film</span>}
+            {v.video && <span className="font-spec absolute inset-0 flex items-center justify-center bg-black/25 text-[9px] uppercase tracking-[0.2em] text-white">{t.film}</span>}
             <span className={`absolute inset-x-0 bottom-0 h-px origin-left bg-[var(--gold-vermeil)] transition-transform duration-700 ${i === index ? 'scale-x-100' : 'scale-x-0'}`} />
           </button>
         ))}
@@ -77,6 +111,7 @@ export default function Gallery({ product }: { product: Product }) {
       <div className="min-w-0 flex-1">
         <div
           ref={stage}
+          data-morph-target={product.slug}
           onPointerMove={onMove}
           onClick={() => setLightbox(true)}
           className={`group relative aspect-[4/5] overflow-hidden bg-[var(--bg-silk)] ${view.video ? 'cursor-pointer' : 'cursor-zoom-in'}`}
@@ -89,7 +124,7 @@ export default function Gallery({ product }: { product: Product }) {
               <img
                 ref={zoomImg}
                 src={view.src}
-                alt={`${product.name} — ${view.label}`}
+                alt={`${name} — ${view.label}`}
                 className="h-full w-full object-cover transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] [@media(hover:hover)]:group-hover:scale-[1.8]"
               />
             </div>
@@ -98,7 +133,7 @@ export default function Gallery({ product }: { product: Product }) {
 
           {product.badges?.[0] && (
             <span className="font-spec absolute left-5 top-5 bg-[var(--bg-travertine)]/90 px-3 py-1.5 text-[10px] uppercase tracking-[0.22em] backdrop-blur">
-              {product.badges[0]}
+              {catalog.badge(product.badges[0])}
             </span>
           )}
           <div className="absolute right-5 top-5 z-10 flex flex-col items-end gap-2" onClick={(e) => e.stopPropagation()}>
@@ -113,15 +148,15 @@ export default function Gallery({ product }: { product: Product }) {
               {String(index + 1).padStart(2, '0')} / {String(views.length).padStart(2, '0')} · {view.label}
             </span>
             <div className="flex gap-2">
-              {[[-1, ChevronLeft, 'Previous'], [1, ChevronRight, 'Next']].map(([d, Icon, l]) => {
+              {[[-1, ChevronLeft, t.previous], [1, ChevronRight, t.next]].map(([d, Icon, l]) => {
                 const I = Icon as typeof ChevronLeft
                 return (
-                  <button key={l as string} onClick={() => go(d as number)} aria-label={`${l} image`} className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--bg-travertine)]/90 backdrop-blur transition-colors hover:bg-[var(--text-espresso)] hover:text-[var(--bg-travertine)]">
+                  <button key={l as string} onClick={() => go(d as number)} aria-label={l as string} className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--bg-travertine)]/90 backdrop-blur transition-colors hover:bg-[var(--text-espresso)] hover:text-[var(--bg-travertine)]">
                     <I size={16} strokeWidth={1.4} />
                   </button>
                 )
               })}
-              <button onClick={() => setLightbox(true)} aria-label="Full screen" className="hidden h-10 w-10 items-center justify-center rounded-full bg-[var(--bg-travertine)]/90 backdrop-blur transition-colors hover:bg-[var(--text-espresso)] hover:text-[var(--bg-travertine)] sm:flex">
+              <button onClick={() => setLightbox(true)} aria-label={t.fullScreen} className="hidden h-10 w-10 items-center justify-center rounded-full bg-[var(--bg-travertine)]/90 backdrop-blur transition-colors hover:bg-[var(--text-espresso)] hover:text-[var(--bg-travertine)] sm:flex">
                 <Expand size={15} strokeWidth={1.4} />
               </button>
             </div>
@@ -131,16 +166,16 @@ export default function Gallery({ product }: { product: Product }) {
         {/* Mobile dots */}
         <div className="mt-4 flex justify-center gap-2 lg:hidden">
           {views.map((v, i) => (
-            <button key={v.label} onClick={() => setIndex(i)} aria-label={`Show ${v.label} view`} className={`h-px transition-all duration-500 ${i === index ? 'w-10 bg-[var(--text-espresso)]' : 'w-5 bg-[var(--border-hairline)]'}`} />
+            <button key={i} onClick={() => setIndex(i)} aria-label={t.show(v.label)} className={`h-px transition-all duration-500 ${i === index ? 'w-10 bg-[var(--text-espresso)]' : 'w-5 bg-[var(--border-hairline)]'}`} />
           ))}
         </div>
       </div>
 
       {lightbox && (
-        <div className="fixed inset-0 z-[95] flex flex-col bg-[var(--bg-vault)] text-[var(--bg-travertine)]" role="dialog" aria-modal="true" aria-label={`${product.name} gallery`} data-lenis-prevent>
+        <div className="fixed inset-0 z-[95] flex flex-col bg-[var(--bg-vault)] text-[var(--bg-travertine)]" role="dialog" aria-modal="true" aria-label={t.gallery(name)} data-lenis-prevent>
           <div className="flex items-center justify-between px-6 py-5 lg:px-10">
-            <p className="font-serif-editorial text-2xl">{product.name}</p>
-            <button onClick={() => setLightbox(false)} aria-label="Close gallery" className="flex h-11 w-11 items-center justify-center rounded-full border border-white/20 hover:border-[var(--gold-champagne)]">
+            <p className="font-serif-editorial text-2xl">{name}</p>
+            <button onClick={() => setLightbox(false)} aria-label={t.close} className="flex h-11 w-11 items-center justify-center rounded-full border border-white/20 hover:border-[var(--gold-champagne)]">
               <X size={18} strokeWidth={1.3} />
             </button>
           </div>
@@ -152,8 +187,8 @@ export default function Gallery({ product }: { product: Product }) {
                 <img src={view.src} alt="" className="h-full w-full object-cover" style={cropStyle(view)} />
               )}
             </div>
-            <button onClick={() => go(-1)} aria-label="Previous image" className="absolute left-4 flex h-12 w-12 items-center justify-center rounded-full border border-white/20 hover:border-[var(--gold-champagne)] lg:left-10"><ChevronLeft size={18} strokeWidth={1.3} /></button>
-            <button onClick={() => go(1)} aria-label="Next image" className="absolute right-4 flex h-12 w-12 items-center justify-center rounded-full border border-white/20 hover:border-[var(--gold-champagne)] lg:right-10"><ChevronRight size={18} strokeWidth={1.3} /></button>
+            <button onClick={() => go(-1)} aria-label={t.previous} className="absolute left-4 flex h-12 w-12 items-center justify-center rounded-full border border-white/20 hover:border-[var(--gold-champagne)] lg:left-10"><ChevronLeft size={18} strokeWidth={1.3} /></button>
+            <button onClick={() => go(1)} aria-label={t.next} className="absolute right-4 flex h-12 w-12 items-center justify-center rounded-full border border-white/20 hover:border-[var(--gold-champagne)] lg:right-10"><ChevronRight size={18} strokeWidth={1.3} /></button>
           </div>
           <p className="font-spec py-6 text-center text-[10px] uppercase tracking-[0.3em] text-white/50">
             {String(index + 1).padStart(2, '0')} / {String(views.length).padStart(2, '0')} · {view.label}

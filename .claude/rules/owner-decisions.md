@@ -21,6 +21,15 @@ These are standing product decisions the owner made or accepted. Don't reverse t
   - The PDP CTA and the StickyBar switch to "Go to bag" when that exact configuration is already in the bag.
 - **Configuration first.** Never quick-add a piece that has required options (ring size, rental dates, personalization, commissions). Route to the PDP instead, with "Choose dates" / "Personalize this piece" / "Choose size & options" / "Select options".
 - **Header.** The desktop bar is Shop · Bridal · Rentals · Atelier. "Shop" opens the category mega menu. Gift Cards lives in the mega menu (plus the mobile menu and footer), not in the bar.
+  - A menu button (two hairlines) before Shop opens the full-height desktop menu (2026-10-20). It is an addition, not a replacement: it repeats the bar (Shop unfolds sideways into the chapters and a preview), and it is where new pages go once the bar is full. Keep the bar and the mobile menu as they are.
+- **Splash and page transitions (2026-10-20).** Every visit opens with the splash: in full once per session, shorter on a deep link, a brief veil afterwards. Pages change through Barba-style transitions:
+  - a curtain naming the destination;
+  - a chapter turn between categories;
+  - a product photo flying into its page;
+  - a quiet fade for checkout.
+
+  Barba.js itself can't drive this React app, because it fetches server-rendered pages. The transitions are shaped for it, so the Shopify theme can use it.
+- **Two languages (2026-10-21).** The owner asked for English (US and Canada) and French (Canada), with a polished, smart switch. English follows the market (Canadian with CAD, US with USD); French is Canadian French. Every visible string, the catalog included, exists in both. The switch keeps the visitor's place behind a veil, the language sits in the address (`#/fr/`), and a one-time notice greets visitors whose browser or link chose it. See `.claude/docs/features/languages.md`.
 - **"Collection" means a curated collection, never a category (2026-10-16).**
   - Categories are the shop's chapters (Necklaces, Rings…). A collection is a curated story that can hold one piece or pieces from several categories.
   - Don't label category navigation "Collections". The curated-collections system is planned (`.claude/docs/todo.md` §11).

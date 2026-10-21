@@ -26,7 +26,7 @@ Full references: `.claude/docs/commerce-logic.md` (formulas and worked examples)
   | `convert` | Gift cards | Nearest $1 |
 
   Do not add a fourth rule.
-- **Display:** in the active currency, display with `<Price amount />`. For an amount in another currency (gift-card balances), use `formatPrice(amount, explicitCurrency)` and print the ISO code.
+- **Display:** in the active currency, display with `<Price amount />`. For an amount in another currency (gift-card balances), use `formatPrice(amount, explicitCurrency)` and print the ISO code. `formatPrice` formats for the visitor's locale (`$1,250`, `1 250 $`) with a bare `$`.
 - **Line prices:** price cart lines only with the store's `linePrice(line)`. Derive bag totals only from `useCartTotals()`.
 
 ## Cart-line identity
@@ -71,6 +71,7 @@ CompleteTheLook, Wishlist "Add all", VideoViewer, CartUpsell and TryOnStudio mus
 - **Prices:** `price: p(CAD)`, or `p(CAD, USD)` to override USD.
 - **Images:** from the `IMG` map.
 - **`metals[0]`** is the PDP default and the quick-add metal. A platinum-first list makes the PDP open +650 CAD above the card price.
-- **Category copy and imagery** live only in `CATEGORIES`. Never special-case them in pages.
-- **Name-based heuristics:** `tryOnKind`, `mediaPoolFor`, overlay drawing and costing findings all key off product **names** via regex. Re-check them when you rename or add products.
+- **Category copy and imagery** live only in `CATEGORIES` (English) and `CATEGORY_FR` (French). Never special-case them in pages.
+- **French catalog copy** for each product goes in `PRODUCT_FR` in `src/data/catalog.fr.ts` (name, tagline, description, specs by English key, personalization labels). Display through `useCatalog()`; tax names through `provinceName`, `taxName`, `stateName` and `taxLabel` in `src/data/tax.ts`.
+- **Name-based heuristics:** `tryOnKind`, `mediaPoolFor`, overlay drawing and costing findings all key off product **English names** via regex. Re-check them when you rename or add products, and never feed them translated names.
 - **Undo guard:** keep the `prev.some(...)` duplicate guard in `undoRemove`, because StrictMode double-invokes updaters.

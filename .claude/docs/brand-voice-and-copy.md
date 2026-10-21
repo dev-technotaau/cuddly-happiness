@@ -1,6 +1,6 @@
 # Brand, voice & copywriting
 
-Teresa & Sons is presented as a family jewellery house in Montréal, founded in 1962 by Teresa Moretti, with a salon and atelier at 1420 rue Sherbrooke Ouest that sells to Canada (CAD) and the United States (USD). Every user-facing string is hard-coded in TS/TSX. There is no CMS, no translation layer and no shared copy-constants module, so brand facts, policies and microcopy are repeated across many components and must be edited in several places at once. The voice is editorial, understated and expert: English body copy with French accents, a "chapter" metaphor for the catalogue, Montreal place names for collections, and openness about specs and pricing. This document records those facts and conventions verbatim and lists every inconsistency found.
+Teresa & Sons is presented as a family jewellery house in Montréal, founded in 1962 by Teresa Moretti, with a salon and atelier at 1420 rue Sherbrooke Ouest that sells to Canada (CAD) and the United States (USD). Since 2026-10-21 every user-facing string exists in English (Canadian, with US spelling derived for the US market) and in French (Canada), declared next to its component with `bilingual()` (`src/i18n`); the catalog's French is in `src/data/catalog.fr.ts`. There is no CMS, and brand facts, policies and microcopy are still repeated across components. The voice is editorial, understated and expert: on the English site, English body copy with French accents; on the French site, French throughout. A "chapter" metaphor runs through the catalogue, Montreal place names name the collections, and specs and pricing are stated openly. This document records the English copy verbatim (the French and the language system are in [features/languages.md](features/languages.md)) and lists every inconsistency found.
 
 Scope: every user-facing string in `src/**/*.{ts,tsx}`, which covers all of `src/pages/`, `src/components/` and `src/data/`, plus `src/store.tsx`. It also covers `.link-line` and the font roles in `src/index.css`, `.figma/make/site.json`, and the `figmaSiteConfiguration` plugin in `vite.config.ts` (page title and meta tags).
 
@@ -195,6 +195,7 @@ Where these fields render:
 - CategoryIndex rows: numeral, name, italic French name, and `{n} pieces`.
 - Mega menu: numeral, name, and the French name on hover. The panel shows `Chapter {eyebrow}` with the description, and `Shop {name} →`.
 - Mobile menu: numeral and name. Footer `Shop` column: names only.
+- Desktop menu, Shop panel: numeral and name, plus the French name on the active row when it fits. The preview shows `Chapter {eyebrow} · {french}`, the description, `{n} pieces · from {price}` (rentals add ` a weekend`) and `Shop {name}`.
 - PDP: eyebrow `{product.collection} · Chapter {eyebrow}`. The related-pieces section uses eyebrow `Chapter {eyebrow}` and title `Also in <em>{name}</em>`.
 - Category video rail eyebrow: `{name} · in motion`.
 
@@ -383,7 +384,7 @@ Each principle below is inferred from the copy and backed by verbatim examples.
    - `Made <em>for you</em>, by a family.` (Atelier)
    - `Teresa believed a jewel should <em>outlive</em> its maker.` (Home)
    - `…and leaves only when it is worthy of the family name.` (CraftStory)
-4. **Montréal bilingualism as an accent, not a translation.** French appears in eyebrows, greetings, thanks and proper names. Instructions, policies and errors are always in English.
+4. **Montréal bilingualism as an accent, not a translation (English site).** French appears in eyebrows, greetings, thanks and proper names; instructions, policies and errors are in English. The French site (2026-10-21) is French throughout and doesn't mirror the touches back into English. See [features/languages.md](features/languages.md) §9 for its voice.
    - `Votre sélection` above `Your <em>Bag</em>` (Cart)
    - `Bon retour.` / `Join the maison.` (Account)
    - `Merci.` (order confirmation)
@@ -454,6 +455,8 @@ The source text is mostly sentence case. CSS (`uppercase` plus letter-spacing) p
 | Body and helper text | Sentence case | As written | `text-sm text-[var(--text-taupe)]`, `text-xs text-[var(--text-linen)]`; `text-white/60`–`/70` on dark |
 | Footer links | Title Case (`Our Story`, `Book an Appointment`, `Gift Cards & Balance`) | As written | not uppercased |
 | Mobile menu extras | Title Case (`The Atelier`, `Gift Cards`, `My Account` / `Sign In`, `Wishlist ({n})`) | As written, serif italic | `font-serif-editorial … text-3xl italic` |
+| Desktop menu | Rail in Title Case (`Shop`, `Bridal`, `Rentals`, `The Atelier`) with italic French (`La boutique`, `Mariage`, `Location`, `L’Atelier`); sentence case elsewhere (`Search the maison`, `Book an appointment`, `Recently viewed`, `New arrivals`, `Nothing matches “{q}”.`, `Try a stone, a metal or a Montréal place:`) | Rail as written, serif; labels in capitals | `font-serif-editorial` rail; `uppercase` labels |
+| Splash and transition cards | Wordmark in tracked capitals. Eyebrows in capitals (`Montréal · Est. 1962`, `Chapter IV · Bagues`, `L’Atelier`, `Carte-cadeau`, `Liste de souhaits`, `Mon compte`, `Votre sélection`). Titles as written, with one gold italic word (`The *Atelier*`, `Your *Bag*`, `Teresa *&* Sons`) | As written, serif | `font-serif-editorial` titles; `font-spec uppercase` eyebrows |
 | Lowercase aside inside an uppercase label | Lower case after an em dash (`— complimentary`, `— optional`, `— your name`, `— up to 6`, `— choose a start date`) | Escapes the capitals | `<span className="normal-case tracking-normal …">` |
 | Prices, specs, codes, counters | — | Spec face with lining, tabular figures | `.font-spec` (Jost, `font-variant-numeric: lining-nums tabular-nums`) |
 
@@ -583,6 +586,7 @@ When the PDP rejects an add, it scrolls to `#step-dates`, `#step-personal` or `#
 | Component | aria-label / title (verbatim) |
 |---|---|
 | `Header.tsx` | `Open menu`, `Close menu`, `Currency` (group), `Account, {user.name}` or `Sign in`, `Wishlist`, `Open bag` |
+| `menu/SiteMenu.tsx` | `Menu` (dialog), `Close menu`, `Search pieces, chapters and pages`, `Main menu`, `Currency`, `Wishlist` / `Wishlist, {n} saved piece(s)`, `Account, {name}` / `Sign in`, `Open bag` / `Open bag, {n} piece(s)`, the shelf `Recently viewed` / `New arrivals`, and the hidden prefix `The salon: ` |
 | `CartDrawer.tsx` | dialog `Shopping bag`, `Close bag` |
 | `CartLineItem.tsx` | `Remove {name}`, `Decrease quantity`, `Increase quantity` |
 | `CartUpsell.tsx` | `Add {name} to bag` |
@@ -642,16 +646,11 @@ Meaningful alt text exists for: product images (`{product.name}` on `ProductCard
 ### 6.1 Money
 
 ```ts
-// src/data/catalog.ts
-export function formatPrice(amount: number, currency: Currency): string {
-  return new Intl.NumberFormat(currency === 'CAD' ? 'en-CA' : 'en-US', {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 0,
-  }).format(amount)
-}
+// src/data/catalog.ts (2026-10-21): locale-aware, cached per locale and currency
+new Intl.NumberFormat(locale, { style: 'currency', currency, currencyDisplay: 'narrowSymbol', maximumFractionDigits: 0 })
 // src/components/Price.tsx renders:
 // {formatPrice(amount, currency)} <span className="text-[0.75em] text-[var(--text-linen)]">{currency}</span>
+// $1,250 CAD in English, 1 250 $ CAD in French
 ```
 
 - **Whole units only.** Catalog prices are integers. Examples: `formatPrice(6850,'CAD')` → `$6,850`, `formatPrice(5000,'USD')` → `$5,000`, `formatPrice(0,'CAD')` → `$0`. Both currencies show a bare `$`, so the trailing currency code from `<Price>` (`$6,850 CAD`) is what tells them apart.
@@ -681,7 +680,7 @@ export function formatPrice(amount: number, currency: Currency): string {
 
 ### 6.2 Dates and times
 
-- **`formatDay(d, opts = { weekday: 'short', day: 'numeric', month: 'short' })`** calls `d.toLocaleDateString('en-CA', opts)`. In Node 24 (ICU 78.3 / CLDR 48) this gives `Thu, Oct 15`. Browsers render according to their own CLDR data. It is used for:
+- **`formatDay(d, opts = { weekday: 'short', day: 'numeric', month: 'short' }, locale = getLocale())`** calls `d.toLocaleDateString(locale, opts)`. In Node 24 this gives `Wed, Oct 21` (en-CA, en-US) and `mer. 21 oct.` (fr-CA). Browsers render according to their own CLDR data. It is used for:
   - the PDP StickyBar `From {date}`
   - rental ranges in `lineDetails` (`{start} → {end}`) and `Sends {date}`
   - the gift-card "Arrives" cell
@@ -841,7 +840,7 @@ Everything in this section is observation, risk or recommendation, not a stateme
 
 **House-style drift** (pick one style and normalise)
 
-- `Jewelry` appears in the category names `Bridal Jewelry` and `Jewelry Rentals`, in `High jewelry` and in the Atelier option `Jewelry rental fitting`. `Jewellery` / `jewellery` appears in the Cart rows, RewardProgress and `site.json` (title and description), and `jeweller(s)` in HomeHero, FourCs and the PDP.
+- Spelling (2026-10-21): the English source is Canadian everywhere (`Bridal Jewellery`, `Jewellery Rentals`, `High jewellery`, `Jewellery rental fitting`, `Colour`, `itemized`, `prioritize`, `pre-authorized`). US visitors read US spelling through `src/i18n/us.ts` (`Bridal Jewelry`). Tables above that still show `Jewelry` predate this change.
 - `-ize` (`Personalized`, `non-personalized`) sits alongside `-ise` (`itemised`, `prioritise`, `pre-authorised`, `pre-authorisation`). `modelled`, `centre`, `colourless`, `coloured` and `millimetres` sit alongside the GIA label `Color`.
 - `Montréal` vs `Montreal` (see §5).
 - Other naming pairs:
@@ -919,6 +918,7 @@ Everything in this section is observation, risk or recommendation, not a stateme
 
 ## Related docs
 
+- [Languages — English (Canada, US) and French (Canada)](features/languages.md)
 - [Product overview, sitemap & user journeys](product-overview.md)
 - [Architecture & runtime model](architecture.md)
 - [Figma Make platform, toolchain & build](platform-and-tooling.md)

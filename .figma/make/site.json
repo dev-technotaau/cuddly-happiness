@@ -12,7 +12,7 @@
     "image": "/og-image.jpg"
   },
   "customScripts": {
-    "headEnd": "<link rel=\"icon\" href=\"/favicon.ico\" sizes=\"32x32\" />\n    <link rel=\"apple-touch-icon\" href=\"/apple-touch-icon.png\" />\n    <meta name=\"theme-color\" content=\"#121110\" />\n    <meta property=\"og:site_name\" content=\"Teresa &amp; Sons\" />\n    <meta property=\"og:type\" content=\"website\" />\n    <meta property=\"og:locale\" content=\"en_CA\" />"
+    "headEnd": "<link rel=\"icon\" href=\"/favicon.ico\" sizes=\"32x32\" />\n    <link rel=\"apple-touch-icon\" href=\"/apple-touch-icon.png\" />\n    <meta name=\"theme-color\" content=\"#121110\" />\n    <meta property=\"og:site_name\" content=\"Teresa &amp; Sons\" />\n    <meta property=\"og:type\" content=\"website\" />\n    <meta property=\"og:locale\" content=\"en_CA\" />\n    <style>html.tns-intro{background:#121110}</style>\n    <script>try{if(sessionStorage.getItem('tns-intro')!=='1')document.documentElement.classList.add('tns-intro')}catch(e){}</script>"
   },
   "accessibility": {
     "addBypassLinks": false,

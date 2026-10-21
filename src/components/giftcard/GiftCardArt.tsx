@@ -1,5 +1,8 @@
 import { DESIGNS, formatCode } from '../../data/giftcards'
 import { formatPrice, type Currency } from '../../data/catalog'
+import { bilingual, useCopy } from '../../i18n'
+
+const COPY = bilingual({ for: (name: string) => `For ${name}` }, { for: (name) => `Pour ${name}` })
 
 interface Props {
   design: string
@@ -13,6 +16,7 @@ interface Props {
 /** Credit-card proportioned artwork (ISO 7810 ID-1, 85.6 × 54 mm). */
 export default function GiftCardArt({ design, amount, currency, to, code, className = '' }: Props) {
   const d = DESIGNS.find((x) => x.id === design) ?? DESIGNS[0]
+  const t = useCopy(COPY)
   return (
     <div
       className={`relative aspect-[1.586] w-full overflow-hidden rounded-[4%/6.3%] shadow-[0_30px_60px_-30px_rgba(20,19,17,0.55)] ${className}`}
@@ -36,7 +40,7 @@ export default function GiftCardArt({ design, amount, currency, to, code, classN
         </div>
         <div className="flex items-end justify-between gap-4">
           <div className="min-w-0">
-            {to && <p className="font-serif-editorial truncate text-[4.6cqi] italic opacity-85">For {to}</p>}
+            {to && <p className="font-serif-editorial truncate text-[4.6cqi] italic opacity-85">{t.for(to)}</p>}
             <p className="font-spec mt-[1cqi] text-[3cqi] tracking-[0.2em] opacity-70">{code ? formatCode(code) : '•••• •••• •••• ••••'}</p>
           </div>
           <p className="font-serif-editorial shrink-0 text-[10cqi] font-light leading-none">

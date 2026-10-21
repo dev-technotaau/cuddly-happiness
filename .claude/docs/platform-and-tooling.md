@@ -319,7 +319,7 @@ Set on 2026-10-16. Before that, the tab read "Figma Make App" (the plugin's defa
 | `robots.index` | `false` | `meta name="robots" content="noindex, nofollow"`, plus a `robots.txt` with `User-agent: *` / `Disallow: /`. The dev middleware serves it and the build emits it to `dist/robots.txt`. |
 | `icons.icon` | `/favicon.svg` (the default, now explicit) | `<link rel="icon" href="/favicon.svg">` |
 | `openGraph.image` | `/og-image.jpg` | `og:image`, `twitter:card` = `summary_large_image` and `twitter:image`. The URL is relative; see Notes. |
-| `customScripts.headEnd` | Six tags: `link rel="icon" href="/favicon.ico" sizes="32x32"`, `link rel="apple-touch-icon" href="/apple-touch-icon.png"`, `meta name="theme-color" content="#121110"` (`--bg-vault`), and `og:site_name` "Teresa &amp; Sons", `og:type` "website", `og:locale` "en_CA" | Raw HTML in the `figma:head-end` slot. It lands before the plugin's injected tags, so the ICO link precedes the SVG one. |
+| `customScripts.headEnd` | Eight tags: `link rel="icon" href="/favicon.ico" sizes="32x32"`, `link rel="apple-touch-icon" href="/apple-touch-icon.png"`, `meta name="theme-color" content="#121110"` (`--bg-vault`), `og:site_name` "Teresa &amp; Sons", `og:type` "website", `og:locale` "en_CA", and the intro's pre-paint pair: `<style>html.tns-intro{background:#121110}</style>` and a script that adds `tns-intro` to `<html>` unless `sessionStorage['tns-intro']` is `'1'` (added 2026-10-20) | Raw HTML in the `figma:head-end` slot. It lands before the plugin's injected tags, so the ICO link precedes the SVG one. The pair paints the page vault before the app loads, so the splash never follows a light flash. |
 | `customScripts.headStart` / `bodyStart` / `bodyEnd` | not set | Replaced with `''` |
 | `analytics.googleAnalyticsId` | not set | No analytics scripts |
 | `accessibility.addBypassLinks` | `false` | No skip link or style is injected. The app renders its own "Skip to content" button (`src/App.tsx`). |
@@ -339,6 +339,8 @@ The document shell as the dev server served it on 2026-10-16, without Vite's dev
     <meta property="og:site_name" content="Teresa &amp; Sons" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="en_CA" />
+    <style>html.tns-intro{background:#121110}</style>
+    <script>try{if(sessionStorage.getItem('tns-intro')!=='1')document.documentElement.classList.add('tns-intro')}catch(e){}</script>
     <meta name="description" content="A family maison of fine jewellery on rue Sherbrooke Ouest since 1962: GIA-certified diamonds, bridal, gold heirlooms and rentals, set by hand in Montréal.">
     <meta name="robots" content="noindex, nofollow">
     <link rel="icon" href="/favicon.svg">
@@ -603,7 +605,7 @@ Tailwind v4 auto-detects class candidates in every non-gitignored file. Once `.c
 - **Toolchain drift.** The local machine runs Node 24 and pnpm 12.9.1, while the pins are Node 22 and pnpm 10.34.3, and mise is not on PATH. The lockfile stayed at `'9.0'`, but a different pnpm major could rewrite it. Prefer the pinned versions when changing dependencies. Commit `package.json` and `pnpm-lock.yaml` together: `installOn` watches both, and `--no-frozen-lockfile` lets the platform rewrite the lockfile.
 - **Hooks are non-executable and bash-only.** They are committed as `100644`, so on POSIX run them as `bash .figma/make/<hook>`; on Windows use Git Bash. With `core.autocrlf=true` and no `eol` attributes, a fresh Windows clone could check them out with CRLF endings, which bash rejects. Today both the index and the working tree are LF.
 - **Slot replacement quirks.** `replaceHtmlCommentSlot` calls `String.prototype.replace` with a string pattern. Only the first occurrence of each slot is replaced. Any `$&`, `` $` ``, `$'` or `$$` inside a `customScripts` value is interpreted as a replacement pattern. `customScripts` are injected unsanitised.
-- **Bundle size.** Initial JS is about 630 kB (2026-10-16): the entry chunk (463 kB) plus a vendor chunk (167 kB) that it shares with the lazy `ShareSheet` (20 kB). `TryOnStudio` (22 kB) is the other lazy chunk. Heavy new features should follow the `lazy(() => import(...))` pattern in `src/components/tryon/TryOnProvider.tsx`.
+- **Bundle size.** Initial JS is about 750 kB, 236 kB gzip (2026-10-21, both languages included): the entry chunk (561 kB), a shared vendor chunk (150 kB; Rollup names it after `src/i18n/rich.tsx`) and a chunk shared with the lazy menu (39 kB). The lazy chunks are `SiteMenu` (34 kB), `TryOnStudio` (26 kB) and `ShareSheet` (24 kB). Heavy new features should follow the `lazy(() => import(...))` pattern in `src/components/tryon/TryOnProvider.tsx`.
 - **`deploy-preview` is not a development React build.** It is unminified with inline sourcemaps, but NODE_ENV stays `production`. Expect production React behaviour in preview deploys, including no StrictMode double-invocation.
 - **Cosmetic indentation in `vite.config.ts`.** Two lines are unindented: `react(),` and the closing `],` of `watch.ignored`. This is harmless; do not "fix" it as part of unrelated work.
 - **Porting to Shopify.** None of this toolchain is part of a Shopify theme: not the Vite build, not the `site.json` head generation, not `robots.txt`, not hash routing. See [shopify-integration.md](shopify-integration.md).

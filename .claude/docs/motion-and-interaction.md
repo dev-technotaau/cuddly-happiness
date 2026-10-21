@@ -269,6 +269,15 @@ A `useEffect` with deps `[megaOpen]` runs these tweens. It has no context, no cl
 - **Hover intent.** `open()` clears the pending close timer and sets `megaOpen`. `scheduleClose()` closes the menu after 140 ms. Both are wired to `onMouseEnter` / `onMouseLeave` on the "Shop" button and on the panel. Clicking the button toggles the menu.
 - **Route changes.** Any `route` change closes both the mega menu and the mobile menu.
 
+**Desktop menu** (`src/components/menu/SiteMenu.tsx`): CSS transitions only, no GSAP.
+- Two `requestAnimationFrame`s after `open` set `shown`, so the closed styles paint first.
+- The rail slides in with `transition-[translate,opacity] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]`; under reduced motion it fades over 300 ms instead.
+- The extension unfolds by `clip-path` over 700 ms (instant under reduced motion).
+- Rail rows, the shelf and the footer rise 12 px and fade in, 50 ms apart from 140 ms.
+- The gold hairlines glide with `transition-[translate,height,opacity] duration-500`.
+- Preview photographs cross-fade over 1 s with a 1.04 → 1 settle (no settle under reduced motion). The preview text and each list remount with `fadeUp`.
+- `Burger` folds its two lines into a cross over 500 ms (`translate`, `rotate`, `width`), instantly under reduced motion.
+
 ### 4.5 Category index cursor preview (`src/components/home/CategoryIndex.tsx`)
 
 This is the desktop list only (`hidden lg:block`).
@@ -593,6 +602,10 @@ export default function useInViewPlay(ref: RefObject<HTMLVideoElement | null>, e
 | GSAP `onComplete` | `HomeHero` `go()` | about 2.3 s | `busy.current = false` | none | runs |
 | `setInterval` | `Testimonials` | 6500 ms | next quote (`(x + 1) % 3`) | cleared on unmount only; dot clicks do not reset it | runs |
 | `setTimeout` | `Header` `scheduleClose` | 140 ms | closes the mega menu | cleared by `open()`; no unmount cleanup | n/a |
+| `setTimeout` | `SiteMenu` `hoverRail` | 80 ms to unfold a panel, 200 ms to fold it; re-checked every 120 ms while the pointer heads right | switches the extension | cleared on every hover, on entering the extension and on close | same |
+| `setTimeout` | `SiteMenu` initial focus | 50 ms | focuses the search, the first rail item or the dialog | cleared on close | same |
+| `setTimeout` | `SiteMenu` hand-back | 500 ms after closing, only where the cross stands over the menu button | swaps the cross for the button in one commit, once the cross has folded back | cleared if the menu reopens | same |
+| `setTimeout` | `Header` pre-mount | 2.5 s after load, desktop only | mounts the closed menu so the first opening is instant | cleared on unmount | same |
 | `setTimeout` | `CartDrawer` open effect | 50 ms | focuses the "Close bag" button | cleared in the cleanup | n/a |
 | `setTimeout` | `UndoToast` | 6000 ms | hides the "Removed {name}" / "Undo" toast; the store keeps `lastRemoved` | cleared when `lastRemoved` changes and on unmount | n/a |
 | `setTimeout` | `Product` (`added` effect) | 2200 ms | reverts the CTA from "Added to bag" | cleared | n/a |
@@ -623,6 +636,7 @@ When the sticky bar is hidden, its main button gets `tabIndex={show ? 0 : -1}` a
 | Cart drawer | `CartDrawer` | always, in the app shell | backdrop `z-[80]`, panel `z-[90]` | `stop()` while open | `document.body.style.overflow = 'hidden'`; the previous inline value is restored | the line-item scroller (`flex-1 overflow-y-auto px-7`) | Escape | slide and fade (§6.5) |
 | Mobile menu | `Header` | inside `<header>` (`sticky top-0 z-50`), while `mobileOpen` | `z-[70]` | — | — | root | none (closes on route change) | none |
 | Mega menu (lg) | `Header` | always (absolute, under the nav) | — | — | — | — | — | GSAP clip-path |
+| Desktop menu (lg) | `SiteMenu` | portal, after the first opening | `z-[70]` | `stop()` while open | `document.body.style.overflow = 'hidden'`; the previous value is restored | the rail's middle and the list column | Escape (stepped), arrows, Tab trap, `/`, ⌘K, type-to-search | CSS: rail `translate`, extension `clip-path` |
 | Gallery lightbox | `Gallery` | inline, inside the PDP gallery column (`lg:sticky lg:top-32`) | `z-[95]` | — | — | root | Escape, ←, → | none |
 | Ring-size guide | `RingSize` | inline, inside the PDP configurator (`[data-pdp-in]`) | `z-[95]` | — | — | dialog panel only, not the backdrop | Escape; backdrop click | none |
 | Client media | `MediaLightbox` in `Reviews` | `createPortal` to `body` | `z-[100]` | via `useModalLock` | `documentElement.style.overflow = 'hidden'`, reset to `''` | root | Escape, ←, → | none |
@@ -656,21 +670,12 @@ function useModalLock() {
 
 ### 11.1 Route changes
 
-The `SmoothScroll` route effect runs on mount and on every `route` change. `src/store.tsx` creates a new route object on each `hashchange`.
-
-```ts
-useEffect(() => {
-  if (lenisInstance) lenisInstance.scrollTo(0, { immediate: true })
-  else window.scrollTo(0, 0)
-  const id = requestAnimationFrame(() => ScrollTrigger.refresh())
-  return () => cancelAnimationFrame(id)
-}, [route])
-```
-
-- **Always to the top.** Every navigation, including back/forward and reload, lands at the top of the page. `history.scrollRestoration` is never set, and positions are not remembered per route.
+`PageTransition` (`src/components/transition/PageTransition.tsx`) owns scroll on navigation; `SmoothScroll` no longer has a route effect.
+- **On load** a visit opens at the top (`window.scrollTo(0, 0)` on mount).
+- **At the swap** (the old page covered, the new one just rendered): `window.scrollTo(0, y)`. `y` is 0 for a forward move, and the position remembered for that address when moving back. It scrolls natively on purpose. After a `lenis.scrollTo(…, { immediate: true })` that doesn't move the page, Lenis ignores the next native scroll event and keeps a stale target, so it could believe it is already at 0 *(library source)*. `lenis.start()` after the transition re-reads the real position.
+- **Remembered positions** are kept in memory per address (`scrolls`), saved as each page leaves. "Back" means the address before the current one in the visit stack (`visits`), so browser Back and a link to the previous page both return to where the visitor was. A reload opens at the top.
+- **ScrollTrigger** is refreshed at the swap and again once the new page has entered. Most triggers are created as the stage clears ("Splash and page transitions" below).
 - **Menus and overlays.** `Header` closes its menus when `route` changes. Overlays that contain links (`CartDrawer`, `VideoViewer`, `TryOnStudio`) call their close handler in the link's `onClick`, before the hash changes.
-- **Ordering.** The new page's `useLayoutEffect`s (reveal, hero and pin triggers) run before `SmoothScroll`'s `useEffect`, so they are created while the previous page's scroll offset still applies. The `ScrollTrigger.refresh()` scheduled for the next frame then re-measures everything.
-- **While Lenis is stopped** (for example, an overlay still holds it), `scrollTo(0, { immediate: true })` does nothing *(library source)*.
 
 ### 11.2 Programmatic in-page scrolling (Product page)
 
@@ -705,7 +710,7 @@ Lenis animates these scrolls over 1.25 s with the expo-out easing. For the last 
 - Evaluated live: `MakingScroll` (through `gsap.matchMedia`) and the `src/index.css` media query.
 - Lenis's own `respectReducedMotion` reads a live media query. It only matters if the preference changes after Lenis was created; programmatic scrolls then become immediate and wheel scrolls use `lerp: 1` *(library source)*.
 
-`motion-reduce:` appears only in `BackToTop` and on the hero scroll cue (`motion-reduce:animate-none`). No `motion-safe:` variants are used.
+`motion-reduce:` appears in `BackToTop`, on the hero scroll cue (`motion-reduce:animate-none`) and in the desktop menu (`SiteMenu`, `Burger`). No `motion-safe:` variants are used.
 
 | Disabled under `prefers-reduced-motion: reduce` | Still animates |
 |---|---|
@@ -798,6 +803,90 @@ Lenis animates these scrolls over 1.25 s with the expo-out easing. For the last 
 - **Programmatic scroll:** `lenis.scrollTo(target, { duration, easing: easeInOutQuart, onComplete })`. The duration scales with distance (0.85–2.2 s). User input can interrupt it, and a `travelUntil` timeout clears the travelling flag if `onComplete` never fires.
 - **CSS transitions:** show/hide uses opacity + `translate` + `scale` (700 ms, house easing); the pill width uses `grid-template-columns`; the arrow flip uses `rotate`. Under reduced motion only opacity transitions, the trip is instant and the magnet is off.
 
+## Language switch (added 2026-10-21)
+
+`src/components/transition/LanguageVeil.tsx` registers the switch choreography with `registerSwitcher` (`src/i18n/index.ts`). On `setLang`:
+- `getLenis()?.stop()`, `coverStage()`, `html[data-switching]`; `holdPlace()` notes the element at 35% of the viewport.
+- GSAP timeline: travertine veil (`z-[125]`) `autoAlpha` 0 → 1 over 0.3 s (`power2.out`); the card (`Ampersand`, `{language} · {region}`, `<em>Bienvenue</em>.` / `<em>Welcome</em>.`) from `y: 10` over 0.55 s (`expo.out`) at 0.1 s; at 0.32 s the copy swaps (`flushSync`), the page is scrolled back to the noted element and `ScrollTrigger.refresh()` runs; the card leaves (`y: -8`, 0.3 s) at 0.85 s; `clearStage()` at 0.9 s; the veil fades out over 0.5 s from 0.95 s. On complete: Lenis restarts and a live region announces the language.
+- Immediate swap (place kept, still announced) under reduced motion, while a page transition runs (`html[data-transition]`), or when a second switch arrives mid-veil (the first is completed with `progress(1)`).
+- The language notice (`LanguageNotice`) slides in with CSS (`transition-[opacity,translate] duration-700`, `translate-y-3` → 0) 1.4 s after the stage clears; `motion-reduce:transition-none`.
+
+## Splash and page transitions (added 2026-10-20)
+
+### The stage (`src/lib/stage.ts`)
+
+A counter of what currently hides the page: `coverStage()` and `clearStage()`, plus `onStageClear(build)`. That runs `build` now, or once the count reaches zero, and returns a cleanup that cancels or undoes it. The module covers the stage at load, before any component renders, because the intro always plays.
+- **Entrances wait for it.** `useReveal`, both `HomeHero` layout effects (the intro and the per-slide headline) and the `Product` `[data-pdp-in]` entrance build inside `onStageClear`. Under the splash or a transition the new page renders unseen, and its entrances start as it is uncovered. New mount-time GSAP entrances should do the same.
+- **`INTRO`** (`'full' | 'short' | 'veil'`) is decided once at load. It is `veil` when `sessionStorage['tns-intro'] === '1'`, else `full` on Home and `short` on any other route. `markIntroSeen()` sets the flag.
+
+### Splash (`src/components/splash/Splash.tsx`)
+
+Rendered first in the app shell, `fixed inset-0 z-[130]`, `aria-hidden`. While it shows, `body` overflow is `hidden` and Lenis is stopped (on the next frame, because Lenis is created after the splash mounts).
+- **Full** (the session's first visit, starting on Home): a vault case in two halves that overlap by 2 px at the centre.
+  - Top half: the `Ampersand` mark draws its outline with `strokeDashoffset` (1.5 s), then fills. The wordmark "Teresa & Sons" rises letter by letter (blur and rise, 0.04 s stagger; the `&` in champagne italic), then "Montréal · Est. 1962".
+  - Bottom half: a year that counts from 1962 to the current year with the progress.
+  - Centre: a gold seam (`w-[min(60vw,680px)]`) fills outwards from the middle as the page loads.
+- **Progress is real:** the fonts (waited for at most `FONT_WAIT`, 1.2 s) and every `main img` on the first screen (`decode()`). It is eased so it never jumps, and filled at `LIMIT` (2.6 s; 1.5 s under reduced motion) whatever is still loading. Only real progress restarts the ease, so a late image can't push the opening back.
+- **Opening**, once the seam is full and `HOLD` (2.4 s) has passed since the tab was first seen:
+  - a glint runs along the seam (0.75 s);
+  - the mark, wordmark and year lift away;
+  - the halves part (`yPercent ∓101`, 1.15 s `expo.inOut`).
+
+  `clearStage()` fires as the halves start to part, so the hero's frame opens and its headline rises in the gap.
+- **Short** (the session's first visit, starting deeper in the site): the same composition without the drawing (the mark fades in), with `HOLD` 1.1 s and `LIMIT` 2 s.
+- **Veil** (later loads in the session): a travertine layer that fades out (0.5 s) once the fonts are ready, or after 600 ms. It hides the font swap.
+- **Skip:** any key, pointer press or wheel fills the seam (0.35 s) and opens at 1.6× speed. A tab opened in the background starts its intro when first shown.
+- **Fonts:** the letters wait (an `addPause`) for the fonts, at most `FONT_WAIT`, so they rarely appear in a fallback face.
+- **First paint:** before the app loads, `site.json`'s head script adds `tns-intro` to `<html>` when the session hasn't seen the intro, and an inline style paints it vault (`#121110`). The page never flashes light before the dark splash; the splash removes the class when done.
+- **Reduced motion:** a still composition (the seam still fills), then a 0.5 s fade.
+- **Cleanup** reverts its tweens rather than killing them. React's development double-run then finds the letters as they were, not stuck at a from-tween's opacity 0.
+
+### Page transitions (`src/components/transition/`)
+
+`App`'s `Pages` renders `<PageTransition>{(shown) => <Routes route={shown} />}</PageTransition>`. `shown` trails the store's `route` during a transition, so the old page stays on screen while it leaves.
+
+**`navigate()`**, on a `route` change unless one is already running:
+1. It reads the direction from the visit stack, saves the outgoing scroll position, and takes the click that caused the move (same address, within 1.2 s), if any.
+2. It picks the transition (`pickTransition`, or `fade` under reduced motion), names it in `document.documentElement.dataset.transition` while it runs, calls `coverStage()` and stops Lenis.
+3. `leave(ctx)` covers the old page.
+4. The page swaps with `flushSync` to the latest route (the visitor may have moved on during the leave). Scroll is set (§11.1) and `ScrollTrigger` refreshed.
+5. `settle()` waits for the new page's first-screen images, up to 600 ms (250 ms when quick).
+6. `enter(ctx)` uncovers the page and calls `ctx.clear()` as it does, so the stage clears and entrances start.
+7. Lenis restarts and `ScrollTrigger` refreshes. Focus moves to `<main>` unless a modal dialog is open, and a polite live region reads the title when the page shown is the latest. A navigation that arrived meanwhile then runs.
+
+**Context:** `back` (reverses the direction), `quick` (the previous transition ended under 1.5 s ago: the same transition, quicker), `morph`, and `stage` (curtain, card, seam, veil, clone, `<main>`).
+
+**Transitions** (`transitions.ts`, Barba-shaped `{ name, from, to, custom, leave, enter }`, first match wins):
+
+| Name | Rule | Leave | Enter |
+|---|---|---|---|
+| `morph` | To `product`, from a click on a loaded product photo | The photo is cloned in place (`fixed z-[127]`); a travertine veil fades over the page (0.45 s) | The clone flies to the gallery's `[data-morph-target]` (1 s `expo.inOut`), the veil lifts from 0.5 s, and the clone fades on arrival. With no target, both fade |
+| `checkout` | From or to `checkout` | Travertine veil in (0.3 s) with a small card: the `Ampersand`, the eyebrow and the title (gold italic word in vermeil) | The card lifts, the veil goes out (0.45 s) |
+| `chapter` | Category → category | The vault curtain sweeps in sideways (0.75 s), later chapters from the right and earlier ones from the left, with a vertical gold seam on its edge; the page drifts 64 px | The curtain carries on off the other side (0.9 s); the page settles from 72 px |
+| `curtain` | Everything else | The vault curtain rises from the bottom (from the top when `back`) over 0.75 s with a gold seam on its edge; the page drifts 48 px | The card lifts away and the curtain exits upwards (downwards when `back`, 0.9 s); the page settles from 56 px |
+
+- **Quick:** all curtain and chapter timings, the card's included, are multiplied by 0.6. The card still shows: until 2026-10-20 quick mode dropped it, which left a blank dark curtain when the visitor moved on or went back soon after arriving.
+- **Destination card** (on every curtain and chapter turn): the `Ampersand`, an eyebrow, the title rising from a mask with one gold italic word, and a gold rule. Categories add their roman numeral, huge and faint, behind it. The leave lasts 0.95 s (0.57 s when quick) so the card can be read, and the card keeps animating through the swap. The fade's veil carries its own small card, so no transition is blank.
+- **Labels** (`labelFor`, eyebrow / title):
+
+  | Destination | Eyebrow | Title |
+  |---|---|---|
+  | Category | "Chapter {numeral} · {french}" | the category name |
+  | Product | "{collection} · {category}" | the piece's name |
+  | The Atelier | "L’Atelier" | "The Atelier" |
+  | Gift Cards | "Carte-cadeau" | "Gift Cards" |
+  | Wishlist | "Liste de souhaits" | "Your Wishlist" |
+  | Account | "Mon compte" | "Your Account" |
+  | Bag | "Votre sélection" | "Your Bag" |
+  | Checkout | "Teresa & Sons" | "Checkout" |
+  | Home | "Montréal · Est. 1962" | "Teresa & Sons" (the `&` in gold) |
+
+  The switch is exhaustive, so a new route doesn't compile until it has a label.
+- **Clicks:** a capture-phase listener on plain left clicks of `a[href^="#"]` records the address, the time and the morph source. The source is the topmost visible, loaded `img` inside the link, or inside its `[data-morph-scope]` (the home hero's piece, whose link lies over its photos).
+- **Prefetch:** `pointerover` on a link preloads the image its page opens on: a product's first photo, or a category's hero.
+- **Same-page links:** a link to the address already shown changes nothing, so a bubble-phase listener glides back to the top instead (`lenis.scrollTo(0)`), unless the link's own handlers cancelled the click or a transition is running.
+- **Layers** are portalled to `<body>`, `aria-hidden`, and `invisible` until used: veil and curtain `z-[125]`, seam `z-[126]`, clone `z-[127]`.
+
 ## Notes & gotchas
 
 1. **Suspected bug: the ring-size guide is trapped inside the configurator.** The guide's `fixed inset-0 z-[95]` overlay renders inline inside the PDP configurator, which is a `[data-pdp-in]` element. After the intro tween, GSAP leaves `transform: translate(0, 0)` on that element *(library source)*. A non-`none` transform makes the element the containing block and stacking context for `position: fixed` descendants. With motion enabled, the guide is therefore likely to cover only the configurator column rather than the viewport; with reduced motion it covers the viewport. Not verified in a browser. Fix by portaling the guide to `document.body`.
@@ -814,7 +903,7 @@ Lenis animates these scrolls over 1.25 s with the expo-out easing. For the last 
 12. **Ungated, uncleaned GSAP.** The Header mega menu, the CategoryIndex follower and fade, the Gallery stage tween and the WishButton pop have no reduced-motion gate and no cleanup. The mega-menu effect also runs on mount, tweening to the closed state.
 13. **Inconsistent PDP scroll landing.** With Lenis, `scrollToId` and `scrollToReviews` land 248 px above their section; the native fallback lands 128 px above. `scrollToReviews` duplicates `scrollToId('reviews')`.
 14. **Global GSAP side effects.** `gsap.ticker.lagSmoothing(0)` is global and never restored. With Lenis attached, the GSAP ticker never sleeps.
-15. **No scroll restoration.** Back/forward always lands at the top of the page.
+15. **Scroll memory lives only in the page.** Back returns to the remembered position (§11.1), but a reload opens at the top and positions are not kept across visits.
 16. **Replayed reveals.** Re-running `useReveal` (Category sort change, removing a wishlist item) replays the reveal for every visible card.
 17. **Unverified route-change ordering.** New ScrollTriggers are created before the route-change scroll reset and are refreshed one frame later. Whether `once` reveals above the old scroll offset fire prematurely (invisibly) was not verified at runtime.
 18. **One-shot reduced-motion checks.** Toggling the OS setting mid-session affects only `MakingScroll`, the CSS keyframes and `HomeHero` (on its next render).
@@ -826,6 +915,7 @@ Lenis animates these scrolls over 1.25 s with the expo-out easing. For the last 
 
 ## Related docs
 
+- [Languages — English (Canada, US) and French (Canada)](features/languages.md)
 - [Architecture & runtime model](architecture.md)
 - [Design system — tokens, typography, color, layout & component recipes](design-system.md)
 - [UX patterns, responsive behaviour & accessibility](ux-patterns-and-accessibility.md)

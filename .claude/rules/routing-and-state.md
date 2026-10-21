@@ -16,19 +16,21 @@ Full reference: `.claude/docs/architecture.md`.
 
 ## Routing (hash router in `src/store.tsx`)
 
-**Adding a route** means changing five places together:
+**Adding a route** means changing six places together:
 1. The `Route` union.
 2. A `parseHash` rule placed before the final `return { name: 'home' }`. Keep the `#/p/gift-card` alias ahead of the generic `#/p/:slug` rule.
-3. An `href` entry.
+3. An `href` entry: a getter (`get atelier() { return at('/atelier') }`) or a function, so the link carries the language prefix of the moment.
 4. A `case` in `Routes` in `src/App.tsx`.
-5. A `case` in `headFor` in `src/App.tsx` for the tab title and meta description. Without one, the page keeps the site-wide Home title.
+5. A `case` in `headFor` in `src/App.tsx` for the tab title and meta description, with both languages in `SITE`. Without one, the page keeps the site-wide Home title.
+6. A `case` in `labelFor` in `src/components/transition/PageTransition.tsx`, with an `[eyebrow, title]` pair per language in `CARDS`. The switch is exhaustive, so a route without one doesn't compile.
 
-Then link the new route from the Header (desktop nav and mobile menu) and/or the Footer.
+Then link the new route from the Header (desktop nav and mobile menu), the desktop menu (`RAIL` in `src/components/menu/SiteMenu.tsx`, plus a `pages` entry and its `KEYWORDS` so the menu's search finds it) and/or the Footer.
 
 - **Slug pages** must keep `key={route.slug}`. Category and Product rely on remounting to reset their state and reveal tweens.
 - **Links** are `<a href={href.…}>`. Never assign `location.hash`, call `history.*`, or hard-code `'#/…'` strings.
+- **Language prefix.** French addresses carry `#/fr`; English has none. Read `href.*` at render time, never in a module-level constant (it would keep the first load's language). Compare addresses with `bareHash()`, split them with `splitHash()`. Only the first load obeys a prefix; `syncLocale` then keeps the address in the visitor's language with `history.replaceState`.
 - **In-page anchors** do not exist as `href="#id"`, because they would be parsed as routes and land on Home. Scroll with `getLenis()?.scrollTo(el, { offset: -120 })`, falling back to `el.scrollIntoView(...)`.
-- **Scroll on navigation:** every route change scrolls to the top (`SmoothScroll`). Overlays held in the store or a provider (the cart drawer, the try-on studio) do **not** close on navigation, so every link inside them must call their close handler.
+- **Scroll on navigation:** `PageTransition` scrolls to the top at the swap, or back to the remembered position when moving back. Overlays held in the store or a provider (the cart drawer, the try-on studio) do **not** close on navigation, so every link inside them must call their close handler.
 
 ## Store (`useStore()`)
 
@@ -41,7 +43,8 @@ Then link the new route from the Header (desktop nav and mobile menu) and/or the
   - Callbacks wrapped in `useCallback(…, [])` with functional setState.
   - Add the value and callbacks to **both** the `useMemo` value object and its dependency array.
 - **New `CartMeta` field:** add it to both the interface and `DEFAULT_META`. `clearCart()` resets meta to the defaults.
-- **Validate persisted values when reading them.** `tns-currency` is currently trusted without validation (known issue KI-010).
+- **Validate persisted values when reading them**, as `loadCurrency` (`tns-currency`) and `resolveLang` (`tns-lang`) do.
+- **Language:** `lang`/`setLang` come from `useStore()` or `useLocale()` (`{ lang, locale, setLang }`, which re-renders only on a language or market change). Copy goes through `useCopy`; never read `tns-lang` directly.
 
 ## Providers
 

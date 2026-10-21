@@ -232,6 +232,7 @@ A three-slide editorial carousel on the vault background. Each slide pairs a thr
 
 **Effects.**
 1. **Intro, scroll-out, pointer parallax and the key light** (`useLayoutEffect` in a `gsap.context`, skipped under reduced motion):
+   - Since 2026-10-20 this effect and the per-slide headline effect build inside `onStageClear()`. Under the splash or a page transition they wait, so the frame opens and the headline rises as the page is uncovered. The piece's container carries `data-morph-scope`, so a click on its link flies the visible photo into the product page.
    - The frame opens from `inset(12%)` (1.8 s `expo.inOut`). Slide 0's photo lights up from `brightness(0.3) saturate(0.6)` (2.6 s `power2.out`, `clearProps`). `[data-hero-meta]` fades up (delay 1.1 s) and the piece fades in (delay 0.9 s).
    - Scrubbed to the hero's scroll: backgrounds `yPercent: 18, scale: 1.08`; copy `yPercent: -30, opacity: 0` (ends at `70% top`); piece `yPercent: -30`.
    - Pointer `quickTo`: the piece moves `x ±12 / y ±9` px and the backgrounds `x ±9` px. For a mouse, a `{ x, y }` proxy eases (1.1 s `power3.out`) to the cursor's position in the hero and writes `--hx`/`--hy` on the light.

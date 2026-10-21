@@ -14,9 +14,13 @@ Scope: `src/data/catalog.ts`, `src/data/media.ts`, `src/data/giftcards.ts`, `src
 |---|---|---|---|---|---|
 | `src/data/catalog.ts` | Catalog, prices, personalization, rentals, date helpers, try-on classification | none | `CAD_TO_USD`, `IMG`, `METALS`, `CATEGORIES`, `PRODUCTS`, `getCategory`, `getProduct`, `getProductsByCategory`, `priceFor`, `formatPrice`, `toUSD`, `personalizationPrice`, `validatePersonalization`, `RENTAL_DAYS`, `RENTAL_SLOTS`, `RENTAL_LEAD_DAYS`, `isoDate`, `parseIso`, `addDays`, `rentalReturnDate`, `getBookedDates`, `formatDay`, `tryOnKind` | `Currency`, `CategorySlug`, `Metal`, `MetalVariant`, `GiaSpec`, `Price`, `RentalRates`, `Product`, `PersonalizationFont`, `PersonalizationConfig`, `Personalization`, `Category`, `RentalPeriodId`, `RentalBooking`, `TryOnKind` | `img`, `p`, `rental`, `GOLDS`, `BRIDAL_METALS` |
 | `src/data/media.ts` | Shoppable videos and review-media pools | `IMG`, `getProduct`, `CategorySlug`, `Product` (catalog) | `VIDEOS`, `videoProducts`, `videosForProduct`, `videosForCategory`, `REVIEW_MEDIA`, `mediaPoolFor` | `ShoppableVideo`, `ReviewMedia` | `clip`, `poster`, `v`, `img`, `vid` |
+| `src/data/catalog.fr.ts` (2026-10-21) | The catalog in Canadian French, as Translate & Adapt would hold it | types from catalog | `CATEGORY_FR`, `METAL_FR`, `BADGE_FR`, `SPEC_LABEL_FR`, `GIA_FR`, `PRODUCT_FR` (per slug: `name`, `tagline`, `description`, `collection?`, `specs` by English key, `personalization?`), `DESIGN_FR`, `VIDEO_FR` | `CategoryFr`, `ProductFr` | — |
+
+Since 2026-10-21 `catalog.ts` imports from `src/i18n` (`bilingual`, `formatHour`, `getLocale`, `pick`, `Locale`): `formatPrice`, `formatDay` and the new `formatSlot` take an optional `locale`, and `validatePersonalization` answers in the visitor's language. The English category names are now `Bridal Jewellery` and `Jewellery Rentals`. `src/data/salon.ts` adds `salonHours()` and `salonWeek()` and localises `salonStatus()`; `src/data/tax.ts` adds `provinceName`, `taxName`, `stateName` and `taxLabel`; `src/data/costing.ts` words the statement in a `locale` argument. Display goes through `src/i18n/catalog.ts` (`useCatalog`, `catalogFor`); see [features/languages.md](features/languages.md).
 | `src/data/giftcards.ts` | Gift-card catalog, codes, local balance ledger | `CAD_TO_USD`, `Currency` (catalog) | `GIFT_CARD_SLUG`, `DENOMINATIONS`, `CUSTOM_RANGE`, `DESIGNS`, `convert`, `generateCode`, `normalizeCode`, `formatCode`, `maskCode`, `isCodeFormat`, `loadLedger`, `saveLedger`, `lookupCard`, `issueCards`, `debitCards` | `GiftCardDesign`, `GiftDelivery`, `GiftCardLine`, `IssuedCard` | `ALPHABET`, `LEDGER_KEY`, `DEMO` |
 | `src/data/costing.ts` | Itemised cost model; tax-label splitter | `CAD_TO_USD`, `getCategory`, `personalizationPrice`, `priceFor`, `Currency`, `Metal`, `Personalization`, `Product` (catalog) | `hasCostBreakdown`, `buildCostBreakdown`, `splitTaxes`, `categoryName` | `CostGroup`, `CostLine`, `CostBreakdown` | `METAL_RATE`, `DEFAULT_WEIGHT`, `STONE_SHARE`, `MAKING_SHARE`, `LABOUR_RATE_CAD`, `parseNum`, `StoneSpec`, `stonesFor` |
 | `src/data/tax.ts` | Canadian provincial sales tax; US state list | none | `PROVINCES`, `US_STATES` | — | — |
+| `src/data/salon.ts` | The salon's address, telephone and hours; live open/closed status | none | `SALON`, `salonStatus` | `SalonStatus` | `DAYS` |
 | `src/components/lineDetails.ts` | Cart line → human-readable option strings | `METALS`, `formatDay`, `parseIso`, `rentalReturnDate`, `Product` (catalog); `CartLine` type (`src/store.tsx`); `describePersonalization` (`src/components/pdp/Personalizer.tsx`); `DESIGNS` (giftcards) | `lineDetails` | — | `RENTAL_LABEL` |
 | `src/lib/shopify.ts` | Gift-card cart line → Shopify `/cart/add.js` item | `CartLine` type (store); `getProduct` (catalog); `DESIGNS` (giftcards) | `toShopifyCartItem`, `isGiftCardLine` | `ShopifyCartItem` | `GIFT_CARD_VARIANTS`, `GIFT_CARD_ONE_UNIT_VARIANT` |
 
@@ -27,6 +31,7 @@ catalog.ts  <── media.ts
             <── giftcards.ts
             <── costing.ts
 tax.ts         (standalone)
+salon.ts       (standalone)
 lineDetails.ts ──> catalog, giftcards, store (type only), pdp/Personalizer
 lib/shopify.ts ──> catalog, giftcards, store (type only)
 ```
@@ -1149,6 +1154,33 @@ File comment: `// Canadian sales tax by province (GST/HST + PST/QST), 2024 rates
 
 ---
 
+## 9a. Salon (`src/data/salon.ts`, added 2026-10-20)
+
+Placeholder data, matching what the Footer and Home already print.
+
+| Field | Value |
+|---|---|
+| `street` | `1420 rue Sherbrooke Ouest` |
+| `city` | `Montréal, QC H3G 1K4` |
+| `phone` | `+1 514 555 0162` |
+| `timeZone` | `America/Toronto` (Montréal's zone) |
+| `hours` | `[10, 18]` on weekdays 2–6 (Tuesday–Saturday; 0 = Sunday), typed `Partial<Record<number, [number, number]>>` |
+| `byAppointment` | `[0]` (Sunday) |
+
+`salonStatus(now = new Date()): SalonStatus` reads the weekday, hour and minute in `SALON.timeZone` with `Intl.DateTimeFormat('en-US', { weekday: 'short', hour: 'numeric', minute: 'numeric', hour12: false }).formatToParts` (an hour of 24 counts as 0). It returns `{ open, label }`:
+
+| When | `open` | `label` |
+|---|---|---|
+| Within today's hours, more than 60 minutes before closing | `true` | `Open now · until 18h` |
+| In the last 60 minutes | `true` | `Open · closing at 18h` |
+| Before today's opening | `false` | `Closed · opens at 10h` |
+| On an appointment-only day | `false` | `Today by appointment` |
+| Otherwise | `false` | `Closed · opens tomorrow at 10h`, or `Closed · opens {Weekday} at 10h` for the next day with hours |
+
+Only the desktop menu (`src/components/menu/SiteMenu.tsx`) imports it; it also prints `SALON.phone`. The Footer and `home/VisitSalon.tsx` still hard-code the same hours and number (KI-070).
+
+---
+
 ## 10. `lineDetails` (`src/components/lineDetails.ts`)
 
 `lineDetails(line: CartLine, product: Product): string[]`. Its doc comment reads "Human-readable option lines for a cart line, shared by the bag and checkout." It uses the private map `RENTAL_LABEL = { weekend: 'Weekend rental', week: 'One-week rental', month: 'One-month rental' }`.
@@ -1374,6 +1406,7 @@ Observations and risks. These are not prescriptive, apart from the recommendatio
 
 ## Related docs
 
+- [Languages — English (Canada, US) and French (Canada)](features/languages.md)
 - [Product overview, sitemap & user journeys](product-overview.md)
 - [Architecture & runtime model](architecture.md)
 - [Commerce logic — pricing, currency, cart lines, totals, tax & checkout math](commerce-logic.md)

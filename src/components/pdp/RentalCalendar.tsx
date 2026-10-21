@@ -6,6 +6,7 @@ import {
   RENTAL_SLOTS,
   addDays,
   formatDay,
+  formatSlot,
   getBookedDates,
   isoDate,
   parseIso,
@@ -13,6 +14,7 @@ import {
   type RentalBooking,
   type RentalPeriodId,
 } from '../../data/catalog'
+import { bilingual, useCopy } from '../../i18n'
 
 interface Props {
   slug: string
@@ -23,10 +25,61 @@ interface Props {
   error?: boolean
 }
 
-const WEEKDAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
 const MAX_MONTHS_AHEAD = 6
 
+const COPY = bilingual(
+  {
+    weekdays: ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'],
+    title: 'Dates & delivery',
+    chooseStart: '— choose a start date',
+    previous: 'Previous month',
+    next: 'Next month',
+    reserved: ', reserved',
+    unavailable: ', unavailable',
+    start: 'Start',
+    yourDays: (n: number) => `Your ${n} days`,
+    reservedKey: 'Reserved',
+    notice: (n: number) => `${n} days’ notice`,
+    courier: ['Insured courier', 'Delivered & collected'] as [string, string],
+    salon: ['Salon fitting', '1420 Sherbrooke O.'] as [string, string],
+    window: 'Delivery window',
+    fittingTime: 'Fitting time',
+    pleaseChoose: ' — please choose',
+    delivered: 'Delivered',
+    fitting: 'Fitting',
+    selectTime: 'Select a time',
+    collected: 'Collected',
+    byNoon: 'by 12:00',
+    conflict: (period: RentalPeriodId) => `This piece is reserved during part of a ${{ weekend: 'weekend', week: 'one-week', month: 'one-month' }[period]} rental from this date. Please choose another start date.`,
+  },
+  {
+    weekdays: ['Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa', 'Di'],
+    title: 'Dates et livraison',
+    chooseStart: '— choisissez une date de début',
+    previous: 'Mois précédent',
+    next: 'Mois suivant',
+    reserved: ', réservé',
+    unavailable: ', non disponible',
+    start: 'Début',
+    yourDays: (n) => `Vos ${n} jours`,
+    reservedKey: 'Réservé',
+    notice: (n) => `Préavis de ${n} jours`,
+    courier: ['Messager assuré', 'Livré et repris'],
+    salon: ['Essayage au salon', '1420, rue Sherbrooke O.'],
+    window: 'Plage de livraison',
+    fittingTime: 'Heure d’essayage',
+    pleaseChoose: ' — veuillez choisir',
+    delivered: 'Livraison',
+    fitting: 'Essayage',
+    selectTime: 'Choisissez une heure',
+    collected: 'Reprise',
+    byNoon: 'avant midi',
+    conflict: (period) => `Cette pièce est déjà réservée pendant une partie d’une location ${{ weekend: 'de fin de semaine', week: 'd’une semaine', month: 'd’un mois' }[period]} commençant à cette date. Veuillez choisir une autre date de début.`,
+  },
+)
+
 export default function RentalCalendar({ slug, period, value, onChange, step, error }: Props) {
+  const t = useCopy(COPY)
   const today = useMemo(() => {
     const t = new Date()
     return new Date(t.getFullYear(), t.getMonth(), t.getDate())
@@ -74,18 +127,18 @@ export default function RentalCalendar({ slug, period, value, onChange, step, er
       <legend className={`${label} ${error ? 'text-red-700' : ''}`}>
         <span>
           <span className="font-spec mr-3 text-[10px] text-[var(--gold-vermeil)]">{step}</span>
-          Dates & delivery {error && !value.start && <span className="normal-case tracking-normal">— choose a start date</span>}
+          {t.title} {error && !value.start && <span className="normal-case tracking-normal">{t.chooseStart}</span>}
         </span>
       </legend>
 
       <div className={`border ${error && (!value.start || !value.slot) ? 'border-red-700/40' : 'border-[var(--border-hairline)]'}`}>
         {/* Month header */}
         <div className="flex items-center justify-between border-b border-[var(--border-hairline)] px-4 py-3">
-          <button type="button" disabled={!canPrev} onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))} aria-label="Previous month" className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-[var(--bg-silk)] disabled:opacity-25">
+          <button type="button" disabled={!canPrev} onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))} aria-label={t.previous} className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-[var(--bg-silk)] disabled:opacity-25">
             <ChevronLeft size={16} strokeWidth={1.3} />
           </button>
-          <p className="font-serif-editorial text-xl">{cursor.toLocaleDateString('en-CA', { month: 'long', year: 'numeric' })}</p>
-          <button type="button" disabled={!canNext} onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))} aria-label="Next month" className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-[var(--bg-silk)] disabled:opacity-25">
+          <p className="font-serif-editorial text-xl first-letter:uppercase">{formatDay(cursor, { month: 'long', year: 'numeric' })}</p>
+          <button type="button" disabled={!canNext} onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))} aria-label={t.next} className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-[var(--bg-silk)] disabled:opacity-25">
             <ChevronRight size={16} strokeWidth={1.3} />
           </button>
         </div>
@@ -93,7 +146,7 @@ export default function RentalCalendar({ slug, period, value, onChange, step, er
         {/* Calendar grid */}
         <div className="px-3 pb-3 pt-2" onMouseLeave={() => setHover(null)}>
           <div className="font-spec grid grid-cols-7 py-2 text-center text-[9px] uppercase tracking-[0.16em] text-[var(--text-linen)]">
-            {WEEKDAYS.map((w) => <span key={w}>{w}</span>)}
+            {t.weekdays.map((w) => <span key={w}>{w}</span>)}
           </div>
           <div className="grid grid-cols-7 gap-y-1" role="grid">
             {grid.map((d, i) => {
@@ -112,7 +165,7 @@ export default function RentalCalendar({ slug, period, value, onChange, step, er
                   onMouseEnter={() => available && setHover(iso)}
                   onClick={() => onChange({ ...value, start: iso })}
                   aria-pressed={selected}
-                  aria-label={`${formatDay(d, { weekday: 'long', day: 'numeric', month: 'long' })}${isBooked ? ', reserved' : available ? '' : ', unavailable'}`}
+                  aria-label={`${formatDay(d, { weekday: 'long', day: 'numeric', month: 'long' })}${isBooked ? t.reserved : available ? '' : t.unavailable}`}
                   className={`font-spec relative h-10 text-xs transition-colors ${
                     selected || (ranged && iso === anchor)
                       ? 'bg-[var(--text-espresso)] text-[var(--bg-travertine)]'
@@ -132,10 +185,10 @@ export default function RentalCalendar({ slug, period, value, onChange, step, er
             })}
           </div>
           <div className="font-spec mt-3 flex flex-wrap gap-x-5 gap-y-1 border-t border-[var(--border-hairline)] pt-3 text-[9px] uppercase tracking-[0.16em] text-[var(--text-linen)]">
-            <span className="flex items-center gap-1.5"><span className="h-2 w-2 bg-[var(--text-espresso)]" /> Start</span>
-            <span className="flex items-center gap-1.5"><span className="h-2 w-2 bg-[var(--gold-champagne)]/40" /> Your {days} days</span>
-            <span className="flex items-center gap-1.5"><span className="line-through">12</span> Reserved</span>
-            <span>{RENTAL_LEAD_DAYS} days’ notice</span>
+            <span className="flex items-center gap-1.5"><span className="h-2 w-2 bg-[var(--text-espresso)]" /> {t.start}</span>
+            <span className="flex items-center gap-1.5"><span className="h-2 w-2 bg-[var(--gold-champagne)]/40" /> {t.yourDays(days)}</span>
+            <span className="flex items-center gap-1.5"><span className="line-through">12</span> {t.reservedKey}</span>
+            <span>{t.notice(RENTAL_LEAD_DAYS)}</span>
           </div>
         </div>
       </div>
@@ -143,9 +196,9 @@ export default function RentalCalendar({ slug, period, value, onChange, step, er
       {/* Hand-off method */}
       <div className="mt-4 grid grid-cols-2 gap-1.5">
         {([
-          ['courier', Truck, 'Insured courier', 'Delivered & collected'],
-          ['salon', MapPin, 'Salon fitting', '1420 Sherbrooke O.'],
-        ] as const).map(([id, Icon, t, d]) => (
+          ['courier', Truck, ...t.courier],
+          ['salon', MapPin, ...t.salon],
+        ] as const).map(([id, Icon, title, d]) => (
           <button
             type="button"
             key={id}
@@ -154,7 +207,7 @@ export default function RentalCalendar({ slug, period, value, onChange, step, er
           >
             <Icon size={16} strokeWidth={1.3} className="shrink-0 text-[var(--gold-vermeil)]" />
             <span>
-              <span className="block text-[10px] uppercase tracking-[0.18em]">{t}</span>
+              <span className="block text-[10px] uppercase tracking-[0.18em]">{title}</span>
               <span className="block text-xs text-[var(--text-linen)]">{d}</span>
             </span>
           </button>
@@ -163,8 +216,8 @@ export default function RentalCalendar({ slug, period, value, onChange, step, er
 
       {/* Time slot */}
       <p className={`mt-5 text-[10px] uppercase tracking-[0.2em] ${error && value.start && !value.slot ? 'text-red-700' : 'text-[var(--text-taupe)]'}`}>
-        {(value.method ?? 'courier') === 'courier' ? 'Delivery window' : 'Fitting time'}
-        {error && value.start && !value.slot && ' — please choose'}
+        {(value.method ?? 'courier') === 'courier' ? t.window : t.fittingTime}
+        {error && value.start && !value.slot && t.pleaseChoose}
       </p>
       <div className="mt-2 grid grid-cols-2 gap-1.5 sm:grid-cols-4">
         {RENTAL_SLOTS.map((s) => (
@@ -173,9 +226,10 @@ export default function RentalCalendar({ slug, period, value, onChange, step, er
             key={s}
             disabled={!value.start}
             onClick={() => onChange({ ...value, slot: s })}
+            aria-pressed={value.slot === s}
             className={`font-spec border py-2.5 text-[11px] transition-colors disabled:opacity-35 ${value.slot === s ? 'border-[var(--text-espresso)] bg-[var(--text-espresso)] text-[var(--bg-travertine)]' : 'border-[var(--border-hairline)] enabled:hover:border-[var(--text-espresso)]'}`}
           >
-            {s}
+            {formatSlot(s)}
           </button>
         ))}
       </div>
@@ -184,17 +238,17 @@ export default function RentalCalendar({ slug, period, value, onChange, step, er
       {start && end && (
         <div className={`mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-4 p-4 ${conflict ? 'bg-red-50' : 'bg-[var(--bg-silk)]'}`}>
           <div>
-            <p className="text-[9px] uppercase tracking-[0.2em] text-[var(--text-linen)]">{(value.method ?? 'courier') === 'courier' ? 'Delivered' : 'Fitting'}</p>
+            <p className="text-[9px] uppercase tracking-[0.2em] text-[var(--text-linen)]">{(value.method ?? 'courier') === 'courier' ? t.delivered : t.fitting}</p>
             <p className="font-serif-editorial mt-1 text-lg leading-tight">{formatDay(start)}</p>
-            <p className="font-spec text-[10px] text-[var(--text-taupe)]">{value.slot ?? 'Select a time'}</p>
+            <p className="font-spec text-[10px] text-[var(--text-taupe)]">{value.slot ? formatSlot(value.slot) : t.selectTime}</p>
           </div>
           <span className="h-px w-8 bg-[var(--gold-vermeil)]" />
           <div className="text-right">
-            <p className="text-[9px] uppercase tracking-[0.2em] text-[var(--text-linen)]">Collected</p>
+            <p className="text-[9px] uppercase tracking-[0.2em] text-[var(--text-linen)]">{t.collected}</p>
             <p className="font-serif-editorial mt-1 text-lg leading-tight">{formatDay(end)}</p>
-            <p className="font-spec text-[10px] text-[var(--text-taupe)]">by 12:00</p>
+            <p className="font-spec text-[10px] text-[var(--text-taupe)]">{t.byNoon}</p>
           </div>
-          {conflict && <p className="col-span-3 text-xs text-red-700">This piece is reserved during part of a {period} rental from this date. Please choose another start date.</p>}
+          {conflict && <p role="alert" className="col-span-3 text-xs text-red-700">{t.conflict(period)}</p>}
         </div>
       )}
     </fieldset>

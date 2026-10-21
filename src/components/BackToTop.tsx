@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowUp } from 'lucide-react'
+import { bilingual, useCopy } from '../i18n'
 import { useStore } from '../store'
 import { getLenis } from './SmoothScroll'
 
@@ -72,8 +73,14 @@ function toneBehind(x: number, y: number, self: Element): Tone {
  * they read, opens when they scroll back up, rides above anything marked data-fab-avoid, adapts to dark sections,
  * and after the trip up offers a timed return to where they were.
  */
+const COPY = bilingual(
+  { returnTo: (heading: string) => `Return · ${heading}`, returnLabel: (heading: string) => `Return to ${heading}`, whereYouWere: 'where you were', returnPlain: 'Return to where you were', top: 'Back to top' },
+  { returnTo: (heading) => `Revenir · ${heading}`, returnLabel: (heading) => `Revenir à ${heading}`, whereYouWere: 'l’endroit où vous étiez', returnPlain: 'Revenir où vous étiez', top: 'Haut de page' },
+)
+
 export default function BackToTop() {
   const { cartOpen, route } = useStore()
+  const t = useCopy(COPY)
   const dock = useRef<HTMLDivElement>(null)
   const button = useRef<HTMLButtonElement>(null)
   const core = useRef<HTMLSpanElement>(null)
@@ -304,7 +311,7 @@ export default function BackToTop() {
   }
 
   const dark = tone === 'dark'
-  const label = mode === 'return' ? (heading ? `Return · ${heading}` : 'Return to where you were') : 'Back to top'
+  const label = mode === 'return' ? (heading ? t.returnTo(heading) : t.returnPlain) : t.top
 
   return (
     <div ref={dock} className="pointer-events-none fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] right-[max(1.25rem,env(safe-area-inset-right))] z-[45] lg:bottom-8 lg:right-8">
@@ -318,7 +325,7 @@ export default function BackToTop() {
         onFocus={(e) => { live.current.focus = e.currentTarget.matches(':focus-visible') }}
         onBlur={() => { live.current.focus = false }}
         inert={!visible}
-        aria-label={mode === 'return' ? `Return to ${heading ?? 'where you were'}` : 'Back to top'}
+        aria-label={mode === 'return' ? t.returnLabel(heading ?? t.whereYouWere) : t.top}
         className={`group flex h-12 items-center rounded-full border outline-none backdrop-blur-md transition-[opacity,translate,scale,background-color,border-color,color,box-shadow] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] focus-visible:[outline-offset:4px] focus-visible:[outline:1px_solid_var(--gold-vermeil)] motion-reduce:transition-opacity ${visible ? 'pointer-events-auto opacity-100' : 'pointer-events-none translate-y-3 scale-90 opacity-0'} ${dark ? 'border-white/15 bg-[var(--bg-vault)]/60 text-[var(--bg-travertine)] shadow-[0_14px_34px_-16px_rgba(0,0,0,0.7)]' : 'border-[var(--border-hairline)] bg-[var(--bg-travertine)]/80 text-[var(--text-espresso)] shadow-[0_14px_34px_-16px_rgba(20,19,17,0.4)]'}`}
       >
         <span className={`grid transition-[grid-template-columns] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none ${expanded ? 'grid-cols-[1fr]' : 'grid-cols-[0fr]'}`}>

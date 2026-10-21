@@ -1,4 +1,6 @@
-// Teresa & Sons — product catalog (Montreal, CA). Prices in whole currency units.
+// Teresa & Sons — product catalog (Montreal, CA). Prices in whole currency units. The copy here is Canadian English;
+// French lives in catalog.fr.ts, and every display goes through src/i18n/catalog.ts.
+import { bilingual, formatHour, getLocale, pick, type Locale } from '../i18n'
 
 export type Currency = 'CAD' | 'USD'
 
@@ -141,9 +143,9 @@ export const CATEGORIES: Category[] = [
   { slug: 'earrings', name: 'Earrings', french: "Boucles d'oreilles", eyebrow: 'II', description: 'Studs, drops and huggies that catch the light of the Saint-Laurent.', hero: IMG.earrings1, feature: IMG.earrings3 },
   { slug: 'bracelets', name: 'Bracelets', french: 'Bracelets', eyebrow: 'III', description: 'Tennis lines, cuffs and bangles, built to be stacked and inherited.', hero: IMG.bracelet1, feature: IMG.bracelet2 },
   { slug: 'rings', name: 'Rings', french: 'Bagues', eyebrow: 'IV', description: 'Signets, cocktail rings and everyday bands, hand-finished in our atelier.', hero: IMG.ring1, feature: IMG.rings },
-  { slug: 'bridal', name: 'Bridal Jewelry', french: 'Mariage', eyebrow: 'V', description: 'GIA-certified engagement rings and wedding bands for a lifetime of vows.', hero: IMG.bridal1, feature: IMG.bridal2 },
+  { slug: 'bridal', name: 'Bridal Jewellery', french: 'Mariage', eyebrow: 'V', description: 'GIA-certified engagement rings and wedding bands for a lifetime of vows.', hero: IMG.bridal1, feature: IMG.bridal2 },
   { slug: 'watches', name: 'Watches', french: 'Montres', eyebrow: 'VI', description: 'A curated selection of Swiss timepieces, serviced by our horologist.', hero: IMG.watch1, feature: IMG.watch2 },
-  { slug: 'rentals', name: 'Jewelry Rentals', french: 'Location', eyebrow: 'VII', description: 'High jewelry for galas, weddings and premieres — insured, delivered, returned.', hero: IMG.jewelryFlat, feature: IMG.necklace2 },
+  { slug: 'rentals', name: 'Jewellery Rentals', french: 'Location', eyebrow: 'VII', description: 'High jewelry for galas, weddings and premieres — insured, delivered, returned.', hero: IMG.jewelryFlat, feature: IMG.necklace2 },
   { slug: 'gifts', name: 'Gifts', french: 'Cadeaux', eyebrow: 'VIII', description: 'Thoughtful pieces, wrapped in our signature travertine box.', hero: IMG.gift1, feature: IMG.gift2 },
   { slug: 'custom', name: 'Personalized & Custom', french: 'Sur mesure', eyebrow: 'IX', description: 'From sketch to setting — bespoke commissions and engraved heirlooms.', hero: IMG.ring2, feature: IMG.rings },
 ]
@@ -220,12 +222,14 @@ export function priceFor(product: Product, currency: Currency, metal?: Metal): n
   return base + (currency === 'CAD' ? delta : Math.round(delta * CAD_TO_USD))
 }
 
-export function formatPrice(amount: number, currency: Currency): string {
-  return new Intl.NumberFormat(currency === 'CAD' ? 'en-CA' : 'en-US', {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 0,
-  }).format(amount)
+const money = new Map<string, Intl.NumberFormat>()
+
+/** An amount in the visitor's locale, with a bare $ ($1,250 in English, 1 250 $ in French); callers print the ISO code. */
+export function formatPrice(amount: number, currency: Currency, locale: Locale = getLocale()): string {
+  const key = `${locale}|${currency}`
+  let f = money.get(key)
+  if (!f) money.set(key, (f = new Intl.NumberFormat(locale, { style: 'currency', currency, currencyDisplay: 'narrowSymbol', maximumFractionDigits: 0 })))
+  return f.format(amount)
 }
 
 // Personalization
@@ -238,11 +242,18 @@ export function personalizationPrice(product: Product, p: Personalization | unde
   return currency === 'CAD' ? accent.priceCAD : toUSD(accent.priceCAD)
 }
 
+const ENGRAVING = bilingual(
+  { letter: 'Please enter a letter', atLeast: (n: number) => `Please enter at least ${n} characters`, atMost: (n: number) => `Maximum ${n} characters`, characters: 'Some characters cannot be engraved' },
+  { letter: 'Veuillez saisir une lettre', atLeast: (n) => `Veuillez saisir au moins ${n} caractères`, atMost: (n) => `${n} caractères au maximum`, characters: 'Certains caractères ne peuvent pas être gravés' },
+)
+
+/** The engraving error for a text, in the visitor's language, or null when it can be engraved. */
 export function validatePersonalization(cfg: PersonalizationConfig, text: string): string | null {
   const t = text.trim()
-  if (t.length < cfg.minLength) return cfg.minLength === 1 ? 'Please enter a letter' : `Please enter at least ${cfg.minLength} characters`
-  if (t.length > cfg.maxLength) return `Maximum ${cfg.maxLength} characters`
-  if (!new RegExp(`^[${cfg.allowed}]+$`).test(t)) return 'Some characters cannot be engraved'
+  const m = pick(ENGRAVING)
+  if (t.length < cfg.minLength) return cfg.minLength === 1 ? m.letter : m.atLeast(cfg.minLength)
+  if (t.length > cfg.maxLength) return m.atMost(cfg.maxLength)
+  if (!new RegExp(`^[${cfg.allowed}]+$`).test(t)) return m.characters
   return null
 }
 
@@ -253,6 +264,13 @@ export type RentalPeriodId = 'weekend' | 'week' | 'month'
 export const RENTAL_DAYS: Record<RentalPeriodId, number> = { weekend: 3, week: 7, month: 30 }
 
 export const RENTAL_SLOTS = ['09:00 – 11:00', '11:00 – 13:00', '14:00 – 16:00', '17:00 – 19:00'] as const
+
+/** A delivery window as the visitor reads time: 09:00 – 11:00 in Canadian English, 9 AM – 11 AM, 9 h – 11 h. */
+export function formatSlot(slot: string, locale: Locale = getLocale()) {
+  if (locale === 'en-CA') return slot
+  const [from, to] = slot.split('–').map((s) => Number(s.trim().split(':')[0]))
+  return `${formatHour(from, locale)} – ${formatHour(to, locale)}`
+}
 
 /** Days of notice required before a rental can be delivered. */
 export const RENTAL_LEAD_DAYS = 2
@@ -288,8 +306,9 @@ export function getBookedDates(slug: string): Set<string> {
   return booked
 }
 
-export const formatDay = (d: Date, opts: Intl.DateTimeFormatOptions = { weekday: 'short', day: 'numeric', month: 'short' }) =>
-  d.toLocaleDateString('en-CA', opts)
+/** A date in the visitor's locale (Wed, Oct 21 · mer. 21 oct.). */
+export const formatDay = (d: Date, opts: Intl.DateTimeFormatOptions = { weekday: 'short', day: 'numeric', month: 'short' }, locale: Locale = getLocale()) =>
+  d.toLocaleDateString(locale, opts)
 
 // Virtual try-on
 

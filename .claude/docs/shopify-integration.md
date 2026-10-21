@@ -423,6 +423,7 @@ The hard-coded section numbers ("01"–"09", "—") become text settings.
 |---|---|---|
 | `Header` announcements (4 strings) | `sections/announcement-bar.liquid` in `sections/header-group.json` | Port the `Marquee` behaviour: a Web Animations API loop at a constant px/s, an eased hover stop, an off-screen pause, and no movement under reduced motion. |
 | `Header` navigation and mega menu | `sections/header.liquid` (header group) | The menu comes from a `linklist`. Mega-menu columns use the collection description, the `chapter_numeral` / `french_name` metafields, the first 2 products and collection images. Add a "Gift Cards" item with the caption "From $100 · never expires". |
+| Desktop menu (`menu/SiteMenu`) | A drawer in `sections/header.liquid`, built from `linklists.main-menu` | Rail = top-level links; a link with child links unfolds its panel (Shopify menus nest three levels). Previews use `collection.featured_image`, `collection.description`, `collection.products_count` and `collection.products \| slice: 0, 3`; a "from" price needs a metafield or a sorted query. Search maps to predictive search (`/search/suggest`, `resources[type]=product,collection,page`) through the Section Rendering API. The salon's hours and telephone become theme settings or a `salon` metaobject, and the open/closed line stays client-side. Recently viewed stays in `localStorage`. |
 | Currency toggle "CA · CAD" / "US · USD" | `{% form 'localization' %}` country/market selector | Switching changes currency, tax and shipping together. |
 | Account, wishlist and bag icons | `customer`, `routes.account_url`, app count, `cart.item_count` | The bag icon opens the drawer. |
 | `Footer` | `sections/footer.liquid` in `sections/footer-group.json` | Newsletter via `{% form 'customer' %}`; Shop menu = collections; Maison links; salon address; "© {year} Teresa & Sons Joailliers Inc."; "Shipping to Canada (CAD) & United States (USD)". |
@@ -562,6 +563,28 @@ Read them back in Liquid with `cart.attributes['Gift wrap']` and `cart.note`. Th
 
 ---
 
+### B11. Page transitions and the intro with Barba.js
+
+The prototype's transitions are shaped as Barba.js transitions (`src/components/transition/transitions.ts`), so the theme can run the same choreography with Barba on real pages.
+- **Markup:** `layout/theme.liquid` wraps the page in `data-barba="wrapper"`, and each template's main content in `data-barba="container"`. Each container's `data-barba-namespace` is its template (`index`, `collection`, `product`, `cart`, `page`…). The header, footer and drawers stay outside the container.
+- **Transitions:** register `morph`, `checkout`, `chapter` and `curtain` with `barba.init({ transitions })`, mapping the namespaces (`category` → `collection`; gift cards → the gift-card product template). `leave` and `enter` are the same GSAP timelines, with Barba's `data.current.container` and `data.next.container` in place of `<main>`.
+- **Morph:** Barba's `data.trigger` is the clicked link, so the photo is found the same way. The product template marks its main image with `data-morph-target`.
+- **Intro:** the splash becomes Barba's `once` hook (or a theme snippet that runs before Barba starts), with the same session flag.
+- **Prefetch and the rest:** `@barba/prefetch` replaces the hover preloading. Scroll memory, focus and the announcement go in Barba's `after` hook. Re-initialise theme scripts (sections, reveals) in `afterEnter`.
+- **Why not in this prototype:** Barba fetches the next page's server-rendered HTML, and here every page is rendered by React from a single shell.
+
+### B12. Languages and markets (2026-10-21)
+
+The prototype speaks English (Canada, US) and French (Canada); see [features/languages.md](features/languages.md). In the theme:
+- **Markets:** Canada (CAD) with English and French published; United States (USD) with English. To keep French when a French visitor picks USD, publish French to the US market too (`/fr-us`), or the theme's switcher falls back to English there.
+- **URLs:** Shopify prefixes the alternate language itself (`/fr/…` for the primary market, `/en-us/…` for a subfolder market). The prototype's `#/fr/` mirrors this. `routes.root_url` and `request.locale.iso_code` give the prefix and language in Liquid; Shopify adds the `hreflang` alternates.
+- **UI strings:** each `bilingual()` object becomes keys in `locales/en.default.json` and `locales/fr.json` (`{{ 'cart.title' | t }}`). Accent words become `_html` keys (`"title_html": "Votre <em>panier</em>"`). Count functions become Shopify pluralisation keys (`one` / `other`, with `{{ count }}`); French `one` covers 0 and 1, as the prototype's `n < 2` does. Regional English spelling can be a separate `en-US` file, or a single English file if the owner prefers one spelling.
+- **Catalog:** `PRODUCT_FR`, `CATEGORY_FR` and the other maps in `src/data/catalog.fr.ts` become Translate & Adapt translations of product titles, descriptions, metafields (tagline, specs) and collections. Handles stay English (Shopify can translate handles too, for French URLs).
+- **Switcher:** `{% form 'localization' %}` with `language_code` and `country_code` inputs replaces `LocaleMenu`, `LanguageToggle` and the market toggles. The veil and the place-keeping are theme JS around the form's submit (the page reloads on Shopify).
+- **Notice:** browser and geolocation suggestions are what Shopify's Geolocation app does; the prototype's `LanguageNotice` is its design.
+- **Formatting:** Liquid's `money` filters follow the market's currency format settings (`{{ amount }} $` for French Canada); dates via `| date` with the locale's `date_formats`.
+- **Accounts and email:** `customer.locale` stores the visitor's language for notifications (the Account page's "Language" preference).
+
 ## Sharing and hints
 
 `src/lib/share.ts` and `src/components/share/` (`features/sharing.md`) are shaped for the theme:
@@ -640,6 +663,7 @@ See [known-issues.md](known-issues.md) for issues that aren't integration-specif
 
 ## Related docs
 
+- [Languages — English (Canada, US) and French (Canada)](features/languages.md)
 - [Product overview, sitemap & user journeys](product-overview.md)
 - [Architecture & runtime model](architecture.md)
 - [Data layer — catalog, media, gift cards, costing & tax](data-model.md)

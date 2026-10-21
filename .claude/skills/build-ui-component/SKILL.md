@@ -33,6 +33,7 @@ Don't invent new values. Take them from the recipe table.
 - **Inputs:**
   - Boxed (GiftCards `input`) or underline (Account `field`).
   - Selection tiles use the `choice(on)` recipe; segmented toggles use the espresso active fill.
+- **Words:** declare every visible string, aria-label and alt text in a module-level `const COPY = bilingual({ …en }, { …fr })` and read it with `useCopy(COPY)`. Name languages in their own words with a `lang` attribute. Product names, metals and badges come from `useCatalog()`.
 - **Money and pictures:**
   - Money goes through `<Price amount={…} />`.
   - Images sit in an `overflow-hidden bg-[var(--bg-silk)]` aspect box, `h-full w-full object-cover`, with `.editorial-zoom` inside a `group`.
@@ -64,6 +65,6 @@ Follow the checklist in `.claude/rules/ux-and-accessibility.md`:
 ## 5. Check it
 
 1. Run `npx tsc --noEmit -p .`.
-2. Run skill `verify-changes` at 375 px and 1440 px, in both currencies, and with reduced motion if you added animation.
+2. Run skill `verify-changes` at 375 px and 1440 px, in both currencies, in French (longer strings must not overflow), and with reduced motion if you added animation.
 3. Ask the `design-reviewer` agent to review the diff for token, recipe and a11y drift.
 4. If the component introduces a reusable recipe, add it to `.claude/docs/design-system.md` §5 (skill `update-knowledge-base`).

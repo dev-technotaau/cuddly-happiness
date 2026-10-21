@@ -39,6 +39,7 @@ Which surface computes which figure:
 | Switcher | Location | Copy | Side effects |
 |---|---|---|---|
 | Header toggle | `src/components/Header.tsx` (every page) | `CA · CAD` / `US · USD` inside `role="group" aria-label="Currency"` | `setCurrency` only |
+| Desktop menu toggle | `src/components/menu/SiteMenu.tsx` (≥ `lg`, while the menu is open) | `CA · CAD` / `US · USD` inside `role="group" aria-label="Currency"`, with `aria-pressed` | `setCurrency` only |
 | Preferred market | `src/pages/Account.tsx` (signed-in view) | "Preferred market" / "Sets currency, taxes and shipping options." / `Canada` · `United States` | `setCurrency` only |
 | Shopping in | `src/pages/Checkout.tsx` | legend "Shopping in", buttons `Canada · CAD` / `United States · USD` | `setCurrency(c)` **and** re-converts the `available` amount of every applied gift card: `convert(x.card.balance, x.card.currency, c)` |
 
@@ -94,16 +95,15 @@ export const convert = (amount: number, from: Currency, to: Currency) =>
 
 ```ts
 // src/data/catalog.ts
-export function formatPrice(amount: number, currency: Currency): string {
-  return new Intl.NumberFormat(currency === 'CAD' ? 'en-CA' : 'en-US', {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 0,
-  }).format(amount)
+export function formatPrice(amount: number, currency: Currency, locale: Locale = getLocale()): string {
+  const key = `${locale}|${currency}`
+  let f = money.get(key)
+  if (!f) money.set(key, (f = new Intl.NumberFormat(locale, { style: 'currency', currency, currencyDisplay: 'narrowSymbol', maximumFractionDigits: 0 })))
+  return f.format(amount)
 }
 ```
 
-- Node 24 output: `formatPrice(6850,'CAD')` → `$6,850` and `formatPrice(5000,'USD')` → `$5,000`. Both currencies print a bare `$`, so the ISO code that `Price` appends is what tells them apart. A new `Intl.NumberFormat` is built on every call.
+- Output (2026-10-21): `formatPrice(6850,'CAD')` → `$6,850` in English, `6 850 $` in French (`fr-CA`, no-break spaces); `formatPrice(5000,'USD')` → `$5,000` / `5 000 $`. Every locale prints a bare `$` (`narrowSymbol`), so the ISO code that `Price` appends is what tells currencies apart. Formatters are cached per locale and currency. See [features/languages.md](features/languages.md) §4.
 - `src/components/Price.tsx` takes `{ amount: number; className?: string }`. It has **no currency prop** and always uses the store currency.
 
 ```tsx

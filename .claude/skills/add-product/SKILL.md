@@ -20,6 +20,7 @@ Background: `.claude/docs/data-model.md` lists every product, type and helper. G
    - `tagline`: one short declarative sentence ending in a period.
    - `description`: one or two sentences.
    - `specs`: a `Record<string, string>` using `ct`, `mm`, `in` and `g`, with `–` for ranges.
+   - **French:** add the slug to `PRODUCT_FR` in `src/data/catalog.fr.ts`: `name` (French word order, place name last: `Pendentif solitaire Mont-Royal`), `tagline`, `description`, `specs` keyed by the **English** spec labels with French values (`1,1 mm`, `16 po`), optional `collection` and `personalization`. A new spec label also needs `SPEC_LABEL_FR`; a new badge `BADGE_FR`; a new metal `METAL_FR`. Canadian English is the source; US spelling is derived.
 3. **Price:** `price: p(CAD)` derives USD as CAD × 0.73 rounded to the nearest $5. Use `p(CAD, USD)` to set USD explicitly. Amounts are whole units.
 4. **Metals:** order matters.
    - `metals[0]` is the PDP default and the metal used by every quick-add.
@@ -45,6 +46,6 @@ Background: `.claude/docs/data-model.md` lists every product, type and helper. G
    - Tag the slug in `VIDEOS` (`src/data/media.ts`) so it appears in the film rails.
    - Add it to the `PAIRS` tables in `src/components/pdp/CompleteTheLook.tsx` and `src/components/cart/CartUpsell.tsx`.
 9. **Configuration-requiring pieces** (ring size, personalization, rental dates, commissions): make sure the quick-add surfaces route them to the PDP. These are Wishlist "Add all", CompleteTheLook, VideoViewer, CartUpsell and TryOnStudio.
-10. **New category?** Add it to the `CategorySlug` union and `CATEGORIES`, with a French name, the next roman numeral, a description, and hero/feature images. Then check that the Header mega menu, Footer and home CategoryIndex still lay out.
-11. **Verify:** run skill `verify-changes`. Open `#/c/<category>` and `#/p/<slug>` in CAD and USD, and check the card price against the PDP opening price.
+10. **New category?** Add it to the `CategorySlug` union and `CATEGORIES`, with a French name, the next roman numeral, a description, and hero/feature images, plus a `CATEGORY_FR` entry (`name`, `accent` line, `description`). Then check that the Header mega menu, Footer and home CategoryIndex still lay out in both languages.
+11. **Verify:** run skill `verify-changes`. Open `#/c/<category>` and `#/p/<slug>` in CAD and USD, and in French (`#/fr/p/<slug>`), and check the card price against the PDP opening price.
 12. **Docs:** run skill `update-knowledge-base`. The product table in `.claude/docs/data-model.md` must list the new row.

@@ -9,6 +9,9 @@ Scope: all `src/**/*.tsx` (inventory), in particular `src/components/CartDrawer.
 | Overlay | File | z | Rendered | Stops Lenis | Locks scroll | Escape | ARIA | Notes |
 |---|---|---|---|---|---|---|---|---|
 | Mobile menu | Header | `z-[70]` | inline when `mobileOpen` | — | — | — | — | `data-lenis-prevent`; closes on route change |
+| Desktop menu | menu/SiteMenu ([global-and-shared.md](components/global-and-shared.md) §2.1) | `z-[70]` | portal, lazy, mounted after the first opening, then toggled | yes | `body` (restores the previous value) | yes, stepped: clear the search, fold the panel, close | dialog, `aria-modal`, `aria-label="Menu"`, `inert` while closed; Tab trapped; focus returns to the menu button | `lg` only (closes below 1024 px); arrow keys, type-to-search, `/` and ⌘K |
+| Splash | splash/Splash | `z-[130]` | first in the shell, unmounts when done | yes (next frame) | `body` (restores the previous value) | any key, press or wheel skips | `aria-hidden` (decorative) | in full once per session; a veil on later loads |
+| Page transition | transition/PageTransition | `z-[125]`–`z-[127]` | portal, always mounted, `invisible` until used | yes, while it runs | — (Lenis only) | — | `aria-hidden`; afterwards focus moves to `<main>` and a polite live region reads the title | blocks clicks while it covers |
 | Cart drawer | CartDrawer | `z-[80]` backdrop / `z-[90]` panel | always mounted, toggled | yes | `body` (restores the previous value) | yes | dialog, `aria-modal`, `aria-hidden` + `inert` while closed | Focuses after 50 ms; no trap or restore |
 | Share sheet | ShareSheet (`features/sharing.md`) | `z-[100]` | portal, mounted while open | yes | `body` (restores the previous value) | yes | dialog, `aria-modal`, `aria-labelledby` its title; Tab trapped; focus returns to the trigger | bottom sheet below `md`; `data-lenis-prevent`; `[data-share-sheet]` marker |
 | Gallery lightbox | pdp/Gallery | `z-[95]` | inline | — | — | yes | dialog | relies on `data-lenis-prevent` |
@@ -77,6 +80,9 @@ Scope: all `src/**/*.tsx` (inventory), in particular `src/components/CartDrawer.
 | Gift-card added state | 2400 ms |
 
 ## 4. Navigation UX
+
+- **Page changes (2026-10-20).** After each transition, focus moves to `<main>` unless a modal dialog is open, and a polite live region reads the new title. Back returns to the remembered scroll position. Under reduced motion the curtains become a short fade.
+- **Where you are (2026-10-20).** The header bar's gold hairline rests under the current section (`aria-current` on Bridal, Rentals and Atelier), the mega menu opens on the current chapter, and the mega, mobile and desktop menus mark the current page. A link to the page already shown glides back to the top instead of doing nothing.
 
 - **Routing:** all links are hash links built from the `href` helpers. In-page anchors are scripted (`getLenis()?.scrollTo(el, { offset })` with a `scrollIntoView` fallback). Never use `href="#id"`, because it is parsed as a route and lands on Home.
 - **Scroll on route change:** every route change scrolls to the top immediately (`SmoothScroll`), so Back and Forward never restore the scroll position.
@@ -153,6 +159,14 @@ The layout is mobile-first, with **`lg` (1024 px) as the main switch**: 284 `lg:
 | linen | silk `#F3EFE6` | ≈ 2.4 : 1 | **fail** |
 | champagne `#D4B982` | vault `#121110` | ≈ 9.9 : 1 | pass |
 | white/60 (≈ `#A0A0A0`) | vault | ≈ 7.2 : 1 | pass |
+
+## Languages (added 2026-10-21)
+
+- Languages are named in their own words with their own `lang` (`LanguageToggle`, `LocaleMenu`); no flags. Text in the other language (review originals, the notice's buttons) carries `lang`.
+- `<html lang>` follows the locale (`en-CA`, `en-US`, `fr-CA`), so screen readers, hyphenation and spell-check switch with it.
+- A switch keeps focus, scroll position (the element being read), open overlays, the bag and form contents, and is announced in the new language by `LanguageVeil`'s live region. Under reduced motion it is immediate.
+- The language notice is non-modal (`aside`, `aria-label="Langue · Language"`), its text in a polite live region, close `aria-label="Fermer · Close"`; it pauses its 16 s timer under pointer or focus.
+- See [features/languages.md](features/languages.md).
 
 ## Floating back-to-top (added 2026-10-15)
 

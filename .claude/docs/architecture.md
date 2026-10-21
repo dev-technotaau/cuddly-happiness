@@ -40,6 +40,11 @@ Imports point downward: a layer may import any lower layer. §1.4 lists the edge
 | `src/components/pdp/` | Product-page modules | `Accordion`, `CompleteTheLook`, `CraftStory`, `Gallery`, `Personalizer`, `PriceBreakdown`, `ProductFAQ`, `RentalCalendar`, `Reviews`, `RingSize`, `StickyBar` |
 | `src/components/cart/` | Bag modules shared by `CartDrawer` and `pages/Cart` | `CartLineItem`, `CartUpsell`, `GiftOptions`, `RewardProgress`, `UndoToast`, `useCartTotals.ts` |
 | `src/components/tryon/` | Virtual try-on | `TryOnProvider`, `TryOnStudio` (lazy), `TryOnButton`, `JewelryOverlay` |
+| `src/components/menu/` | Desktop menu | `SiteMenu` (lazy, from `Header`), `Burger`, `search.ts` |
+| `src/components/splash/` | The intro | `Splash` |
+| `src/components/transition/` | Page transitions | `PageTransition`, `transitions.ts` |
+| `src/components/brand/` | Brand mark | `Ampersand` |
+| `src/lib/stage.ts` | Stage cover and intro mode | `coverStage`, `clearStage`, `onStageClear`, `INTRO`, `markIntroSeen` |
 | `src/components/video/` | Shoppable video | `ShoppableVideos`, `VideoViewer`, `useInViewPlay.ts` |
 | `src/components/giftcard/` | Gift-card visuals and balance lookup | `GiftCardArt`, `BalanceChecker` |
 
@@ -217,18 +222,19 @@ Rule 2 runs before rule 3 so that the catalog's `gift-card` product (`tns-gf-003
 ### 3.4 The `href` helper (verbatim)
 
 ```ts
+const at = (path: string) => `#${prefix}${path}`
+
+/** Links, in the language on screen. */
 export const href = {
-  home: '#/',
-  category: (slug: string) => `#/c/${slug}`,
-  product: (slug: string) => `#/p/${slug}`,
-  atelier: '#/atelier',
-  checkout: '#/checkout',
-  cart: '#/cart',
-  wishlist: '#/wishlist',
-  account: '#/account',
-  giftcards: '#/gift-cards',
+  get home() { return at('/') },
+  category: (slug: string) => at(`/c/${slug}`),
+  product: (slug: string) => at(`/p/${slug}`),
+  get atelier() { return at('/atelier') },
+  // …checkout, cart, wishlist, account, giftcards: getters in the same shape
 }
 ```
+
+Since 2026-10-21 the address carries the language: `prefix` is `''` in English and `/fr` in French, so links read `#/c/rings` or `#/fr/c/rings`. `splitHash(hash)` returns `{ path, lang }`, `parseHash` ignores the prefix, and `bareHash(hash)` gives the page part for comparisons (PageTransition's visits and scroll memory use it). `syncLocale` keeps the address in the visitor's language on every `hashchange` (`history.replaceState`). Full description: [features/languages.md](features/languages.md) §5.
 
 ### 3.5 How navigation is performed
 
@@ -284,15 +290,11 @@ Every use of the `href` map, by file:
 
 `route` is a new object on every `hashchange`, even when it parses to the same page, so the following run every time:
 
-1. `Routes` re-renders and swaps the page (remount rules above). Its effect on `[route]` then sets `document.title` and `<meta name="description">` from `headFor(route)`:
+1. `Pages` (in `App.tsx`) runs its effect on `[route]`: `document.title` and `<meta name="description">` follow `headFor(route)` at once.
    - Category: "{name} — Teresa & Sons" and the category's `description`. Product: "{name} — Teresa & Sons" and "{tagline} {description}". Unknown slugs: "Chapter not found" or "Piece not found", with the site description.
    - Wishlist, Gift Cards, Your Account, Your Bag, Checkout and The Atelier: "{label} — Teresa & Sons" with the site description.
-   - Home (the `default` branch) restores the site-wide title and description. `App.tsx` reads them once at load from the `og:title` / `og:description` tags that `site.json` fills, because nothing changes those.
-2. `SmoothScroll` runs its effect on `[route]`:
-   - It calls `lenisInstance.scrollTo(0, { immediate: true })` when Lenis exists, and `window.scrollTo(0, 0)` otherwise.
-   - It then calls `requestAnimationFrame(() => ScrollTrigger.refresh())`; the frame is cancelled if the route changes again before it fires.
-   - This is a passive effect. The new page's `useLayoutEffect` animations (`useReveal`, the `Product` intro) are created during the same commit, before the reset, and the deferred refresh recomputes trigger positions after the jump.
-   - Nothing restores scroll: Back and Forward also land at the top.
+   - Home restores the site-wide title and description. `App.tsx` reads them once at load from the `og:title` / `og:description` tags that `site.json` fills, because nothing changes those.
+2. `PageTransition` takes the visitor across. The old page leaves under cover, then `Routes` swaps to the new route out of sight (remount rules above). Scroll goes to the top, or back to the remembered position when moving back, and the new page enters. See [motion-and-interaction.md](motion-and-interaction.md) "Splash and page transitions" and §11.1.
 3. `Header` runs its effect on `[route]`: `setMegaOpen(false)` and `setMobileOpen(false)`.
 4. Nothing resets `cartOpen` or the try-on request. An open drawer or studio stays open over the new page, for example after the browser Back button.
 5. Clicking a link whose `href` equals the current hash does not fire `hashchange`, so none of the above runs.
@@ -354,8 +356,11 @@ See [data-model.md](data-model.md).
 | Member | Type | Implementation | Semantics and edge cases |
 |---|---|---|---|
 | `route` | `Route` | `useState<Route>(parseHash)`; a `hashchange` listener (effect, `[]` deps) calls `setRoute(parseHash())` | Current page. A new object on every `hashchange`. |
-| `currency` | `Currency` (`'CAD' \| 'USD'`) | `useState(() => (localStorage.getItem('tns-currency') as Currency) \|\| 'CAD')` | Pricing and display currency. Defaults to `'CAD'`. The stored value is not validated. |
-| `setCurrency` | `(c: Currency) => void` | `useCallback(…, [])` | `setCurrencyState(c)` plus a synchronous `localStorage.setItem('tns-currency', c)`. |
+| `currency` | `Currency` (`'CAD' \| 'USD'`) | `useState<Currency>(START_CURRENCY)` | Pricing and display currency, and the market: it also chooses Canadian or US English. Defaults to `'CAD'`; the stored value is validated (`loadCurrency`). |
+| `setCurrency` | `(c: Currency) => void` | `useCallback(…, [])` | Re-points the locale (`syncLocale`) before the render, then `setCurrencyState(c)` plus a synchronous `localStorage.setItem('tns-currency', c)`. |
+| `lang` / `setLang` | `Lang` (`'en' \| 'fr'`) / `(lang: Lang) => void` | `useState<Lang>(START.lang)` / `useCallback(…, [])` | The language. `setLang` stores `tns-lang`, answers the notice, and runs the swap through `runSwitch` (LanguageVeil) with `flushSync`. Also exposed with the locale through `LocaleContext` (`useLocale()`). |
+| `langOrigin` | `LangOrigin` | module constant `START.origin` | How the visit's language was decided (`source`, `stored`, `browser`, `both`), for `LanguageNotice`. |
+| `langHintSeen` / `dismissLangHint` | `boolean` / `() => void` | `useState(() => load('tns-lang-hint', false))` | Whether the language notice is done. |
 | `cart` | `CartLine[]` | Lazy `JSON.parse(localStorage.getItem('tns-cart') \|\| '[]')` inside try/catch, falling back to `[]` | Lines in insertion order. Persisted by an effect on `[cart]`. Not checked against the catalog. |
 | `cartOpen` | `boolean` | `useState(false)` | Drawer visibility. In memory only; navigation does not reset it. |
 | `setCartOpen` | `(o: boolean) => void` | The raw `useState` setter (stable) | Opens or closes the drawer. |
@@ -504,7 +509,9 @@ A grep for `localStorage|sessionStorage|indexedDB|document.cookie` finds only `l
 
 | Key | Value shape | Owner | Read | Written | Failure handling |
 |---|---|---|---|---|---|
-| `tns-currency` | Raw string `CAD` or `USD` (not JSON) | `src/store.tsx` | Once, in the `currency` initialiser at `StoreProvider` mount | Synchronously inside `setCurrency` | Read and write are not wrapped in try/catch. An empty or missing value becomes `'CAD'`; any other string is accepted unchecked. |
+| `tns-currency` | Raw string `CAD` or `USD` (not JSON) | `src/store.tsx` | Once, at module load (`loadCurrency`, `START_CURRENCY`) | Synchronously inside `setCurrency` | The read is in try/catch and validated: anything but `USD` is `'CAD'`. The write is unguarded. |
+| `tns-lang` | Raw string `en` or `fr` | `src/store.tsx` | Once, at module load (`resolveLang`) | Synchronously inside `setLang` (explicit switches only) | Read in try/catch and validated. The address prefix and the browser are consulted first or after it (see [features/languages.md](features/languages.md) §5). |
+| `tns-lang-hint` | JSON boolean | `src/store.tsx` | Once, via `load` | Effect on `[langHintSeen]` | `true` once the language notice has been answered, dismissed or has timed out. |
 | `tns-cart` | JSON `CartLine[]` | `src/store.tsx` | Once, in the lazy initialiser | Effect on `[cart]`, including the first mount | Read is in try/catch (falls back to `[]`). Write is unguarded. No schema check. |
 | `tns-cart-meta` | JSON `CartMeta`, merged over `DEFAULT_META` on read | `src/store.tsx` | Once, via `load` | Effect on `[meta]` | `load` catches errors (falls back to `{}`). Write is unguarded. |
 | `tns-wishlist` | JSON `string[]` (slugs) | `src/store.tsx` | Once, via `load` | Effect on `[wishlist]` | Same as above. |
@@ -822,6 +829,7 @@ The dev toolchain (Vite 8.0.5, TypeScript 5.9.3, Tailwind CSS 4.2.2, `@vitejs/pl
 
 ## Related docs
 
+- [Languages — English (Canada, US) and French (Canada)](features/languages.md)
 - [Product overview, sitemap & user journeys](product-overview.md)
 - [Figma Make platform, toolchain & build](platform-and-tooling.md)
 - [Design system — tokens, typography, color, layout & component recipes](design-system.md)

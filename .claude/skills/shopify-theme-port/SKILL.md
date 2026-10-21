@@ -21,6 +21,7 @@ Primary reference: `.claude/docs/shopify-integration.md`. It keeps **facts** (wh
 - The output is only passed to `console.info` in `Checkout.placeOrder`. Nothing is sent. `isGiftCardLine` is unused.
 - `CartMeta` (gift wrap, receipt, message, note) is documented as mapping to the cart `note`/`attributes`, but no mapper exists.
 - Slugs are kebab-case and stable, and are meant to become handles. Money is whole units in the app; convert to cents only at the boundary.
+- Languages: every component's copy is a `bilingual()` object (English and French), the catalog's French is in `src/data/catalog.fr.ts`, and French addresses use a `#/fr` prefix. In the theme these become `locales/en.default.json` + `locales/fr.json` (UI strings), Translate & Adapt (product and collection translations), a Markets setup (Canada with English and French, United States with English) and the `{% form 'localization' %}` switcher. See `.claude/docs/shopify-integration.md` and `.claude/docs/features/languages.md`.
 
 ## Porting workflow
 

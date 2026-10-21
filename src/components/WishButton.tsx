@@ -1,10 +1,13 @@
 import { useRef } from 'react'
 import gsap from 'gsap'
 import { Heart } from 'lucide-react'
+import { useCopy } from '../i18n'
+import { COMMON } from '../i18n/common'
 import { useStore } from '../store'
 
 export default function WishButton({ slug, className = '', size = 'sm' }: { slug: string; className?: string; size?: 'sm' | 'lg' }) {
   const { isWished, toggleWishlist } = useStore()
+  const t = useCopy(COMMON)
   const ref = useRef<HTMLButtonElement>(null)
   const on = isWished(slug)
   const dim = size === 'lg' ? 'h-12 w-12' : 'h-9 w-9'
@@ -14,7 +17,7 @@ export default function WishButton({ slug, className = '', size = 'sm' }: { slug
       ref={ref}
       type="button"
       aria-pressed={on}
-      aria-label={on ? 'Remove from wishlist' : 'Save to wishlist'}
+      aria-label={on ? t.removeFromWishlist : t.saveToWishlist}
       onClick={(e) => {
         // Cards are links; keep the click from navigating.
         e.preventDefault()

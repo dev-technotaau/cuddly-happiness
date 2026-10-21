@@ -59,6 +59,8 @@ Inline `fontFamily` values also name Baskervville (Personalizer "Serif" preview,
 
 **Brand mark** (favicon, `public/favicon.svg`): the wordmark's italic ampersand alone, Baskervville italic 600 traced to a vector, in a gold gradient (`#E7CF9C` → `--gold-champagne` → `--gold-vermeil`) on a `--bg-vault` tile, which is also the `theme-color`. The ICO and the 180 px apple-touch icon are renders of the same art. The 1200×630 social card (`public/og-image.jpg`) sets the hero lockup beside a framed piece. See [platform-and-tooling.md](platform-and-tooling.md) §12.3.
 
+**Ampersand component** (`src/components/brand/Ampersand.tsx`): the same traced path, inline. The fill is a gold gradient (`data-amp-fill`), and a hidden 0.35-unit stroke (`data-amp-line`) lets an animation draw the outline. The splash and the page-transition card use it.
+
 **Hero lockup** (HomeHero):
 - Lines 1 and 3 sit flush left. The accent line opens with a gold hairline (`w-[0.9em] sm:w-[1.5em]`, transparent to champagne) that draws in from the left edge, then the italic at `1.05em` in champagne.
 - After each reveal a single glint crosses the italic. It is a text-clipped gradient (`bg-clip-text text-transparent`, `bg-[length:250%_100%]`) whose `background-position` GSAP moves from `100%` to `0%`.
@@ -122,15 +124,19 @@ Inline `fontFamily` values also name Baskervville (Personalizer "Serif" preview,
 | Local overlays | `z-10` | CategoryIndex, Gallery, TryOnStudio captured shot |
 | PDP sticky bar | `z-40` | StickyBar |
 | Back-to-top button | `z-[45]` | `BackToTop` (above the StickyBar; below the header, so the mobile menu inside the header's stacking context covers it) |
+| Language notice | `z-[45]` | `locale/LanguageNotice` (bottom-left from `sm`, full width on phones; `data-fab-avoid` lifts the back-to-top above it) |
 | Header | `z-50` | Header (sticky) |
 | Film grain | `60` (CSS) | `.film-grain` |
-| Mobile menu | `z-[70]` | Header |
+| Mobile menu / desktop menu (never at once: one below `lg`, the other from it) | `z-[70]` | Header / `menu/SiteMenu` |
 | Cart backdrop / drawer | `z-[80]` / `z-[90]` | CartDrawer |
 | Lightboxes | `z-[95]` | Gallery lightbox, RingSize guide |
 | Share sheet | `z-[100]` | `ShareSheet` (portal, with the other modals and viewers) |
 | Modals / viewers | `z-[100]` | Reviews modal, VideoViewer |
 | Try-on studio | `z-[110]` | TryOnStudio |
 | Skip link (while focused) | `z-[120]` | `App.tsx` |
+| Page transition: veil and curtain / seam / morph clone | `z-[125]` / `z-[126]` / `z-[127]` | `transition/PageTransition` |
+| Language veil (never at the same time as a page transition) | `z-[125]` | `transition/LanguageVeil` |
+| Splash | `z-[130]` | `splash/Splash` |
 
 ## 4. Shape, borders & depth
 
@@ -171,6 +177,10 @@ Inline `fontFamily` values also name Baskervville (Personalizer "Serif" preview,
 | Dark section | Wrapper `bg-[var(--bg-vault)] text-[var(--bg-travertine)]`; champagne eyebrow and italics; `text-white/60` body; `SectionHeader tone="dark"` |
 | Error list | `<ul className="… text-sm text-red-700" role="alert">` |
 | Drawer | Panel `max-w-[460px]` sliding 700 ms `ease-[cubic-bezier(0.16,1,0.3,1)]` at `z-[90]`; backdrop `bg-[var(--bg-vault)]/45 backdrop-blur-[2px]` at `z-[80]` [CartDrawer] |
+| Menu rail row | `font-serif-editorial text-[clamp(28px,2.4vw,38px)] font-light leading-none`, with the French name in italic `text-[14px]` revealed on hover or focus; a 1 px gold hairline (`absolute -left-6 w-px bg-[var(--gold-vermeil)]`) glides to the active row with `transition-[translate,height,opacity] duration-500` [SiteMenu] |
+| Nav hairline (header bar) | One `absolute h-px bg-[var(--gold-vermeil)]` line under the links, moved with inline `translate` and `width` (`transition-[translate,width,opacity] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]`) to the hovered link or the current section [Header] |
+| "You are here" dot | `h-1.5 w-1.5 shrink-0 self-center rounded-full bg-[var(--gold-vermeil)]` after the current item's name, with `aria-current` on the link [Header menus] |
+| Sideways unfold | A child panel at `absolute left-full top-0 h-full`, revealed by `[clip-path:inset(0_100%_0_0)]` → `[clip-path:inset(0_-80px_0_0)]` over 700 ms `ease-[cubic-bezier(0.16,1,0.3,1)]` [SiteMenu] |
 
 ## 6. Iconography
 

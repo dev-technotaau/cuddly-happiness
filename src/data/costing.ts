@@ -2,6 +2,8 @@
 // materials and making charges are estimated from specs, and the remainder is shown openly as margin.
 
 import { CAD_TO_USD, getCategory, personalizationPrice, priceFor, type Currency, type Metal, type Personalization, type Product } from './catalog'
+import { bilingual, formatNumber, getLocale, pick, type Locale } from '../i18n'
+import { catalogFor } from '../i18n/catalog'
 
 export type CostGroup = 'materials' | 'making' | 'services' | 'options' | 'margin'
 
@@ -15,13 +17,93 @@ export interface CostLine {
 }
 
 /** Indicative metal rates per gram, CAD. */
-const METAL_RATE: Record<Metal, { rate: number; purity: string; name: string }> = {
-  '18k-yellow': { rate: 82.4, purity: '18k · 75.0% gold', name: '18k yellow gold' },
-  '18k-white': { rate: 84.1, purity: '18k · 75.0% gold, rhodium finish', name: '18k white gold' },
-  '18k-rose': { rate: 81.9, purity: '18k · 75.0% gold', name: '18k rose gold' },
-  platinum: { rate: 48.6, purity: 'Pt950 · 95.0% platinum', name: 'Platinum 950' },
-  vermeil: { rate: 1.6, purity: '925 silver, 2.5µ 18k gold', name: 'Gold vermeil' },
-}
+const METAL_RATE: Record<Metal, number> = { '18k-yellow': 82.4, '18k-white': 84.1, '18k-rose': 81.9, platinum: 48.6, vermeil: 1.6 }
+
+// The statement's wording. Numbers inside it are formatted for the locale where the lines are built.
+const COPY = bilingual(
+  {
+    metals: {
+      '18k-yellow': ['18k yellow gold', '18k · 75.0% gold'],
+      '18k-white': ['18k white gold', '18k · 75.0% gold, rhodium finish'],
+      '18k-rose': ['18k rose gold', '18k · 75.0% gold'],
+      platinum: ['Platinum 950', 'Pt950 · 95.0% platinum'],
+      vermeil: ['Gold vermeil', '925 silver, 2.5µ 18k gold'],
+    } as Record<Metal, [string, string]>,
+    centre: (shape: string) => `Centre diamond · ${shape}`,
+    pearls: 'Pearls',
+    emerald: 'Colombian emerald',
+    sapphires: 'Ceylon sapphires',
+    diamonds: 'Diamonds',
+    halo: 'Hidden halo diamonds',
+    side: 'Side stones',
+    bezel: 'Bezel diamonds',
+    accents: 'Accent diamonds',
+    caseOf: (metal: string) => `Case & bracelet · ${metal}`,
+    plating: ' + plating',
+    perGram: '/g',
+    movement: 'Swiss movement',
+    swissMade: 'Swiss made',
+    chain: ['Chain & clasp', 'Solid gold spring ring'] as [string, string],
+    posts: ['Posts & backs', 'Secure screw or hinged backs'] as [string, string],
+    clasp: ['Clasp & safety', 'Double box clasp'] as [string, string],
+    strap: ['Strap & buckle', 'Leather strap'] as [string, string],
+    regulation: 'Regulation & assembly',
+    bench: 'Bench work · casting & fabrication',
+    hours: (h: number, rate: number) => `${h} h × ${rate}/h · Montréal atelier`,
+    setting: ['Stone setting', 'Hand-set under microscope'] as [string, string],
+    finish: ['Polishing & hallmarking', '12-stage finish, maker’s mark'] as [string, string],
+    gia: 'GIA grading report',
+    report: (n: string) => `№ ${n}`,
+    shipping: 'Insured shipping & presentation box',
+    courier: { CAD: 'Signature courier, Canada', USD: 'Signature courier, duties prepaid' } as Record<Currency, string>,
+    engraving: ['Engraving', 'Hand or laser, up to 18 characters'] as [string, string],
+    care: ['Lifetime care plan', 'Annual cleaning, claw checks, polish'] as [string, string],
+    margin: ['Design, showroom & maison margin', 'Design, salon, staff, warranty reserve'] as [string, string],
+    option: 'Option',
+    selected: 'Selected option',
+  },
+  {
+    metals: {
+      '18k-yellow': ['Or jaune 18 carats', '18 carats · 75,0 % d’or'],
+      '18k-white': ['Or blanc 18 carats', '18 carats · 75,0 % d’or, fini rhodié'],
+      '18k-rose': ['Or rose 18 carats', '18 carats · 75,0 % d’or'],
+      platinum: ['Platine 950', 'Pt950 · 95,0 % de platine'],
+      vermeil: ['Vermeil', 'Argent 925, 2,5 µ d’or 18 carats'],
+    },
+    centre: (shape) => `Diamant central · ${shape}`,
+    pearls: 'Perles',
+    emerald: 'Émeraude colombienne',
+    sapphires: 'Saphirs de Ceylan',
+    diamonds: 'Diamants',
+    halo: 'Diamants du halo caché',
+    side: 'Pierres latérales',
+    bezel: 'Diamants de la lunette',
+    accents: 'Diamants d’accent',
+    caseOf: (metal) => `Boîtier et bracelet · ${metal}`,
+    plating: ' + placage',
+    perGram: '/g',
+    movement: 'Mouvement suisse',
+    swissMade: 'Fabrication suisse',
+    chain: ['Chaîne et fermoir', 'Anneau à ressort en or massif'],
+    posts: ['Tiges et fermoirs', 'Fermoirs à vis ou articulés sécuritaires'],
+    clasp: ['Fermoir et sécurité', 'Fermoir à boîte double'],
+    strap: ['Bracelet et boucle', 'Bracelet en cuir'],
+    regulation: 'Réglage et assemblage',
+    bench: 'Travail à l’établi · fonte et fabrication',
+    hours: (h, rate) => `${h} h × ${rate}/h · atelier de Montréal`,
+    setting: ['Sertissage', 'Serti à la main sous le microscope'],
+    finish: ['Polissage et poinçonnage', 'Finition en 12 étapes, poinçon de maître'],
+    gia: 'Rapport de classement GIA',
+    report: (n) => `n° ${n}`,
+    shipping: 'Livraison assurée et écrin de présentation',
+    courier: { CAD: 'Messager avec signature, Canada', USD: 'Messager avec signature, droits prépayés' },
+    engraving: ['Gravure', 'À la main ou au laser, jusqu’à 18 caractères'],
+    care: ['Plan d’entretien à vie', 'Nettoyage annuel, vérification des griffes, polissage'],
+    margin: ['Création, salon et marge de la maison', 'Création, salon, personnel, réserve de garantie'],
+    option: 'Option',
+    selected: 'Option choisie',
+  },
+)
 
 const DEFAULT_WEIGHT: Record<string, number> = {
   necklaces: 6.2, earrings: 3.4, bracelets: 11.5, rings: 5.2, bridal: 4.6, watches: 32, gifts: 3.1, custom: 4.8, rentals: 28,
@@ -45,24 +127,28 @@ interface StoneSpec {
   weight: number // relative value weight
 }
 
-function stonesFor(p: Product): StoneSpec[] {
+// Stones are read from the English specs; what the statement shows is the visitor's language.
+function stonesFor(p: Product, locale: Locale): StoneSpec[] {
+  const t = pick(COPY, locale)
+  const catalog = catalogFor(locale)
   const out: StoneSpec[] = []
   if (p.gia) {
     out.push({
-      label: `Centre diamond · ${p.gia.shape}`,
-      detail: `${p.gia.carat.toFixed(2)} ct · ${p.gia.color} / ${p.gia.clarity} · GIA ${p.gia.reportNumber}`,
+      label: t.centre(catalog.gia(p.gia.shape)),
+      detail: `${catalog.carat(p.gia)} ct · ${p.gia.color} / ${p.gia.clarity} · GIA ${p.gia.reportNumber}`,
       weight: p.gia.carat * 6,
     })
   }
   for (const [k, v] of Object.entries(p.specs)) {
     const key = k.toLowerCase()
-    if (key === 'pearl') out.push({ label: 'Pearls', detail: v, weight: 3 })
+    const shown = catalog.spec(p, k) ?? v
+    if (key === 'pearl') out.push({ label: t.pearls, detail: shown, weight: 3 })
     if (!/ct/.test(v)) continue
     const ct = parseNum(v)
-    if (key.includes('emerald')) out.push({ label: 'Colombian emerald', detail: v, weight: ct * 3.5 })
-    else if (key.includes('sapphire')) out.push({ label: 'Ceylon sapphires', detail: v, weight: ct * 2.2 })
-    else if (key.includes('total carat')) out.push({ label: 'Diamonds', detail: `${v}${p.specs.Color ? ` · ${p.specs.Color}` : ''}${p.specs.Clarity ? ` / ${p.specs.Clarity}` : ''}`, weight: ct * 2.5 })
-    else if (/diamond|halo|side|bezel/.test(key)) out.push({ label: key.includes('halo') ? 'Hidden halo diamonds' : key.includes('side') ? 'Side stones' : key.includes('bezel') ? 'Bezel diamonds' : 'Accent diamonds', detail: v, weight: ct * 1.8 })
+    if (key.includes('emerald')) out.push({ label: t.emerald, detail: shown, weight: ct * 3.5 })
+    else if (key.includes('sapphire')) out.push({ label: t.sapphires, detail: shown, weight: ct * 2.2 })
+    else if (key.includes('total carat')) out.push({ label: t.diamonds, detail: `${shown}${p.specs.Color ? ` · ${p.specs.Color}` : ''}${p.specs.Clarity ? ` / ${p.specs.Clarity}` : ''}`, weight: ct * 2.5 })
+    else if (/diamond|halo|side|bezel/.test(key)) out.push({ label: key.includes('halo') ? t.halo : key.includes('side') ? t.side : key.includes('bezel') ? t.bezel : t.accents, detail: shown, weight: ct * 1.8 })
   }
   return out
 }
@@ -74,7 +160,11 @@ export interface CostBreakdown {
   labourHours: number
 }
 
-export function buildCostBreakdown(p: Product, currency: Currency, metal?: Metal, personalization?: Personalization): CostBreakdown {
+/** The itemised statement for a piece, worded in `locale` (the one on screen by default). */
+export function buildCostBreakdown(p: Product, currency: Currency, metal?: Metal, personalization?: Personalization, locale: Locale = getLocale()): CostBreakdown {
+  const t = pick(COPY, locale)
+  const catalog = catalogFor(locale)
+  const num = (n: number, digits: number) => formatNumber(n, { minimumFractionDigits: digits, maximumFractionDigits: digits }, locale)
   const fx = currency === 'CAD' ? 1 : CAD_TO_USD
   const m = metal ?? p.metals[0]
   const base = priceFor(p, currency, m)
@@ -85,21 +175,22 @@ export function buildCostBreakdown(p: Product, currency: Currency, metal?: Metal
 
   // Materials: metal
   const weight = p.specs.Weight ? parseNum(p.specs.Weight) : DEFAULT_WEIGHT[cat] ?? 5
-  const mr = METAL_RATE[m]
-  const metalCost = r(weight * mr.rate * fx + (m === 'vermeil' ? 30 * fx : 0))
+  const rate = METAL_RATE[m]
+  const [metalName, purity] = t.metals[m]
+  const metalCost = r(weight * rate * fx + (m === 'vermeil' ? 30 * fx : 0))
   lines.push({
     id: 'metal',
     group: 'materials',
-    label: cat === 'watches' ? `Case & bracelet · ${mr.name}` : mr.name,
-    detail: `${weight.toFixed(1)} g × ${(mr.rate * fx).toFixed(2)}/g · ${mr.purity}${m === 'vermeil' ? ' + plating' : ''}`,
+    label: cat === 'watches' ? t.caseOf(metalName) : metalName,
+    detail: `${num(weight, 1)} g × ${num(rate * fx, 2)}${t.perGram} · ${purity}${m === 'vermeil' ? t.plating : ''}`,
     amount: metalCost,
   })
 
   // Materials: stones or movement
-  const stones = stonesFor(p)
+  const stones = stonesFor(p, locale)
   const stonePool = base * (STONE_SHARE[cat] ?? 0.4)
   if (cat === 'watches') {
-    lines.push({ id: 'movement', group: 'materials', label: 'Swiss movement', detail: p.specs.Movement ?? 'Swiss made', amount: r(stonePool * 0.75) })
+    lines.push({ id: 'movement', group: 'materials', label: t.movement, detail: catalog.spec(p, 'Movement') ?? t.swissMade, amount: r(stonePool * 0.75) })
     if (stones.length) lines.push({ id: 'st0', group: 'materials', label: stones[0].label, detail: stones[0].detail, amount: r(stonePool * 0.25) })
   } else if (stones.length) {
     const total = stones.reduce((s, x) => s + x.weight, 0) || 1
@@ -107,7 +198,7 @@ export function buildCostBreakdown(p: Product, currency: Currency, metal?: Metal
   }
 
   // Findings
-  const findings = /necklace|pendant|chain|collar|rivi/i.test(p.name) ? ['Chain & clasp', 'Solid gold spring ring'] : /earring|stud|drop|huggie/i.test(p.name) ? ['Posts & backs', 'Secure screw or hinged backs'] : /bracelet/i.test(p.name) ? ['Clasp & safety', 'Double box clasp'] : cat === 'watches' ? ['Strap & buckle', p.specs.Strap ?? 'Leather strap'] : null
+  const findings = /necklace|pendant|chain|collar|rivi/i.test(p.name) ? t.chain : /earring|stud|drop|huggie/i.test(p.name) ? t.posts : /bracelet/i.test(p.name) ? t.clasp : cat === 'watches' ? [t.strap[0], catalog.spec(p, 'Strap') ?? t.strap[1]] : null
   if (findings) lines.push({ id: 'findings', group: 'materials', label: findings[0], detail: findings[1], amount: r((cat === 'watches' ? 220 : 45) * fx) })
 
   // Making charges
@@ -116,15 +207,15 @@ export function buildCostBreakdown(p: Product, currency: Currency, metal?: Metal
   const making = base * (MAKING_SHARE[cat] ?? 0.16) * (hasStones || cat === 'watches' ? 1 : 2.2)
   const labour = making * (hasStones ? 0.55 : 0.8)
   const hours = Math.max(2, Math.round(labour / (LABOUR_RATE_CAD * fx)))
-  lines.push({ id: 'labour', group: 'making', label: cat === 'watches' ? 'Regulation & assembly' : 'Bench work · casting & fabrication', detail: `${hours} h × ${r(LABOUR_RATE_CAD * fx)}/h · Montréal atelier`, amount: r(labour) })
-  if (hasStones) lines.push({ id: 'setting', group: 'making', label: 'Stone setting', detail: 'Hand-set under microscope', amount: r(making * 0.3) })
-  lines.push({ id: 'finish', group: 'making', label: 'Polishing & hallmarking', detail: '12-stage finish, maker’s mark', amount: r(making * (hasStones ? 0.15 : 0.2)) })
+  lines.push({ id: 'labour', group: 'making', label: cat === 'watches' ? t.regulation : t.bench, detail: t.hours(hours, r(LABOUR_RATE_CAD * fx)), amount: r(labour) })
+  if (hasStones) lines.push({ id: 'setting', group: 'making', label: t.setting[0], detail: t.setting[1], amount: r(making * 0.3) })
+  lines.push({ id: 'finish', group: 'making', label: t.finish[0], detail: t.finish[1], amount: r(making * (hasStones ? 0.15 : 0.2)) })
 
   // Services
-  if (p.gia) lines.push({ id: 'gia', group: 'services', label: 'GIA grading report', detail: `№ ${p.gia.reportNumber}`, amount: r(165 * fx) })
-  lines.push({ id: 'insure', group: 'services', label: 'Insured shipping & presentation box', detail: currency === 'CAD' ? 'Signature courier, Canada' : 'Signature courier, duties prepaid', amount: r(48 * fx) })
-  if (p.engravable) lines.push({ id: 'engrave', group: 'services', label: 'Engraving', detail: 'Hand or laser, up to 18 characters', amount: 0, included: true })
-  lines.push({ id: 'care', group: 'services', label: 'Lifetime care plan', detail: 'Annual cleaning, claw checks, polish', amount: 0, included: true })
+  if (p.gia) lines.push({ id: 'gia', group: 'services', label: t.gia, detail: t.report(p.gia.reportNumber), amount: r(165 * fx) })
+  lines.push({ id: 'insure', group: 'services', label: t.shipping, detail: t.courier[currency], amount: r(48 * fx) })
+  if (p.engravable) lines.push({ id: 'engrave', group: 'services', label: t.engraving[0], detail: t.engraving[1], amount: 0, included: true })
+  lines.push({ id: 'care', group: 'services', label: t.care[0], detail: t.care[1], amount: 0, included: true })
 
   // Margin = whatever remains, shown openly. Keep it ≥ 12% by easing stone estimates if needed.
   const sum = () => lines.reduce((s, l) => s + l.amount, 0)
@@ -139,10 +230,10 @@ export function buildCostBreakdown(p: Product, currency: Currency, metal?: Metal
     }
     margin = base - sum()
   }
-  lines.push({ id: 'margin', group: 'margin', label: 'Design, showroom & maison margin', detail: 'Design, salon, staff, warranty reserve', amount: margin })
+  lines.push({ id: 'margin', group: 'margin', label: t.margin[0], detail: t.margin[1], amount: margin })
 
   // Options
-  if (accent) lines.push({ id: 'accent', group: 'options', label: p.personalization?.accent?.label ?? 'Option', detail: 'Selected option', amount: accent })
+  if (accent) lines.push({ id: 'accent', group: 'options', label: catalog.personalization(p).accent || t.option, detail: t.selected, amount: accent })
 
   return { lines, price: base + accent, metalWeight: weight, labourHours: hours }
 }
@@ -153,4 +244,5 @@ export function splitTaxes(label: string, amount: number): { name: string; rate:
   return parts.map((t) => ({ ...t, amount: Math.round(amount * t.rate) }))
 }
 
-export const categoryName = (p: Product) => getCategory(p.category)?.name ?? ''
+/** A piece's chapter name, in the visitor's language. */
+export const categoryName = (p: Product) => (getCategory(p.category) ? catalogFor().category(p.category).name : '')

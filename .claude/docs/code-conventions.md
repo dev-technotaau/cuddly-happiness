@@ -92,7 +92,7 @@ export default function WishButton({ slug, className = '', size = 'sm' }: { slug
 
 ## 10. Not present (on purpose)
 
-There is no router library (hash routing lives in the store), no state library, no `clsx`, no test runner, and no ESLint or Prettier config. There is also no i18n library: French is inline copy. The `@/` alias is not used. Dependencies are only `react`, `react-dom`, `gsap`, `lenis` and `lucide-react`.
+There is no router library (hash routing lives in the store), no state library, no `clsx`, no test runner, and no ESLint or Prettier config. There is also no i18n library: copy is bilingual through the in-house `src/i18n` (`bilingual()`, `useCopy()`, `useCatalog()`; see `features/languages.md`). The `@/` alias is not used. Dependencies are only `react`, `react-dom`, `gsap`, `lenis` and `lucide-react`.
 
 ## 11. AGENTS.md rules and compliance
 

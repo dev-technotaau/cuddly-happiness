@@ -14,7 +14,9 @@ Background: `.claude/docs/pages/home.md` (section order), `.claude/docs/pages/pr
 2. Open with the section header:
 
    ```tsx
-   <SectionHeader index="07" eyebrow="The atelier" title={<>Made <em className="text-[var(--gold-vermeil)]">by hand</em></>} aside={<a href={href.atelier} className="link-line">Visit</a>} />
+   const COPY = bilingual({ eyebrow: 'The atelier', title: 'Made <em>by hand</em>', visit: 'Visit' }, { eyebrow: 'L’atelier', title: 'Fait <em>à la main</em>', visit: 'Visiter' })
+   // in the component: const t = useCopy(COPY)
+   <SectionHeader index="07" eyebrow={t.eyebrow} title={rich(t.title, 'text-[var(--gold-vermeil)]')} aside={<a href={href.atelier} className="link-line">{t.visit}</a>} />
    ```
 
    Keep the index numbers sequential with the neighbouring sections in `src/pages/Home.tsx`.
@@ -41,6 +43,6 @@ Category copy itself belongs in `CATEGORIES` (`src/data/catalog.ts`), not in the
 ## Always
 
 - **Visual rules:** tokens only, square corners, hairline borders, lucide icons with `strokeWidth={1.3}`, and an italic gold accent word in serif headlines.
-- **Links** come from `href.*`. **Money** goes through `<Price />`. **Copy** follows skill `write-brand-copy`.
+- **Links** come from `href.*`. **Money** goes through `<Price />`. **Copy** follows skill `write-brand-copy`, in both languages (`bilingual()` + `useCopy()`); catalog text through `useCatalog()`.
 - **Verify:** skill `verify-changes` at 375 px and 1440 px. Optionally have the `design-reviewer` agent review the diff.
 - **Docs:** skill `update-knowledge-base` (the section order in `pages/home.md` or the section table in `pages/product.md`).

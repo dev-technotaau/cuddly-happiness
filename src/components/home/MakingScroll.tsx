@@ -2,18 +2,43 @@ import { useLayoutEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { IMG } from '../../data/catalog'
+import { bilingual, useCopy } from '../../i18n'
+import { rich } from '../../i18n/rich'
 
 gsap.registerPlugin(ScrollTrigger)
 
-const STEPS = [
-  { n: '01', t: 'The sketch', d: 'Every piece begins in graphite at Teresa’s original drafting table.', img: IMG.ring2 },
-  { n: '02', t: 'The stone', d: 'Hand-selected GIA diamonds and ethically sourced coloured gems.', img: IMG.ring1 },
-  { n: '03', t: 'The casting', d: 'Recycled 18k gold and platinum, alloyed and cast in Montreal.', img: IMG.rings },
-  { n: '04', t: 'The setting', d: 'Each claw raised and tightened under the microscope by Marco.', img: IMG.bridal1 },
-  { n: '05', t: 'The polish', d: 'Twelve stages of hand-finishing, then hallmarked and boxed.', img: IMG.necklace1 },
-]
+const IMAGES = [IMG.ring2, IMG.ring1, IMG.rings, IMG.bridal1, IMG.necklace1]
+
+const COPY = bilingual(
+  {
+    steps: [
+      ['The sketch', 'Every piece begins in graphite at Teresa’s original drafting table.'],
+      ['The stone', 'Hand-selected GIA diamonds and ethically sourced coloured gems.'],
+      ['The casting', 'Recycled 18k gold and platinum, alloyed and cast in Montreal.'],
+      ['The setting', 'Each claw raised and tightened under the microscope by Marco.'],
+      ['The polish', 'Twelve stages of hand-finishing, then hallmarked and boxed.'],
+    ] as [string, string][],
+    eyebrow: '06 · The making',
+    title: 'From <em>bench</em> to heirloom',
+    stages: 'Five stages · 40+ hours',
+  },
+  {
+    steps: [
+      ['Le croquis', 'Chaque pièce naît au crayon, sur la table à dessin d’origine de Teresa.'],
+      ['La pierre', 'Des diamants GIA choisis à la main et des pierres de couleur d’origine éthique.'],
+      ['La fonte', 'De l’or 18 carats et du platine recyclés, alliés et coulés à Montréal.'],
+      ['Le sertissage', 'Chaque griffe relevée et resserrée sous le microscope par Marco.'],
+      ['Le polissage', 'Douze étapes de finition à la main, puis le poinçon et l’écrin.'],
+    ],
+    eyebrow: '06 · La fabrication',
+    title: 'De l’<em>établi</em> à l’héritage',
+    stages: 'Cinq étapes · plus de 40 heures',
+  },
+)
 
 export default function MakingScroll() {
+  const copy = useCopy(COPY)
+  const STEPS = copy.steps.map(([t, d], i) => ({ n: `0${i + 1}`, t, d, img: IMAGES[i] }))
   const root = useRef<HTMLElement>(null)
   const track = useRef<HTMLDivElement>(null)
 
@@ -45,14 +70,14 @@ export default function MakingScroll() {
       <div className="mx-auto max-w-[1600px] px-6 pt-24 lg:absolute lg:inset-x-0 lg:top-0 lg:px-12 lg:pt-16">
         <div className="flex items-end justify-between gap-8">
           <h2 className="font-serif-editorial text-5xl font-light leading-none tracking-[-0.02em] lg:text-7xl">
-            <span className="font-spec mb-5 block text-[10px] font-normal uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">06 · The making</span>
-            From <em className="text-[var(--gold-vermeil)]">bench</em> to heirloom
+            <span className="font-spec mb-5 block text-[10px] font-normal uppercase tracking-[0.3em] text-[var(--gold-vermeil)]">{copy.eyebrow}</span>
+            {rich(copy.title, 'text-[var(--gold-vermeil)]')}
           </h2>
           <div className="hidden w-48 lg:block">
             <div className="h-px bg-[var(--border-hairline)]">
               <div data-making-progress className="h-px origin-left scale-x-0 bg-[var(--gold-vermeil)]" />
             </div>
-            <p className="font-spec mt-2 text-[10px] uppercase tracking-[0.24em] text-[var(--text-taupe)]">Five stages · 40+ hours</p>
+            <p className="font-spec mt-2 text-[10px] uppercase tracking-[0.24em] text-[var(--text-taupe)]">{copy.stages}</p>
           </div>
         </div>
       </div>
