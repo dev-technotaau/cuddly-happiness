@@ -161,7 +161,7 @@ export default function PriceBreakdown({ product, index, metal, personalization,
 
   const totals = GROUPS.map((g) => ({ ...g, amount: lines.filter((l) => l.group === g.id).reduce((s, l) => s + l.amount, 0) })).filter((g) => g.amount > 0)
   const isCA = currency === 'CAD'
-  const taxes = isCA ? splitTaxes(PROVINCES[province].label, price) : []
+  const taxes = isCA ? splitTaxes(PROVINCES[province], price) : []
   const taxTotal = taxes.reduce((s, t) => s + t.amount, 0)
   const deposit = product.rental?.deposit[currency] ?? 0
   const grand = price + taxTotal

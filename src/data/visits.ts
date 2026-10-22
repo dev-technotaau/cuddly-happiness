@@ -17,6 +17,8 @@ export interface VisitPiece {
   metal?: Metal
   size?: string
   rent?: boolean
+  /** A ring designed in the designer (its code): the salon prepares the design, not the catalog piece. */
+  design?: string
 }
 
 export interface Visit {

@@ -435,6 +435,9 @@ export const FAMILIES: Record<string, ProductType[]> = {
 }
 export const typesOf = (family: string): ProductType[] => FAMILIES[family] ?? [family as ProductType]
 
+/** The family a type belongs to in the filters (a tennis necklace, a rivière and a collar are all "tennis"). */
+export const familyOf = (type: ProductType) => Object.keys(FAMILIES).find((f) => FAMILIES[f].includes(type)) ?? type
+
 /** The house's two signatures, the pieces most clients come for: each has its own page within its chapter. */
 export const SIGNATURES = [
   { id: 'engagement', category: 'bridal', family: 'engagement' },

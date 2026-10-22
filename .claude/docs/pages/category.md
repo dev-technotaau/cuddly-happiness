@@ -107,6 +107,8 @@ Per-category data, verbatim from `CATEGORIES`:
 | `gifts` | Gifts | Cadeaux | VIII | Thoughtful pieces, wrapped in our signature travertine box. | `IMG.gift1` | gift card | 0 |
 | `custom` | Personalized & Custom | Sur mesure | IX | From sketch to setting — bespoke commissions and engraved heirlooms. | `IMG.ring2` | none | 0 |
 
+(2026-10-22) The Custom chapter's hero ends with “Design your ring” (`btnOnDark`, → `href.designer()`) and “Book a design consultation” (`VisitButton tone="dark"`, purpose `design`); the engagement signature's “Design your own” link opens the ring designer instead of this chapter. See [../features/ring-designer.md](../features/ring-designer.md).
+
 `Boucles d'oreilles` uses an ASCII apostrophe in the source.
 
 ---

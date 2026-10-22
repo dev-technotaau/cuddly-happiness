@@ -15,11 +15,12 @@ This repo is the **UI / UX / visual design prototype** of a Shopify theme that t
 - **"Shopify-compatible" means shaped, not integrated.** Use Shopify-like data shapes and names (line-item properties, cart attributes, gift-card fields) so the real theme can map them later. Never connect to a store.
 - **Unsure whether something crosses into backend or integration?** Ask before building it.
 
-This repo is a Shopify-store **theme design prototype** for Teresa & Sons, a Montréal fine-jewellery house founded in 1962. It is built as a React 19 + TypeScript SPA (Vite 8, Tailwind CSS v4, GSAP, Lenis, lucide-react), scaffolded and hosted by **Figma Make**.
+This repo is a Shopify-store **theme design prototype** for Teresa & Sons, a Montréal fine-jewellery house founded in 1962. It is built as a React 19 + TypeScript SPA (Vite 8, Tailwind CSS v4, GSAP, Lenis, lucide-react; three.js and three-mesh-bvh for the ring designer and its 3D try-on, MediaPipe for the try-on's hand tracking), scaffolded and hosted by **Figma Make**.
 
 - There is no backend. The catalog lives in `src/data/`.
 - All app state lives in one React Context, `src/store.tsx`, persisted to localStorage under `tns-*` keys.
-- Routing is hash-based (`#/shop`, `#/c/:slug`, `#/p/:slug`, `#/cart`, `#/checkout`, `#/gift-cards`, `#/wishlist`, `#/account`, `#/atelier`); chapter, shop and piece pages keep their options in a query (`?type=engagement`, `?mode=rent`).
+- Routing is hash-based (`#/shop`, `#/c/:slug`, `#/p/:slug`, `#/cart`, `#/checkout`, `#/gift-cards`, `#/wishlist`, `#/account`, `#/atelier`, `#/designer`); chapter, shop, piece and designer pages keep their options in a query (`?type=engagement`, `?mode=rent`, `?r=<design code>`).
+- The ring designer (`#/designer`, 2026-10-22) builds a ring in real-time 3D as it is designed; see `.claude/docs/features/ring-designer.md`.
 - Private visits (booking drawer, `tns-visits`) and "Ask a jeweller" are simulated; see `.claude/docs/features/legacy-redesign.md`.
 - Auth, payment, availability, reviews and gift-card balances are simulated.
 
@@ -38,7 +39,7 @@ This repo is a Shopify-store **theme design prototype** for Teresa & Sons, a Mon
 | Task | Command | Notes |
 |---|---|---|
 | Typecheck | `npx tsc --noEmit -p .` | Baseline is 0 errors. `pnpm run build` does **not** typecheck. |
-| Build | `pnpm run build` | Initial JS baseline: about 900 kB (279 kB gzip): the entry chunk (694 kB), a shared vendor chunk (150 kB) and a chunk shared with the lazy menu (59 kB). Both languages ship in it. The lazy chunks, SiteMenu (33 kB), TryOnStudio (26 kB) and ShareSheet (24 kB), load on demand. Measured 2026-10-21, after the legacy redesign and phone search. |
+| Build | `pnpm run build` | Initial JS baseline: about 976 kB (305 kB gzip) across the entry chunk (714 kB) and the shared chunks it loads (icons 81 kB, gsap 70 kB, salon 89 kB, ring data 13 kB, the JSX runtime 8 kB). Both languages ship in it. Lazy chunks load on demand: the ring designer page (114 kB); three.js in a shared `ringModel` chunk (641 kB, 168 kB gzip) used by the designer's 3D engine `stage` (78 kB) and the 3D try-on `RingTryOn` (164 kB, 49 kB gzip, with MediaPipe's script; its engine and model load at runtime from jsDelivr and Google); TryOnStudio (37 kB), SiteMenu (34 kB), ShareSheet (24 kB). Measured 2026-10-22, after the try-on's reviews. |
 | Dev server | `pnpm dev`, then open `http://localhost:8443/#/` | Figma Make already runs it on `$PORT` (8443). Locally you start it yourself. `strictPort` is on; set `PORT` to change the port. |
 
 No tests and no linter exist.
@@ -66,13 +67,16 @@ No tests and no linter exist.
 
 ```
 index.html → src/main.tsx → src/App.tsx   StoreProvider ▸ TryOnProvider ▸ SmoothScroll ▸ Splash / Header / <Pages/> (PageTransition ▸ Routes) / Footer / CartDrawer / BackToTop / film-grain
-src/store.tsx      Route union, parseHash/splitHash/bareHash, href (language prefix), cart (lineKey, linePrice), meta, wishlist, recent, account, currency, lang
+src/store.tsx      Route union, parseHash/splitHash/bareHash, href (language prefix), cart (lineKey, linePrice), meta, wishlist, recent, searches, designs + draft, account, currency, lang
 src/i18n/          bilingual/useCopy/pick, locales and formatters · us (US spelling) · rich (<em> accents) · catalog (useCatalog) · common
 src/data/          catalog (products, types, rent or own, card prices, signatures, metals, rentals, personalization, tryOnKind) · catalog.fr · house (signatures, generations, policies) · visits · giftcards · media · costing · tax · salon
-src/pages/         Home · Shop · Category · Product · Cart · Checkout · GiftCards · Wishlist · Account · Atelier
+                   ring (the designer's model, layout, code) · ringCopy · ringPrice (cost-plus statement) · ringAdvice (notes, budget)
+src/pages/         Home · Shop · Category · Product · Cart · Checkout · GiftCards · Wishlist · Account · Atelier · Designer (lazy)
 src/components/    Header Footer CartDrawer ProductCard Price WishButton RecentlyViewed SmoothScroll useReveal lineDetails
                    home/ pdp/ cart/ tryon/ video/ giftcard/ share/ menu/ splash/ transition/ (LanguageVeil) brand/ (Ampersand, Hallmark) locale/
                    visit/ (VisitDrawer, VisitFlow, VisitButton, VisitBand, NextTimes) contact/ (AskSheet) catalog/ (PieceGrid, Interlude) ui.ts (button recipes)
+                   designer/ (RingViewer, Glyph, LivePrice, RingBreakdown, DesignNotes, CaratField, BudgetFinder, DesignSpec; three/: stage, tryOnStage, lighting, setups, ringModel, parts, gems, materials)
+                   tryon/ (TryOnProvider, TryOnStudio, JewelryOverlay; the live 3D try-on: RingTryOn, fingerPose, handTracker)
 src/lib/shopify.ts Shopify Ajax-cart payload for gift-card lines (placeholder variant IDs)
 src/lib/stage.ts   stage cover that holds entrances under the splash and page transitions; intro mode
 src/index.css      Google Fonts, :root tokens, global utilities, keyframes

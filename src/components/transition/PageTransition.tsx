@@ -29,6 +29,7 @@ const CARDS = bilingual(
     chapters: 'The <em>Chapters</em>',
     vault: 'The <em>Vault</em>',
     atelier: ['L’Atelier', 'The <em>Atelier</em>'] as Pair,
+    designer: ['Sur mesure', 'Your <em>ring</em>'] as Pair,
     giftcards: ['Carte-cadeau', 'Gift <em>Cards</em>'] as Pair,
     wishlist: ['Liste de souhaits', 'Your <em>Wishlist</em>'] as Pair,
     account: ['Mon compte', 'Your <em>Account</em>'] as Pair,
@@ -36,6 +37,7 @@ const CARDS = bilingual(
     checkout: ['Teresa & Sons', '<em>Checkout</em>'] as Pair,
     home: ['Montréal · Est. 1962', 'Teresa <em>&</em> Sons'] as Pair,
     shop: ['Nine chapters', 'Every <em>piece</em>'] as Pair,
+    search: (q: string): Pair => ['Search', `“<em>${q}</em>”`],
     signature: (numeral: string) => `Signature ${numeral}`,
   },
   {
@@ -43,6 +45,7 @@ const CARDS = bilingual(
     chapters: 'Les <em>chapitres</em>',
     vault: 'Le <em>coffre</em>',
     atelier: ['Montréal · Depuis 1962', 'L’<em>Atelier</em>'],
+    designer: ['Créée avec vous', 'Votre <em>bague</em>'],
     giftcards: ['Le plaisir de choisir', 'Cartes-<em>cadeaux</em>'],
     wishlist: ['Vos coups de cœur', 'Liste de <em>souhaits</em>'],
     account: ['Espace client', 'Votre <em>compte</em>'],
@@ -50,6 +53,7 @@ const CARDS = bilingual(
     checkout: ['Teresa & Sons', '<em>Paiement</em>'],
     home: ['Montréal · Depuis 1962', 'Teresa <em>&</em> Sons'],
     shop: ['Neuf chapitres', 'Toutes les <em>pièces</em>'],
+    search: (q) => ['Recherche', `« <em>${q}</em> »`],
     signature: (numeral) => `Signature ${numeral}`,
   },
 )
@@ -74,7 +78,8 @@ function labelFor(route: Route): Label {
       const copy = catalog.category(c)
       return { eyebrow: t.chapter(c.eyebrow, copy.accent), title: copy.name, accent: last(copy.name), numeral: c.eyebrow }
     }
-    case 'shop': return card(...t.shop)
+    // A search names the search (the header's "See all").
+    case 'shop': return card(...(route.query.q ? t.search(plain(route.query.q)) : t.shop))
     case 'product': {
       const p = getProduct(route.slug)
       if (!p) return card('Teresa & Sons', t.vault)
@@ -82,6 +87,7 @@ function labelFor(route: Route): Label {
       return { eyebrow: `${copy.collection} · ${catalog.category(p.category).name}`, title: copy.name, accent: last(copy.name) }
     }
     case 'atelier': return card(...t.atelier)
+    case 'designer': return card(...t.designer)
     case 'giftcards': return card(...t.giftcards)
     case 'wishlist': return card(...t.wishlist)
     case 'account': return card(...t.account)

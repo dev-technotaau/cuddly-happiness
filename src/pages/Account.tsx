@@ -1,6 +1,9 @@
 import { useState } from 'react'
-import { CalendarHeart, Heart, LogOut, Package, Ruler, Sparkles, X } from 'lucide-react'
+import { CalendarHeart, Gem, Heart, LogOut, Package, Ruler, Sparkles, X } from 'lucide-react'
 import { IMG, formatDay, getProduct, parseIso, type Product } from '../data/catalog'
+import { decodeDesign } from '../data/ring'
+import { describeDesign } from '../data/ringCopy'
+import { ringPrice } from '../data/ringPrice'
 import { VISIT_COPY, formatTime, instantOf, upcoming } from '../data/visits'
 import { bilingual, useCopy } from '../i18n'
 import { useCatalog } from '../i18n/catalog'
@@ -14,6 +17,7 @@ import { loadLedger, maskCode } from '../data/giftcards'
 import { formatPrice } from '../data/catalog'
 import { RING_SIZES, sizeLabel } from '../components/pdp/RingSize'
 import VisitButton from '../components/visit/VisitButton'
+import Price from '../components/Price'
 
 const field = 'mt-2 w-full border-b border-[var(--border-hairline)] bg-transparent py-2 outline-none focus:border-[var(--gold-vermeil)]'
 const label = 'text-[11px] uppercase tracking-[0.22em]'
@@ -68,6 +72,9 @@ const COPY = bilingual(
     care: 'Care',
     careText: 'Your annual cleaning and claw check are complimentary, for every piece, whatever its age.',
     careCta: 'Book a visit',
+    designs: 'Your designs',
+    designAnother: 'Design another ring',
+    forgetDesign: (title: string) => `Remove ${title}`,
   },
   {
     welcome: 'Bienvenue dans la <em>famille</em>.',
@@ -118,11 +125,14 @@ const COPY = bilingual(
     care: 'Entretien',
     careText: 'Le nettoyage annuel et la vérification des griffes sont offerts, pour chaque pièce, quel que soit son âge.',
     careCta: 'Prendre rendez-vous',
+    designs: 'Vos créations',
+    designAnother: 'Créer une autre bague',
+    forgetDesign: (title) => `Retirer ${title}`,
   },
 )
 
 export default function Account() {
-  const { user, signIn, signOut, wishlist, currency, setCurrency, visits, cancelVisit, openVisit, profile, setProfile } = useStore()
+  const { user, signIn, signOut, wishlist, currency, setCurrency, visits, cancelVisit, openVisit, profile, setProfile, designs, forgetDesign } = useStore()
   const catalog = useCatalog()
   const v = useCopy(VISIT_COPY)
   const [dateLabel, setDateLabel] = useState('')
@@ -251,6 +261,37 @@ export default function Account() {
           </div>
         )}
       </div>
+
+      {/* Rings designed here and kept: reopen one in the designer, or forget it */}
+      {designs.length > 0 && (
+        <div className="mt-12 border border-[var(--border-hairline)] p-8">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <p className="flex items-center gap-3 text-[11px] uppercase tracking-[0.22em]"><Gem size={16} strokeWidth={1.3} className="text-[var(--gold-vermeil)]" /> {t.designs}</p>
+            <a href={href.designer()} className="link-line">{t.designAnother}</a>
+          </div>
+          <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            {designs.map((s) => {
+              const d = decodeDesign(s.code)
+              if (!d) return null
+              const { title } = describeDesign(d)
+              return (
+                <li key={s.code} className="flex flex-col border border-[var(--border-hairline)]">
+                  <a href={href.designer({ r: s.code })} className="group block aspect-[4/5] overflow-hidden bg-[var(--bg-silk)]">
+                    {s.image && <img src={s.image} alt="" className="editorial-zoom h-full w-full object-cover" />}
+                  </a>
+                  <div className="flex items-start justify-between gap-3 p-4">
+                    <span className="min-w-0">
+                      <a href={href.designer({ r: s.code })} className="font-serif-editorial block text-lg leading-tight transition-colors hover:text-[var(--gold-vermeil)]">{title}</a>
+                      <Price amount={ringPrice(d, currency)} className="mt-1 block text-xs" />
+                    </span>
+                    <button type="button" onClick={() => forgetDesign(s.code)} aria-label={t.forgetDesign(title)} className="-mr-1 shrink-0 p-1 text-[var(--text-taupe)] transition-colors hover:text-[var(--text-espresso)]"><X size={14} strokeWidth={1.4} /></button>
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      )}
 
       {/* What the house remembers: a ring size, the dates that matter, the yearly care */}
       <div className="mt-12 grid gap-px border border-[var(--border-hairline)] bg-[var(--border-hairline)] lg:grid-cols-3">

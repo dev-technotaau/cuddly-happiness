@@ -2,6 +2,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { flushSync } from 'react-dom'
 import { convert, type GiftCardLine } from './data/giftcards'
 import { getProduct, personalizationPrice, priceFor, type Currency, type Metal, type Personalization, type RentalBooking } from './data/catalog'
+import { RING_SIZE_VALUES, decodeDesign, isDesignCode } from './data/ring'
+import { ringPrice } from './data/ringPrice'
 import type { Visit, VisitRequest } from './data/visits'
 import { browserLang, localeFor, LocaleContext, runSwitch, setActiveLocale, type Lang, type LocaleValue } from './i18n'
 
@@ -14,6 +16,7 @@ export type Route =
   | { name: 'category'; slug: string; query: Query }
   | { name: 'product'; slug: string; query: Query }
   | { name: 'atelier' }
+  | { name: 'designer'; query: Query }
   | { name: 'checkout' }
   | { name: 'wishlist' }
   | { name: 'account' }
@@ -30,6 +33,8 @@ export interface CartLine {
   booking?: RentalBooking
   personalization?: Personalization
   giftCard?: GiftCardLine
+  /** A ring designed in the designer: its code (see `encodeDesign`). It rides on the commission piece and is priced from the design. */
+  design?: string
   qty: number
 }
 
@@ -68,6 +73,7 @@ export function parseHash(hash = window.location.hash): Route {
   if (parts[0] === 'gift-cards' || (parts[0] === 'p' && parts[1] === 'gift-card')) return { name: 'giftcards' }
   if (parts[0] === 'p' && parts[1]) return { name: 'product', slug: parts[1], query }
   if (parts[0] === 'atelier') return { name: 'atelier' }
+  if (parts[0] === 'designer') return { name: 'designer', query }
   if (parts[0] === 'checkout') return { name: 'checkout' }
   if (parts[0] === 'cart') return { name: 'cart' }
   if (parts[0] === 'wishlist') return { name: 'wishlist' }
@@ -85,6 +91,8 @@ export const href = {
   /** A piece's page; `rent` opens it on renting. */
   product: (slug: string, rent = false) => at(`/p/${slug}${rent ? '?mode=rent' : ''}`),
   get atelier() { return at('/atelier') },
+  /** The ring designer; `r` opens a design (its code), `step` a step. */
+  designer: (query?: Query) => at(`/designer${queryString(query)}`),
   get checkout() { return at('/checkout') },
   get cart() { return at('/cart') },
   get wishlist() { return at('/wishlist') },
@@ -112,6 +120,16 @@ export interface Profile {
 }
 
 const NO_PROFILE: Profile = { dates: [] }
+
+/** A ring designed and kept on this device: its code, a small picture of it, and when it was kept. */
+export interface SavedDesign {
+  code: string
+  /** A JPEG data URL, about 360 × 450. */
+  image: string
+  saved: string
+}
+
+const DESIGNS_KEPT = 12
 
 function load<T>(key: string, fallback: T): T {
   try {
@@ -185,9 +203,10 @@ export interface CartMeta {
 
 const DEFAULT_META: CartMeta = { giftWrap: false, giftReceipt: false, giftMessage: '', note: '' }
 
-/** Identity of a configured piece; identical configurations stack in one line. */
+/** Identity of a configured piece; identical configurations stack in one line. A design joins the key only when there
+ *  is one, so every other line keeps the key it was stored with. */
 export const lineKey = (line: Omit<CartLine, 'key' | 'qty'>) =>
-  [line.slug, line.metal, line.rental, line.engraving, line.size, JSON.stringify(line.booking ?? ''), JSON.stringify(line.personalization ?? ''), JSON.stringify(line.giftCard ?? '')].join('|')
+  [line.slug, line.metal, line.rental, line.engraving, line.size, JSON.stringify(line.booking ?? ''), JSON.stringify(line.personalization ?? ''), JSON.stringify(line.giftCard ?? ''), ...(line.design ? [line.design] : [])].join('|')
 
 interface StoreValue {
   route: Route
@@ -218,6 +237,10 @@ interface StoreValue {
   recent: string[]
   recordView: (slug: string) => void
   clearRecent: () => void
+  /** What the visitor searched for on this device, most recent first (the header search lists them). */
+  searches: string[]
+  rememberSearch: (query: string) => void
+  forgetSearches: () => void
   signIn: (user: Account) => void
   signOut: () => void
   linePrice: (line: CartLine) => number
@@ -236,13 +259,22 @@ interface StoreValue {
   closeVisit: () => void
   /** The "Ask a jeweller" panel: the pieces it is about while it is open, else null. */
   askAbout: string[] | null
-  openAsk: (slugs?: string[]) => void
+  /** The rings from the designer it is about (their codes), with the pieces. */
+  askDesigns: string[]
+  openAsk: (slugs?: string[], designs?: string[]) => void
   closeAsk: () => void
   profile: Profile
   setProfile: (patch: Partial<Profile>) => void
   /** When the visit suggestion was last shown or dismissed (ms since 1970), so it returns at most once a week. */
   nudgeAt: number
   dismissNudge: () => void
+  /** Rings designed and kept on this device, newest first. */
+  designs: SavedDesign[]
+  saveDesign: (design: SavedDesign) => void
+  forgetDesign: (code: string) => void
+  /** The ring being designed, so the designer opens where it was left. */
+  designDraft: string | null
+  setDesignDraft: (code: string | null) => void
 }
 
 const StoreContext = createContext<StoreValue | null>(null)
@@ -256,7 +288,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const live = useRef({ lang: START.lang, currency: START_CURRENCY })
   const [cart, setCart] = useState<CartLine[]>(() => {
     try {
-      return JSON.parse(localStorage.getItem('tns-cart') || '[]')
+      const v: unknown = JSON.parse(localStorage.getItem('tns-cart') || '[]')
+      return Array.isArray(v) ? v.filter((l): l is CartLine => !!l && typeof l.key === 'string' && typeof l.slug === 'string' && (l.design === undefined || isDesignCode(l.design))) : []
     } catch {
       return []
     }
@@ -272,6 +305,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => localStorage.setItem('tns-recent', JSON.stringify(recent)), [recent])
   const recordView = useCallback((slug: string) => setRecent((r) => (r[0] === slug ? r : [slug, ...r.filter((s) => s !== slug)].slice(0, 12))), [])
   const clearRecent = useCallback(() => setRecent([]), [])
+  // Searches the visitor carried through (a result opened, or Enter), most recent first, five kept, no repeats.
+  const [searches, setSearches] = useState<string[]>(() => {
+    const v = load<unknown>('tns-searches', [])
+    return Array.isArray(v) ? v.filter((s): s is string => typeof s === 'string' && !!s.trim()).slice(0, 5) : []
+  })
+  useEffect(() => localStorage.setItem('tns-searches', JSON.stringify(searches)), [searches])
+  const rememberSearch = useCallback((query: string) => {
+    const q = query.trim().replace(/\s+/g, ' ').slice(0, 80)
+    if (q.length < 2) return
+    setSearches((list) => [q, ...list.filter((s) => s.toLowerCase() !== q.toLowerCase())].slice(0, 5))
+  }, [])
+  const forgetSearches = useCallback(() => setSearches([]), [])
   useEffect(() => {
     if (user) localStorage.setItem('tns-account', JSON.stringify(user))
     else localStorage.removeItem('tns-account')
@@ -365,6 +410,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     (line: CartLine) => {
       const product = getProduct(line.slug)
       if (line.giftCard) return convert(line.giftCard.amount, line.giftCard.currency, currency) * line.qty
+      if (line.design) {
+        const design = decodeDesign(line.design)
+        return design ? ringPrice(design, currency) * line.qty : 0
+      }
       if (!product) return 0
       if (line.rental && product.rental) return product.rental[line.rental][currency] * line.qty
       return (priceFor(product, currency, line.metal) + personalizationPrice(product, line.personalization, currency)) * line.qty
@@ -391,22 +440,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   // The booking and "Ask a jeweller" panels take turns, and either one replaces the bag drawer.
   const [visitRequest, setVisitRequest] = useState<VisitRequest | null>(null)
   const [askAbout, setAskAbout] = useState<string[] | null>(null)
+  const [askDesigns, setAskDesigns] = useState<string[]>([])
   const openVisit = useCallback((request: VisitRequest = {}) => {
     setCartOpen(false)
     setAskAbout(null)
     setVisitRequest(request)
   }, [])
   const closeVisit = useCallback(() => setVisitRequest(null), [])
-  const openAsk = useCallback((slugs: string[] = []) => {
+  const openAsk = useCallback((slugs: string[] = [], designs: string[] = []) => {
     setCartOpen(false)
     setVisitRequest(null)
+    setAskDesigns(designs)
     setAskAbout(slugs)
   }, [])
   const closeAsk = useCallback(() => setAskAbout(null), [])
 
   const [profile, setProfileState] = useState<Profile>(() => {
     const p = load<Partial<Profile>>('tns-profile', NO_PROFILE)
-    return { ringSize: typeof p.ringSize === 'string' ? p.ringSize : undefined, dates: Array.isArray(p.dates) ? p.dates : [] }
+    return { ringSize: typeof p.ringSize === 'string' && RING_SIZE_VALUES.includes(p.ringSize) ? p.ringSize : undefined, dates: Array.isArray(p.dates) ? p.dates : [] }
   })
   useEffect(() => localStorage.setItem('tns-profile', JSON.stringify(profile)), [profile])
   const setProfile = useCallback((patch: Partial<Profile>) => setProfileState((p) => ({ ...p, ...patch })), [])
@@ -418,11 +469,37 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => localStorage.setItem('tns-nudge', JSON.stringify(nudgeAt)), [nudgeAt])
   const dismissNudge = useCallback(() => setNudgeAt(Date.now()), [])
 
+  // Designed rings, checked as they are read. Their pictures are the heaviest thing kept, so if storage is full the
+  // list is kept without them rather than lost.
+  const [designs, setDesigns] = useState<SavedDesign[]>(() => {
+    const v = load<unknown>('tns-designs', [])
+    return Array.isArray(v) ? v.filter((x): x is SavedDesign => !!x && isDesignCode(x.code) && typeof x.image === 'string' && typeof x.saved === 'string').slice(0, DESIGNS_KEPT) : []
+  })
+  useEffect(() => {
+    try {
+      localStorage.setItem('tns-designs', JSON.stringify(designs))
+    } catch {
+      try {
+        localStorage.setItem('tns-designs', JSON.stringify(designs.map((x) => ({ ...x, image: '' }))))
+      } catch {
+        // Storage is full or blocked: the designs stay for this visit only.
+      }
+    }
+  }, [designs])
+  const saveDesign = useCallback((design: SavedDesign) => setDesigns((list) => [design, ...list.filter((x) => x.code !== design.code)].slice(0, DESIGNS_KEPT)), [])
+  const forgetDesign = useCallback((code: string) => setDesigns((list) => list.filter((x) => x.code !== code)), [])
+  const [designDraft, setDraft] = useState<string | null>(() => {
+    const v = load<unknown>('tns-design-draft', null)
+    return isDesignCode(v) ? v : null
+  })
+  useEffect(() => localStorage.setItem('tns-design-draft', JSON.stringify(designDraft)), [designDraft])
+  const setDesignDraft = useCallback((code: string | null) => setDraft(code), [])
+
   const value = useMemo<StoreValue>(() => {
     const subtotal = cart.reduce((s, l) => s + linePrice(l), 0)
     const count = cart.reduce((s, l) => s + l.qty, 0)
-    return { route, currency, setCurrency, lang, setLang, langOrigin: START.origin, langHintSeen, dismissLangHint, cart, cartOpen, setCartOpen, addToCart, updateQty, clearCart, removeLine, undoRemove, lastRemoved: lastRemoved?.line ?? null, meta, setMeta, linePrice, subtotal, count, wishlist, toggleWishlist, isWished, user, signIn, signOut, recent, recordView, clearRecent, replaceQuery, visits, bookVisit, cancelVisit, visitRequest, openVisit, closeVisit, askAbout, openAsk, closeAsk, profile, setProfile, nudgeAt, dismissNudge }
-  }, [route, currency, setCurrency, lang, setLang, langHintSeen, dismissLangHint, cart, cartOpen, addToCart, updateQty, clearCart, removeLine, undoRemove, lastRemoved, meta, setMeta, linePrice, wishlist, toggleWishlist, isWished, user, signIn, signOut, recent, recordView, clearRecent, replaceQuery, visits, bookVisit, cancelVisit, visitRequest, openVisit, closeVisit, askAbout, openAsk, closeAsk, profile, setProfile, nudgeAt, dismissNudge])
+    return { route, currency, setCurrency, lang, setLang, langOrigin: START.origin, langHintSeen, dismissLangHint, cart, cartOpen, setCartOpen, addToCart, updateQty, clearCart, removeLine, undoRemove, lastRemoved: lastRemoved?.line ?? null, meta, setMeta, linePrice, subtotal, count, wishlist, toggleWishlist, isWished, user, signIn, signOut, recent, recordView, clearRecent, searches, rememberSearch, forgetSearches, replaceQuery, visits, bookVisit, cancelVisit, visitRequest, openVisit, closeVisit, askAbout, askDesigns, openAsk, closeAsk, profile, setProfile, nudgeAt, dismissNudge, designs, saveDesign, forgetDesign, designDraft, setDesignDraft }
+  }, [route, currency, setCurrency, lang, setLang, langHintSeen, dismissLangHint, cart, cartOpen, addToCart, updateQty, clearCart, removeLine, undoRemove, lastRemoved, meta, setMeta, linePrice, wishlist, toggleWishlist, isWished, user, signIn, signOut, recent, recordView, clearRecent, searches, rememberSearch, forgetSearches, replaceQuery, visits, bookVisit, cancelVisit, visitRequest, openVisit, closeVisit, askAbout, askDesigns, openAsk, closeAsk, profile, setProfile, nudgeAt, dismissNudge, designs, saveDesign, forgetDesign, designDraft, setDesignDraft])
 
   // Copy re-renders only when the language or the market changes, not with every cart or route change.
   const locale = useMemo<LocaleValue>(() => ({ lang, locale: localeFor(lang, currency), setLang }), [lang, currency, setLang])

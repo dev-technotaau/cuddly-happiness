@@ -7,7 +7,8 @@ paths:
   - "src/components/lineDetails.ts"
   - "src/components/Price.tsx"
   - "src/components/pdp/{PriceBreakdown,RentalCalendar,Personalizer,CompleteTheLook}.tsx"
-  - "src/pages/{Product,Cart,Checkout,GiftCards}.tsx"
+  - "src/pages/{Product,Cart,Checkout,GiftCards,Designer}.tsx"
+  - "src/components/designer/**/*.tsx"
 ---
 
 # Commerce & data rules (money, cart lines, catalog)
@@ -42,11 +43,11 @@ When you add a field to `CartLine` that makes two configurations different, chan
 ## Totals, tax, gift cards
 
 - **Tax** applies to **merchandise only**: `Math.round(merch * PROVINCES[code].rate)` in CAD. In USD the tax row reads "Calculated by Shopify".
-- **Gift cards** are never taxed and can never pay for other gift cards (`payableByCards = merch + tax`).
-- **Tax data** (`src/data/tax.ts`): change `rate` and `label` together, because `splitTaxes` parses the label (`'GST 5% + PST 7%'`).
+- **Gift cards** are never taxed and can never pay for other gift cards, nor for a designed ring's balance (`payableByCards = merch − balance + taxAt(rate).now`).
+- **Tax data** (`src/data/tax.ts`): change `rate` and `label` together. `splitTaxes(PROVINCES[code], amount)` names its lines from the label (`'GST 5% + PST 7%'`) and totals them from `rate`: the last line takes the remainder, so a breakdown always equals the bag's `Math.round(merch * rate)` (2026-10-22).
 - **Rental deposits** (`RentalRates.deposit`) are a hold, never a charge. Keep them out of `linePrice` and all totals.
 - **Reward threshold:** `REWARD_THRESHOLD` in `useCartTotals.ts` (CAD 1000 / USD 750) is the single source. Gift-card lines don't count toward it.
-- **Currency switch at checkout:** any control that switches currency while gift cards are applied must re-convert `available` with `convert(card.balance, card.currency, newCurrency)`.
+- **Currency switch at checkout:** Checkout keeps the applied cards themselves and converts each balance with `convert(card.balance, card.currency, currency)` on every render, so every switcher (header, desktop menu, "Shopping in") re-prices them (KI-024, fixed 2026-10-22). Never store a converted amount. An amount shown after the order (the confirmation) keeps the order's currency: `formatPrice(amount, placed.currency)` plus the ISO code.
 - **New gift-card denominations** go into `DENOMINATIONS` (both currencies), get `CAD-x` **and** `USD-x` IDs in `GIFT_CARD_VARIANTS`, and must stay within `CUSTOM_RANGE`.
 - **Shopify property keys:** never rename the native keys (`__shopify_send_gift_card_to_recipient`, `Recipient email`, `Recipient name`, `Message`, `Send on`). Prefix merchant-only properties with `_`. All property values are strings. Placeholder variant IDs (`441000000xx`) must never ship.
 - **Text limits:**
@@ -63,6 +64,15 @@ When you add a field to `CartLine` that makes two configurations different, chan
 ## Quick-add paths
 
 CompleteTheLook, Wishlist "Add all", VideoViewer, CartUpsell and TryOnStudio must **not** add pieces that need configuration: rental dates, personalization text, ring size, or custom commissions. Since 2026-10-21 one rule decides it, in `src/data/catalog.ts`: `needsSize(p)` (ring types), `needsConfig(p)` and `quickAddable(p)` (also false for the vault's rent-first pieces). Use them; never write a local variant. CompleteTheLook adds the page's own piece through the PDP's validation (`onAddMain`).
+
+## Designed rings (2026-10-22)
+
+- A ring from the designer is a line `{ slug: DESIGN_SLUG ('bespoke-engagement-commission'), size, design: designCode(design) }`. The code is the ring as made (`canonical`: choices that don't apply are reset), so identical rings stack; never put the visitor's own `encodeDesign` code (the address's) in a line, a visit or a saved design.
+- `CartLine.design` ends `lineKey` only when present, so other lines keep their stored keys. `linePrice` prices it with `ringPrice(decodeDesign(design), currency)` (`src/data/ringPrice.ts`, cost-plus × 1.34 to the nearest 10 CAD, USD by `toUSD`), and so do the try-on and Account. Never price a design any other way: the designer's statement (`priceRing`) reconciles to the same number, its margin being the remainder.
+- Stored codes are checked with `isDesignCode` when the store reads them back (`tns-cart`, `tns-designs`, `tns-design-draft`): a line or design that fails is dropped, never priced at 0. The code format is a contract: lists only grow at their end; anything else takes a new version character.
+- A designed ring is paid in two parts (owner, 2026-10-22): `designDeposit(price)` (30%, `DEPOSIT_SHARE`, to the nearest ten) at checkout, the rest on approval of the final design. `useCartTotals()` gives `balance` (what designs leave for later, before tax), `dueNow` and `taxAt(rate)` (`{ total, now, later }`, adding up to the bag's one rounding). Gift cards pay only what is due today. Show a deposit only through `designDeposit`; never compute a share by hand. Beside a balance, the bag hides its Shop Pay instalments line (`installment` is a quarter of the whole `subtotal`); the drawer's figure is "Due today, before tax".
+- A designed ring needs a size before it goes in the bag: the designer sends a sizeless "Add to bag" to its size step, and the try-on offers "Choose your size" instead (its `add` refuses a sizeless design).
+- Show a design line through `lineDetails` (the size from the code) and `designedLine(line, designs)` (`src/components/lineDetails.ts`): its title and picture as designed, no struck-through `fullPrice`, Edit → `href.designer({ r: code, edit: '1' })`, where "Update the bag" replaces the line and keeps its quantity.
 
 ## Rent or own and card prices (2026-10-21)
 

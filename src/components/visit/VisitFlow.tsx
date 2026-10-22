@@ -1,6 +1,8 @@
 import { useMemo, useRef, useState } from 'react'
 import { CalendarPlus, MapPin, Phone, Video, X } from 'lucide-react'
 import { formatDay, getProduct, parseIso, type Product } from '../../data/catalog'
+import { decodeDesign } from '../../data/ring'
+import { describeDesign } from '../../data/ringCopy'
 import { SALON } from '../../data/salon'
 import { MODES, PURPOSES, VISIT_COPY, formatTime, icsFor, localTime, slotsOn, visitDays, visitLength, type Visit, type VisitMode, type VisitPiece, type VisitPurpose, type VisitRequest } from '../../data/visits'
 import { LANGS, LANGUAGE, bilingual, useCopy, useLocale, type Lang } from '../../i18n'
@@ -23,6 +25,7 @@ const COPY = bilingual(
     fromWishlist: 'Add from your wishlist',
     remove: (name: string) => `Remove ${name}`,
     toRent: 'to rent',
+    designed: 'Your design',
     name: 'Full name',
     email: 'Email',
     phone: 'Telephone',
@@ -60,6 +63,7 @@ const COPY = bilingual(
     fromWishlist: 'Ajouter depuis votre liste de souhaits',
     remove: (name) => `Retirer ${name}`,
     toRent: 'en location',
+    designed: 'Votre création',
     name: 'Nom complet',
     email: 'Courriel',
     phone: 'Téléphone',
@@ -107,7 +111,7 @@ interface Props {
 /** The private-visit booking: the reason, the way to meet, a day and a time, the pieces to prepare and the visitor's
  *  details, then a confirmation with a calendar file. Simulated: the visit is kept on this device and nothing is sent. */
 export default function VisitFlow({ request, onClose, embedded = false }: Props) {
-  const { currency, user, wishlist, visits, bookVisit, cancelVisit } = useStore()
+  const { currency, user, wishlist, visits, bookVisit, cancelVisit, designs } = useStore()
   const { lang, locale } = useLocale()
   const t = useCopy(COPY)
   const v = useCopy(VISIT_COPY)
@@ -138,7 +142,14 @@ export default function VisitFlow({ request, onClose, embedded = false }: Props)
   const day = date && days.includes(date) ? date : days[0] ?? null
   const times = useMemo(() => (day ? slotsOn(day, purpose ?? 'other', mode) : []), [day, purpose, mode])
   const slot = time && times.includes(time) ? time : null
-  const shown = (p: VisitPiece) => getProduct(p.slug)
+  // A piece as the salon will prepare it: a catalog piece, or a ring designed here (named and pictured as designed).
+  const shown = (p: VisitPiece) => {
+    const product = getProduct(p.slug)
+    if (!product) return null
+    const design = p.design ? decodeDesign(p.design) : null
+    return { key: p.slug + (p.design ?? ''), name: design ? describeDesign(design, locale).title : catalog.name(product), image: (p.design && designs.find((x) => x.code === p.design)?.image) || product.images[0], designed: !!design }
+  }
+  type Shown = NonNullable<ReturnType<typeof shown>>
   const extra = wishlist.map(getProduct).filter((p): p is Product => !!p && p.type !== 'gift-card' && !pieces.some((x) => x.slug === p.slug)).slice(0, 6)
 
   const submit = (e: React.FormEvent) => {
@@ -158,7 +169,7 @@ export default function VisitFlow({ request, onClose, embedded = false }: Props)
 
   // The calendar file is made here, in the browser.
   const toCalendar = (visit: Visit) => {
-    const names = visit.pieces.map(shown).filter((p): p is Product => !!p).map(catalog.name)
+    const names = visit.pieces.map(shown).filter((p): p is Shown => !!p).map((p) => p.name)
     const where = visit.mode === 'salon' ? `${SALON.street}, ${SALON.city}` : v.modes[visit.mode]
     const url = URL.createObjectURL(new Blob([icsFor(visit, v.calendarTitle(v.purposes[visit.purpose]), v.calendarText(names), where)], { type: 'text/calendar;charset=utf-8' }))
     const a = document.createElement('a')
@@ -183,7 +194,7 @@ export default function VisitFlow({ request, onClose, embedded = false }: Props)
   if (done) {
     const at = parseIso(done.date)
     const yours = localTime(done.date, done.time, locale)
-    const prepared = done.pieces.map(shown).filter((p): p is Product => !!p)
+    const prepared = done.pieces.map(shown).filter((p): p is Shown => !!p)
     const Icon = ICONS[done.mode]
     return (
       <div role="status" className={embedded ? 'mx-auto max-w-xl py-6 text-center' : 'py-10 text-center'}>
@@ -210,9 +221,9 @@ export default function VisitFlow({ request, onClose, embedded = false }: Props)
               <dt className="text-[11px] uppercase tracking-[0.2em] text-[var(--text-taupe)]">{t.pieces}</dt>
               <dd className="mt-3 flex flex-wrap gap-3">
                 {prepared.map((p) => (
-                  <span key={p.slug} className="flex items-center gap-3 border border-[var(--border-hairline)] py-1.5 pl-1.5 pr-3">
-                    <img src={p.images[0]} alt="" className="h-10 w-8 object-cover" />
-                    <span className="font-serif-editorial text-base">{catalog.name(p)}</span>
+                  <span key={p.key} className="flex items-center gap-3 border border-[var(--border-hairline)] py-1.5 pl-1.5 pr-3">
+                    <img src={p.image} alt="" className="h-10 w-8 object-cover" />
+                    <span className="font-serif-editorial text-base">{p.name}</span>
                   </span>
                 ))}
               </dd>
@@ -305,17 +316,17 @@ export default function VisitFlow({ request, onClose, embedded = false }: Props)
           {pieces.length > 0 && (
             <ul className="space-y-2">
               {pieces.map((p) => {
-                const product = shown(p)
-                if (!product) return null
-                const details = [p.metal && catalog.metal(p.metal), p.size && common.size(sizeLabel(p.size)), p.rent && t.toRent].filter(Boolean).join(' · ')
+                const piece = shown(p)
+                if (!piece) return null
+                const details = [piece.designed && t.designed, p.metal && catalog.metal(p.metal), p.size && common.size(sizeLabel(p.size)), p.rent && t.toRent].filter(Boolean).join(' · ')
                 return (
-                  <li key={p.slug} className="flex items-center gap-4 border border-[var(--border-hairline)] p-2 pr-3">
-                    <img src={product.images[0]} alt="" className="h-14 w-11 object-cover" />
+                  <li key={piece.key} className="flex items-center gap-4 border border-[var(--border-hairline)] p-2 pr-3">
+                    <img src={piece.image} alt="" className="h-14 w-11 object-cover" />
                     <span className="min-w-0 flex-1">
-                      <span className="font-serif-editorial block truncate text-lg leading-tight">{catalog.name(product)}</span>
+                      <span className="font-serif-editorial block truncate text-lg leading-tight">{piece.name}</span>
                       {details && <span className="block truncate text-xs text-[var(--text-taupe)]">{details}</span>}
                     </span>
-                    <button type="button" onClick={() => setPieces((ps) => ps.filter((x) => x.slug !== p.slug))} aria-label={t.remove(catalog.name(product))} className="p-2 text-[var(--text-taupe)] hover:text-[var(--text-espresso)]"><X size={15} strokeWidth={1.4} /></button>
+                    <button type="button" onClick={() => setPieces((ps) => ps.filter((x) => !(x.slug === p.slug && x.design === p.design)))} aria-label={t.remove(piece.name)} className="p-2 text-[var(--text-taupe)] hover:text-[var(--text-espresso)]"><X size={15} strokeWidth={1.4} /></button>
                   </li>
                 )
               })}

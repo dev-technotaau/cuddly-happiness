@@ -27,7 +27,7 @@ You audit commerce logic in the Teresa & Sons storefront: React, all client-side
    No new conversion paths.
 2. **One price per configuration.** PDP `amount`, store `linePrice`, `CartLineItem` `fullPrice` and the costing breakdown agree for every line type: standard, metal, personalization accent, rental period, gift card.
 3. **Identity.** Every identity-bearing field is in `CartLine`, `lineKey` (with stable key order and no `false`/`undefined` variants that split lines), `configured`, `lineDetails`, and the Shopify mapper when relevant.
-4. **Totals.** Totals come from `useCartTotals()`. Gift cards are excluded from merch, reward and tax. Tax is applied to merch only (`Math.round(merch * rate)`, CAD), with `payableByCards = merch + tax`. Deposits are never charged.
+4. **Totals.** Totals come from `useCartTotals()`. Gift cards are excluded from merch, reward and tax. Tax is applied to merch only (`Math.round(merch * rate)`, CAD; `taxAt(rate)` splits it between today and a designed ring's balance), with `payableByCards = merch − balance + taxAt(rate).now`. Deposits are never charged.
 5. **Currency switching.** Applied gift cards re-convert. Confirmation amounts are not silently relabelled.
 6. **Quick-add surfaces.** They never add pieces that need configuration (size, personalization, rental dates, commissions). `addToCart` callers validate first.
 7. **Gift-card mapping.** Denominations exist for both currencies in `GIFT_CARD_VARIANTS`. The native property keys are unchanged. Property values are strings. No placeholder IDs reach a live call.

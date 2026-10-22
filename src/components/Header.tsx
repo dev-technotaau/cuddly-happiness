@@ -10,6 +10,7 @@ import Marquee from './Marquee'
 import LanguageToggle from './locale/LanguageToggle'
 import LocaleMenu from './locale/LocaleMenu'
 import Burger from './menu/Burger'
+import HeaderSearch from './menu/HeaderSearch'
 import MobileSearch from './menu/MobileSearch'
 import type { MenuFocus } from './menu/SiteMenu'
 
@@ -20,7 +21,7 @@ const COPY = bilingual(
   {
     announcements: [
       'Complimentary insured shipping across Canada & the United States',
-      'Every diamond over 0.50 ct accompanied by a GIA report',
+      'Every diamond accompanied by its GIA report',
       'Private visits on Sherbrooke Street · Tuesday to Sunday · book ahead or walk in',
       'Lifetime cleaning & inspection on every piece',
     ],
@@ -31,7 +32,6 @@ const COPY = bilingual(
     shop: 'Shop',
     bridal: 'Bridal',
     rentals: 'Rentals',
-    atelier: 'Atelier',
     since: 'Montréal · Est. 1962',
     account: (name: string) => `Account, ${name}`,
     signIn: 'Sign in',
@@ -42,6 +42,7 @@ const COPY = bilingual(
     chapter: (n: string) => `Chapter ${n}`,
     shopChapter: (name: string) => `Shop ${name}`,
     theAtelier: 'The Atelier',
+    designRing: 'Design your ring',
     myAccount: 'My Account',
     signInTitle: 'Sign In',
     wishlistCount: (n: number) => `Wishlist (${n})`,
@@ -57,7 +58,7 @@ const COPY = bilingual(
   {
     announcements: [
       'Livraison assurée offerte partout au Canada et aux États-Unis',
-      'Chaque diamant de plus de 0,50 ct est accompagné d’un rapport GIA',
+      'Chaque diamant est accompagné de son rapport GIA',
       'Visites privées rue Sherbrooke · du mardi au dimanche · sur rendez-vous ou sans',
       'Nettoyage et inspection à vie pour chaque pièce',
     ],
@@ -68,7 +69,6 @@ const COPY = bilingual(
     shop: 'Boutique',
     bridal: 'Mariage',
     rentals: 'Location',
-    atelier: 'Atelier',
     since: 'Montréal · Depuis 1962',
     account: (name) => `Compte, ${name}`,
     signIn: 'Se connecter',
@@ -79,6 +79,7 @@ const COPY = bilingual(
     chapter: (n) => `Chapitre ${n}`,
     shopChapter: () => 'Voir le chapitre',
     theAtelier: 'L’Atelier',
+    designRing: 'Créer votre bague',
     myAccount: 'Mon compte',
     signInTitle: 'Se connecter',
     wishlistCount: (n) => `Liste de souhaits (${n})`,
@@ -93,13 +94,13 @@ const COPY = bilingual(
   },
 )
 
-type Section = 'shop' | 'bridal' | 'rentals' | 'atelier'
+type Section = 'shop' | 'bridal' | 'rentals'
 
 /** Where a route sits in the bar. Bridal and Rentals have their own links; every other chapter, piece and the gift
- *  cards sit under Shop. `chapter` is the category on screen, which the menus mark too. */
+ *  cards sit under Shop. `chapter` is the category on screen, which the menus mark too. The Atelier lives in the
+ *  menus since the search took its place in the bar (2026-10-22). */
 function locate(route: Route): { section: Section | null; chapter: string | null } {
   const chapter = route.name === 'category' ? route.slug : route.name === 'product' ? getProduct(route.slug)?.category ?? null : null
-  if (route.name === 'atelier') return { section: 'atelier', chapter }
   if (chapter === 'bridal' || chapter === 'rentals') return { section: chapter, chapter }
   return { section: chapter || route.name === 'giftcards' || route.name === 'shop' ? 'shop' : null, chapter }
 }
@@ -120,6 +121,8 @@ export default function Header() {
   const [menuMounted, setMenuMounted] = useState(false)
   const [menuFocus, setMenuFocus] = useState<MenuFocus>('pointer')
   const [menuCovered, setMenuCovered] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const searchField = useRef<HTMLInputElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
   const closeTimer = useRef<number | undefined>(undefined)
   const menuBtn = useRef<HTMLButtonElement>(null)
@@ -131,7 +134,16 @@ export default function Header() {
     setMegaOpen(false)
     setMobileOpen(false)
     setMenuOpen(false)
+    setSearchOpen(false)
   }, [route])
+
+  // The search takes the bar: the mega menu folds away and the hover hairline lets go.
+  const openSearch = useCallback((open: boolean) => {
+    setSearchOpen(open)
+    if (!open) return
+    setMegaOpen(false)
+    setHover(null)
+  }, [])
 
   useEffect(() => {
     menuOpenRef.current = menuOpen
@@ -160,6 +172,7 @@ export default function Header() {
 
   const openMenu = (focus: MenuFocus) => {
     setMegaOpen(false)
+    setSearchOpen(false)
     setMenuFocus(focus)
     setMenuMounted(true)
     setMenuOpen(true)
@@ -174,7 +187,7 @@ export default function Header() {
     return () => window.clearTimeout(t)
   }, [])
 
-  // "/" or ⌘K / Ctrl+K opens the menu straight into its search, on desktop, unless the visitor is typing or another dialog is open.
+  // "/" or ⌘K / Ctrl+K goes to the bar's search, on desktop, unless the visitor is typing or another dialog is open.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const key = e.key ?? ''
@@ -188,7 +201,8 @@ export default function Header() {
       // Another overlay (bag, share sheet, viewer…) is open: leave its keys alone.
       if ([...document.querySelectorAll('[role="dialog"]')].some((d) => d.id !== 'site-menu' && !d.closest('[inert]') && d.getClientRects().length > 0)) return
       e.preventDefault()
-      openMenu('search')
+      searchField.current?.focus()
+      searchField.current?.select()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -213,7 +227,7 @@ export default function Header() {
 
   // One gold hairline glides under the hovered or focused link, stays under Shop while its mega menu is open, and
   // rests under the visitor's section.
-  const navRef = useRef<HTMLElement>(null)
+  const navRef = useRef<HTMLDivElement>(null)
   const [hover, setHover] = useState<Section | null>(null)
   const [line, setLine] = useState({ x: 0, w: 0, on: false })
   const lineAt = hover ?? (megaOpen ? 'shop' : section)
@@ -241,6 +255,12 @@ export default function Header() {
     closeTimer.current = window.setTimeout(() => setMegaOpen(false), 140)
   }
 
+  // French words run longer, so the bar keeps its compact sizes until 1366 px in French (as the visit label does), a
+  // little tighter, and the search keeps its word, and at least a 44 px field at 1024.
+  const roomy = lang === 'fr'
+    ? { nav: 'min-[1366px]:text-[11px] min-[1366px]:tracking-[0.22em]', menu: 'gap-3 pr-3 min-[1366px]:gap-6 min-[1366px]:pr-7', links: 'gap-3 pr-3 min-[1366px]:gap-7 min-[1366px]:pr-7' }
+    : { nav: 'xl:text-[11px] xl:tracking-[0.22em]', menu: 'gap-4 pr-4 xl:gap-6 xl:pr-7', links: 'gap-4 pr-4 xl:gap-7 xl:pr-7' }
+
   const cat = CATEGORIES[active]
   const featured = getProductsByCategory(cat.slug).slice(0, 2)
 
@@ -259,10 +279,9 @@ export default function Header() {
 
       <div className="relative border-b border-[var(--border-hairline)] bg-[var(--bg-travertine)]/95 backdrop-blur-md">
         <div className="mx-auto grid h-20 max-w-[1600px] grid-cols-[1fr_auto_1fr] items-center px-6 lg:gap-x-6 lg:px-12">
-          <nav ref={navRef} onPointerLeave={() => setHover(null)} className="relative hidden items-center gap-4 text-[10px] font-medium uppercase tracking-[0.2em] lg:flex xl:gap-7 xl:text-[11px] xl:tracking-[0.22em]">
-            <span aria-hidden="true" className={`pointer-events-none absolute left-0 top-[calc(50%+12px)] h-px bg-[var(--gold-vermeil)] transition-[translate,width,opacity] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none ${line.on ? 'opacity-100' : 'opacity-0'}`} style={{ translate: `${line.x}px 0`, width: line.w }} />
-            {/* The full menu: everything in this bar and, as pages arrive, what no longer fits in it */}
-            <div className="flex items-center gap-4 xl:gap-6">
+          <nav className={`hidden min-w-0 items-center text-[10px] font-medium uppercase tracking-[0.2em] lg:flex ${roomy.nav}`}>
+            {/* The full menu: everything in this bar and, as pages arrive, what no longer fits in it (the Atelier, since 2026-10-22) */}
+            <div className={`flex shrink-0 items-center ${roomy.menu}`}>
               <button ref={menuBtn} type="button" onClick={(e) => openMenu(e.detail === 0 ? 'keyboard' : 'pointer')} onPointerEnter={prepareMenu} onFocus={prepareMenu} aria-label={t.openMenu} aria-haspopup="dialog" aria-expanded={menuOpen} aria-controls="site-menu" className="group -ml-[9px] flex h-10 w-10 items-center justify-center transition-colors hover:text-[var(--gold-vermeil)] focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-[var(--gold-vermeil)]">
                 {/* Hidden while the menu is open (its cross stands in for it); SiteMenu says when to bring it back */}
                 <span className={`block ${menuCovered ? 'opacity-0' : ''}`}>
@@ -271,13 +290,20 @@ export default function Header() {
               </button>
               <span aria-hidden="true" className="h-4 w-px bg-[var(--border-hairline)]" />
             </div>
-            <button onMouseEnter={open} onMouseLeave={scheduleClose} {...point('shop')} onClick={() => (megaOpen ? setMegaOpen(false) : open())} className="py-7 uppercase transition-colors hover:text-[var(--gold-vermeil)]" aria-expanded={megaOpen}>
-              {/* "Shop", not "Collections": in jewellery a collection is a curated story that can span categories (planned, see todo). */}
-              <span data-nav="shop">{t.shop}</span>
-            </button>
-            <a href={href.category('bridal')} data-nav="bridal" {...point('bridal')} aria-current={current('bridal')} className="transition-colors hover:text-[var(--gold-vermeil)]">{t.bridal}</a>
-            <a href={href.category('rentals')} data-nav="rentals" {...point('rentals')} aria-current={current('rentals')} className="transition-colors hover:text-[var(--gold-vermeil)]">{t.rentals}</a>
-            <a href={href.atelier} data-nav="atelier" {...point('atelier')} aria-current={route.name === 'atelier' ? 'page' : undefined} className="transition-colors hover:text-[var(--gold-vermeil)]">{t.atelier}</a>
+            {/* The links fold away while the search is open, so its field has the bar (a 1fr → 0fr track, clipped) */}
+            <div inert={searchOpen} className={`grid shrink-0 transition-[grid-template-columns,opacity] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none ${searchOpen ? 'grid-cols-[0fr] opacity-0' : 'grid-cols-[1fr] opacity-100'}`}>
+              <div ref={navRef} onPointerLeave={() => setHover(null)} className={`relative -ml-2 flex min-w-0 items-center overflow-x-clip pl-2 ${roomy.links}`}>
+                <span aria-hidden="true" className={`pointer-events-none absolute left-0 top-[calc(50%+12px)] h-px bg-[var(--gold-vermeil)] transition-[translate,width,opacity] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none ${line.on ? 'opacity-100' : 'opacity-0'}`} style={{ translate: `${line.x}px 0`, width: line.w }} />
+                <button onMouseEnter={open} onMouseLeave={scheduleClose} {...point('shop')} onClick={() => (megaOpen ? setMegaOpen(false) : open())} className="shrink-0 py-7 uppercase transition-colors hover:text-[var(--gold-vermeil)]" aria-expanded={megaOpen}>
+                  {/* "Shop", not "Collections": in jewellery a collection is a curated story that can span categories (planned, see todo). */}
+                  <span data-nav="shop">{t.shop}</span>
+                </button>
+                <a href={href.category('bridal')} data-nav="bridal" {...point('bridal')} aria-current={current('bridal')} className="shrink-0 transition-colors hover:text-[var(--gold-vermeil)]">{t.bridal}</a>
+                <a href={href.category('rentals')} data-nav="rentals" {...point('rentals')} aria-current={current('rentals')} className="shrink-0 transition-colors hover:text-[var(--gold-vermeil)]">{t.rentals}</a>
+              </div>
+            </div>
+            {/* Search, in the Atelier's old place: a field that opens a dropdown the width of the bar */}
+            <HeaderSearch open={searchOpen} onOpenChange={openSearch} field={searchField} />
           </nav>
           {/* Phones and tablets: the menu, and search, which opens the menu at its search field (the smallest phones find it there) */}
           <div className="flex items-center gap-4 lg:hidden">
@@ -289,11 +315,12 @@ export default function Header() {
             </button>
           </div>
 
+          {/* The compact lockup (owner, 2026-10-22): lightly tracked capitals; the line beneath stays within the name */}
           <a href={href.home} className="text-center leading-none">
-            <span className="font-serif-editorial -mr-[0.12em] block whitespace-nowrap text-[17px] uppercase tracking-[0.12em] sm:-mr-[0.16em] sm:text-[22px] sm:tracking-[0.16em] xl:text-[25px]">
+            <span className="font-serif-editorial -mr-[0.08em] block whitespace-nowrap text-[17px] uppercase tracking-[0.08em] sm:text-[19px] xl:text-[21px]">
               Teresa <em className="text-[var(--gold-vermeil)]">&amp;</em> Sons
             </span>
-            <span className="font-spec -mr-[0.28em] mt-1.5 block whitespace-nowrap text-[8px] uppercase tracking-[0.28em] text-[var(--text-taupe)] sm:-mr-[0.4em] sm:text-[9px] sm:tracking-[0.4em]">
+            <span className="font-spec -mr-[0.22em] mt-1.5 block whitespace-nowrap text-[8px] uppercase tracking-[0.22em] text-[var(--text-taupe)] xl:-mr-[0.24em] xl:text-[9px] xl:tracking-[0.24em]">
               {t.since}
             </span>
           </a>
@@ -450,6 +477,7 @@ export default function Header() {
                 </li>
               ))}
               {[
+                { to: href.designer(), on: route.name === 'designer', label: t.designRing },
                 { to: href.atelier, on: route.name === 'atelier', label: t.theAtelier },
                 { to: href.giftcards, on: route.name === 'giftcards', label: t.giftCards },
                 { to: href.account, on: route.name === 'account', label: user ? t.myAccount : t.signInTitle },

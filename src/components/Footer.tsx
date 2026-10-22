@@ -22,6 +22,7 @@ const COPY = bilingual(
     maison: 'Maison',
     salon: 'Salon',
     story: 'Our Story',
+    designer: 'Design your ring',
     appointment: 'Book a visit',
     ask: 'Ask a jeweller',
     giftCards: 'Gift Cards & Balance',
@@ -44,6 +45,7 @@ const COPY = bilingual(
     maison: 'Maison',
     salon: 'Salon',
     story: 'Notre histoire',
+    designer: 'Créer votre bague',
     appointment: 'Prendre rendez-vous',
     ask: 'Parler à un joaillier',
     giftCards: 'Cartes-cadeaux et solde',
@@ -116,6 +118,7 @@ export default function Footer() {
               <p className="font-spec mb-5 text-[10px] uppercase tracking-[0.28em] text-[var(--text-linen)]">{t.maison}</p>
               <ul className="space-y-2.5 text-white/80">
                 <li><a href={href.atelier} className={link}>{t.story}</a></li>
+                <li><a href={href.designer()} className={link}>{t.designer}</a></li>
                 <li><button type="button" onClick={() => openVisit()} className={link}>{t.appointment}</button></li>
                 <li><button type="button" onClick={() => openAsk()} className={link}>{t.ask}</button></li>
                 <li><a href={href.giftcards} className={link}>{t.giftCards}</a></li>
@@ -135,9 +138,12 @@ export default function Footer() {
             </div>
           </div>
         </div>
-        <p className="font-serif-editorial pointer-events-none mt-24 select-none whitespace-nowrap text-center text-[17vw] font-light leading-none text-white/[0.06]">
-          Teresa &amp; Sons
-        </p>
+        {/* The wordmark spans the column: sized to the container (the words are 6.2 em wide), never past its edge */}
+        <div className="@container mt-24">
+          <p className="font-serif-editorial pointer-events-none select-none whitespace-nowrap text-center text-[16cqi] font-light leading-none text-white/[0.06]">
+            Teresa &amp; Sons
+          </p>
+        </div>
         <div className="mt-2 flex items-center justify-center gap-4 text-white/45">
           <Hallmark className="h-9 w-9 text-[var(--gold-champagne)]/70" />
           <p className="font-spec text-[10px] uppercase tracking-[0.3em]">{t.signoff}</p>

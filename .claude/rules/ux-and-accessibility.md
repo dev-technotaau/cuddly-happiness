@@ -17,8 +17,11 @@ Drawers, modals, lightboxes and viewers follow the established checklist:
 4. Put `data-lenis-prevent` on every scrollable inner region of the overlay.
 5. If the open state lives in the store or a provider, every link inside must call close. Route changes don't close overlays.
 6. Remember that `addToCart` opens the cart drawer (`z-[90]`). From a higher overlay it opens *underneath*.
+7. A panel that stays mounted and slides off-screen when closed (the bag, the visit drawer, "Ask a jeweller", the desktop menu's panel) is also `invisible` when closed, with `visibility` in its transition (`transition-[transform,visibility]`): it stays visible while it slides away, then hides. Otherwise its drop shadow, meant for when it is open, spills about 50 px back onto the page's edge (the dark bands at both edges, fixed 2026-10-22).
 
 Render with `createPortal(…, document.body)` when the overlay lives deep in the tree (VideoViewer, Reviews).
+
+The header search (`HeaderSearch`, 2026-10-22) is a dropdown, not a dialog: a `role="combobox"` field with a `role="listbox"` of labelled groups whose results are `role="option"` (`tabIndex={-1}`, moved by `aria-activedescendant`). It holds the page with `getLenis()?.stop()` only, without locking overflow, so the scrollbar stays and the sticky bar never shifts; presses inside keep the focus in the field; Escape clears, then closes, then leaves. Keep that model when you extend it.
 
 The mobile menu (`Header`) is a dialog too (2026-10-21): `role="dialog"`, focus moves in as it opens (its search field when opened from the search button), Escape first clears the search, then closes, and closing by hand returns focus to the button that opened it.
 
@@ -33,6 +36,7 @@ The mobile menu (`Header`) is a dialog too (2026-10-21): `role="dialog"`, focus 
 - **Icon-only buttons** need an `aria-label`.
 - **Toggles and selected swatches/pills** need `aria-pressed`. Tabs use `role="tablist"`, `role="tab"` and `aria-selected`. Disclosures use `aria-expanded`.
 - **Buttons inside a product-card `<a>`** must be `type="button"` and call `e.preventDefault()` and `e.stopPropagation()`, as `WishButton` and `TryOnButton` do.
+- **Cursor:** whatever can be clicked shows the hand, as links do. Tailwind 4 leaves buttons on the arrow, so `src/index.css` gives every enabled `button`, `[role=button|option|tab]`, `summary`, `select`, checkbox, radio, range and file input the pointer in its base layer (2026-10-22); a disabled button keeps the arrow, and `cursor-not-allowed` / `cursor-grab` utilities still win. What is dragged (the 3D view, a ring placed by hand) shows `cursor-grab active:cursor-grabbing`.
 - **Touch targets:** primary round controls are `h-11 w-11` (44 px). Don't make essential content hover-only, because Tailwind v4 hover never fires on touch devices.
 - **Focus:** a global `:focus-visible` ring covers controls (2026-10-21). If you write `outline-none`, add a visible focus state (`focus:border-[var(--text-espresso)]`, the gold underline, or a `focus-visible:` ring). Don't remove focus without a replacement.
 - **Choice chips** (filters, visit reasons, times) are buttons with `aria-pressed` inside `role="group"` with a label; Own | Rent is a `radiogroup`; a drag handle is `role="slider"` with arrow, Home and End keys (`SketchToRing`).
@@ -61,6 +65,21 @@ The mobile menu (`Header`) is a dialog too (2026-10-21): `role="dialog"`, focus 
 - **Text limits** are enforced by slicing in `onChange`, with a visible `{n}/{max}` counter.
 - **Confirmations** ("Added to bag", "Merci…") use short timers. Clear those timers on unmount.
 - **Undo:** user removals go through `removeLine` so `UndoToast` (6 s) can undo them.
+
+## The ring designer's 3D view
+
+- The wheel zooms the ring only with Ctrl or ⌘ held (a trackpad pinch sends that) or in full screen; otherwise it scrolls the page, as everywhere. Touch pinches always zoom. Keep it so: a large sticky canvas that eats the wheel traps the page.
+- The canvas is focusable (`role="img"` with a description): arrow keys turn it, + and − zoom. Every control has an `aria-label`; toggles have `aria-pressed`, panels `aria-expanded`. Panels close on Escape or a press outside; closed from inside (Escape, ×, a choice) they hand the focus back to their button.
+- Reduced motion: no slow 360° turn, no assembly or camera glides (everything is placed at once), no count-up on the price.
+- A design change is named in the view (a caption) and announced (`aria-live="polite"`) with its price; a new note that protects the stone is announced after it.
+- The focus never falls to the page (2026-10-22): a step change moves it to the step's heading (`#designer-step`, `tabIndex={-1}`), and a control that goes away (a note's fix, a removed design, Start afresh, the budget's ×) hands it to the nearest sensible place. Option groups are `role="group"` labelled by their heading, and an unavailable option prints why, legibly, never in a tooltip.
+- The pinned view leaves the steps reachable: on a screen under 520 px tall (a phone on its side) it sits in the page instead. The phone bar steps aside as the footer comes up.
+
+## The live 3D try-on (rings, 2026-10-22)
+
+- A `role="status"` chip over the picture says what the tracker sees (loading, no hand yet, how to hold the hand, "On your ring finger"); it changes only when its message does, never per frame: a hint must hold for eight frames, the loading figure is `aria-hidden` and moves in steps of 5%. Its messages stay short (a phone's chip is narrow); longer how-to text goes in the desktop hint. A gold dot (pulsing only with motion allowed) marks the ring on the hand.
+- There is always a way without tracking: the "Place it by hand" switch, which also takes over by itself where the tracker can't load or a photo has no hand (the switch then reads on and is locked, the finger pills are disabled and the fit slider hidden); after six seconds without a hand the status points to it. Drag, pinch, wheel, sliders and nudges then move the ring, as in the flat try-on. A 3D view the browser takes back falls back to the flat try-on.
+- The camera starts only on the visitor's tap, and the privacy line says the hand is tracked on the device and nothing the camera sees leaves it. Keep both true.
 
 ## Motion & media
 

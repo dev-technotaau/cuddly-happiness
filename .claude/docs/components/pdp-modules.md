@@ -502,7 +502,7 @@ Lines are produced in this order:
 6. **Margin** (`margin`).
    - `margin = base − Σ lines`.
    - If `margin < base × 0.12`, every stone line (id starting `st`, or `movement`) is multiplied by `k = max(0, (stoneTotal − (floor − margin)) / stoneTotal)` and rounded, and the margin is recomputed.
-   - Line: `Design, showroom & maison margin` / `Design, salon, staff, warranty reserve`.
+   - Line: `Design, salon & maison margin` / `Design, salon, staff, warranty reserve`.
    - **Computed:** this easing runs for `griffintown-chain-bracelet` (pre-easing margin as low as −466 CAD), `laurier-stacking-band` and `pearl-stud-gift-set`, in their gold metals and both currencies. No current product, metal or currency combination ends with a negative line.
 7. **Options** (`options`): an `accent` line labelled `p.personalization?.accent?.label ?? 'Option'`, detail `Selected option`, worth the accent price.
 
@@ -545,7 +545,7 @@ The function returns `{ lines, price: base + accent, metalWeight: weight, labour
 | services | GIA grading report | № 2231874590 | 165 |
 | services | Insured shipping & presentation box | Signature courier, Canada | 48 |
 | services | Lifetime care plan | Annual cleaning, claw checks, polish | Included (0) |
-| margin | Design, showroom & maison margin | Design, salon, staff, warranty reserve | 1560 |
+| margin | Design, salon & maison margin | Design, salon, staff, warranty reserve | 1560 |
 
 The lines sum to 6850, with a metal weight of 6.2 g and 6 h at the bench. One more computed case: the nameplate necklace with the accent in USD costs 1045, i.e. a base of 915 plus the 130 accent.
 
@@ -562,7 +562,7 @@ A `wear` line is then put first (group `materials`): `Use of the piece` = `fee �
 
 ### 6.4 Taxes
 
-- **CAD.** `taxes = splitTaxes(PROVINCES[province].label, price)`. The helper parses every `NAME n%` in the label (e.g. `GST 5% + QST 9.975%`) and rounds each component on its own with `Math.round(price × rate)`.
+- **CAD.** `taxes = splitTaxes(PROVINCES[province], price)`. The helper parses every `NAME n%` in the label (e.g. `GST 5% + QST 9.975%`) and rounds each line with `Math.round(price × rate)`, except the last, which takes what remains of `Math.round(price × PROVINCES[province].rate)`. The lines therefore add up to the cart's and checkout's tax.
   - Each row shows the tax name, `{rate}% of {price}` and the amount.
   - The rate text is `(rate × 100).toFixed(rate × 100 % 1 ? 3 : 0)` with trailing zeros, then any trailing dot, stripped. It renders `9.975`, `5`, `7`, `13` and so on.
   - `grand = price + Σ taxes`.
@@ -1158,7 +1158,7 @@ This section holds the observations, risks and recommendations. Items marked **v
    - `priceOf` uses `priceFor(p, currency)` with no metal, but `addSet` adds `metal: p.metals[0]`. For pieces whose first metal is platinum (all bridal products and `bespoke-engagement-commission`), the bag ends up CAD 650 / USD 475 higher per piece than the "set" total.
    - For example, on `promesse-wedding-band` the set shows 17200 CAD while the bag gets 17850; on `bespoke-engagement-commission` it shows 32800 while the bag gets 34100.
 5. **"Add the set to bag" bypasses configurator validation (verified by reading).** It adds rings and bridal pieces without a size, `teresa-signet` and `initial-disc-pendant` without their required monogram or initial, and the nameplate without a name. It also ignores the page's selected metal for the current product. See [Product detail page](../pages/product.md) for the CTA path, which does validate.
-6. **The PDP tax total can differ from cart and checkout by 1 (verified).** `PriceBreakdown` rounds each component from `splitTaxes` separately, while `src/pages/Cart.tsx` and `src/pages/Checkout.tsx` round `price × rate` once. In CAD without the accent option, 82 of 660 retail product × metal × province combinations and 3 of 90 rental period × province combinations differ, always by exactly 1. Example: Mont-Royal at 6850 in BC or MB gives 823 here and 822 there.
+6. **The PDP tax total matches cart and checkout (fixed 2026-10-22, KI-027).** `splitTaxes` used to round each component on its own, which put 82 of 660 retail product × metal × province combinations $1 over. Its last line now takes the remainder of the single rounding: Mont-Royal at 6850 in BC gives GST 343 + PST 479 = 822, as the cart does.
 7. **The labour detail does not multiply out (verified).** The `labour` line prints `{hours} h × {rate}/h`, but its amount is `r(labour)`, not hours × rate. On Mont-Royal it prints "6 h × 95/h" next to an amount of 603 (6 × 95 = 570).
 8. **Latent tax-rate formatting bug.** The `% of` label strips trailing zeros even from integer rates, so a 10 % or 20 % rate would display as `1%` or `2%` (verified by evaluating the expression). No current province rate triggers it.
 9. **Reviews robustness.**

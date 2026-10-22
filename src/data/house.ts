@@ -1,7 +1,8 @@
 // The house: its two signatures, its three generations, the people at the bench and its promises, in both languages.
 // Names, years and roles are placeholders until the family confirms them (owner request, 2026-10-21); the policies are
 // the prototype's house rules, chosen the same day: rental fees count toward buying within 60 days, natural diamonds
-// only, returns within 30 days for unworn pieces, visits of 45 minutes (an hour for a ring or a design).
+// only, returns within 30 days for unworn pieces, visits of 45 minutes (an hour for a ring or a design). A designed
+// ring begins with a deposit, its balance due on approval of the final design (2026-10-22).
 import { bilingual } from '../i18n'
 import { IMG, type SignatureId } from './catalog'
 
@@ -50,6 +51,7 @@ export const HOUSE = bilingual(
     rentalCredit: 'Fall for it? Your rental fee counts toward owning the piece within 60 days.',
     returns: 'Returns within 30 days, complimentary, for unworn pieces. Engraved, personalized and made-to-order pieces are final sale.',
     visitLength: 'A private visit lasts 45 minutes, an hour for a ring. Complimentary, and never an obligation.',
+    deposit: (share: string) => `A ring you design begins with a ${share} deposit, which reserves its stones and sets the atelier to work. The balance is due when you approve the final design, before it is cast.`,
   },
   {
     signatures: {
@@ -79,8 +81,9 @@ export const HOUSE = bilingual(
     madeHere: 'Dessinée et faite dans notre atelier, 1420, rue Sherbrooke Ouest',
     hallmark: 'Chaque pièce quitte l’établi avec notre poinçon.',
     natural: 'Nous ne sertissons que des diamants naturels, chacun avec son rapport GIA.',
-    rentalCredit: 'Coup de cœur ? Vos frais de location sont déduits du prix si vous l’achetez dans les 60 jours.',
+    rentalCredit: 'Coup de cœur? Vos frais de location sont déduits du prix si vous l’achetez dans les 60 jours.',
     returns: 'Retours sous 30 jours, sans frais, pour les pièces non portées. Les pièces gravées, personnalisées ou faites sur commande sont finales.',
     visitLength: 'Une visite privée dure 45 minutes, une heure pour une bague. Elle est offerte, et sans engagement.',
+    deposit: (share) => `Une bague que vous créez commence par un acompte de ${share}, qui réserve ses pierres et met l’atelier au travail. Le solde est dû lorsque vous approuvez la version finale de votre création, avant la fonte.`,
   },
 )

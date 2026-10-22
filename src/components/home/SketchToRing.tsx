@@ -15,6 +15,7 @@ const COPY = bilingual(
     steps: [['A conversation', 'In the salon or by video, about the person and the promise.'], ['The drawing', 'Pencil first, then a CAD model you can turn in your hand.'], ['The making', 'Wax, casting, setting and polish, all within these walls.']] as [string, string][],
     begin: 'Begin a commission',
     consult: 'Book a design consultation',
+    design: 'Or design it yourself, in 3D',
     slider: 'From sketch to ring',
     sketch: 'The sketch',
     ring: 'The ring',
@@ -29,6 +30,7 @@ const COPY = bilingual(
     steps: [['Une conversation', 'Au salon ou par vidéo, sur la personne et la promesse.'], ['Le dessin', 'Le crayon d’abord, puis un modèle 3D à tourner dans la main.'], ['La fabrication', 'Cire, fonte, sertissage et polissage, entre ces murs.']],
     begin: 'Commencer une création',
     consult: 'Réserver une consultation création',
+    design: 'Ou créez-la vous-même, en 3D',
     slider: 'Du croquis à la bague',
     sketch: 'Le croquis',
     ring: 'La bague',
@@ -126,6 +128,7 @@ export default function SketchToRing({ index }: { index: string }) {
             <a href={href.product('bespoke-engagement-commission')} className={btnPrimary}>{t.begin}</a>
             <VisitButton request={{ purpose: 'design' }}>{t.consult}</VisitButton>
           </div>
+          <a data-reveal="0.3" href={href.designer()} className="link-line mt-6">{t.design}</a>
         </div>
 
         <div className="lg:col-span-6 lg:col-start-7">

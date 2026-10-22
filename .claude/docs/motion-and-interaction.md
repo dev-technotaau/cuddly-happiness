@@ -178,7 +178,7 @@ Layout, copy and the full `go()` timeline are in `pages/home.md` §4.1. This sec
 | `data-gleam` | The italic accent word; its `background-position` carries the glint |
 | `data-progress={i}` | The gold fill inside each slide control's 1 px track |
 
-- Each mask is `block overflow-hidden pb-[0.24em] -mb-[0.16em]`. That is deep enough for Baskervville's descenders, and the negative margin keeps the 0.88 leading.
+- Each mask is `block overflow-hidden pb-[0.24em] -mb-[0.16em]`. That is deep enough for Baskervville's descenders, and the negative margin keeps the 0.88 leading. The italic line's mask takes `-mb-[0.05em]` instead (2026-10-22): the italic is 1.05em with deeper descenders (g, f, y), which reached into the next line's ascenders (“light,” over “unbroken.”, “certified” over “to the facet.”); the line after it now clears by at least 0.046em on every slide in both languages.
 - A text-clipped element only paints inside its own box, so `[data-gleam]` carries `pb-[0.3em] -mb-[0.3em]`. Without it, the italic's descenders disappear ("by" reads "bv").
 
 **Ownership rule.** React sets each layer's initial `zIndex`/`clipPath`, and each fill's initial `scaleX(0)`, from the element's position as constants, never from `index`. React therefore never rewrites them on re-render, and GSAP owns them after mount. Keep it that way: deriving them from state brings back the old mid-wipe cut.
@@ -640,6 +640,7 @@ When the sticky bar is hidden, its main button gets `tabIndex={show ? 0 : -1}` a
 | Mobile menu | `Header` | inside `<header>` (`sticky top-0 z-50`), while `mobileOpen` | `z-[70]` | — | — | root | none (closes on route change) | none |
 | Mega menu (lg) | `Header` | always (absolute, under the nav) | — | — | — | — | — | GSAP clip-path |
 | Desktop menu (lg) | `SiteMenu` | portal, after the first opening | `z-[70]` | `stop()` while open | `document.body.style.overflow = 'hidden'`; the previous value is restored | the rail's middle and the list column | Escape (stepped), arrows, Tab trap, `/`, ⌘K, type-to-search | CSS: rail `translate`, extension `clip-path` |
+| Header search (lg) | `HeaderSearch` | always, inside the header (absolute, under the bar) | — (the header's `z-50`) | `stop()` while open | none: the scrollbar stays, so the bar never shifts sideways | the dropdown's body | Escape (stepped), ↑/↓, Enter, Tab out | `clip-path` 700 ms; the bar's links fold (a `1fr` → `0fr` grid track) over 500 ms; the field's gold line 700 ms; the empty field's idea changes every 3.2 s (2026-10-22) |
 | Gallery lightbox | `Gallery` | inline, inside the PDP gallery column (`lg:sticky lg:top-32`) | `z-[95]` | — | — | root | Escape, ←, → | none |
 | Ring-size guide | `RingSize` | inline, inside the PDP configurator (`[data-pdp-in]`) | `z-[95]` | — | — | dialog panel only, not the backdrop | Escape; backdrop click | none |
 | Client media | `MediaLightbox` in `Reviews` | `createPortal` to `body` | `z-[100]` | via `useModalLock` | `documentElement.style.overflow = 'hidden'`, reset to `''` | root | Escape, ←, → | none |

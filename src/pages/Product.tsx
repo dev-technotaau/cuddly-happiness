@@ -3,6 +3,7 @@ import gsap from 'gsap'
 import { ArrowRight, Check, Gift, MessageCircle, ShieldCheck, ShoppingBag, Star, Truck, Watch } from 'lucide-react'
 import { METALS, formatDay, formatPrice, getCategory, getProduct, getProductsByCategory, isRentable, needsSize, openingPrice, parseIso, personalizationPrice, priceFor, rentFirst, tryOnKind, validatePersonalization, type Metal, type Personalization, type RentalBooking } from '../data/catalog'
 import { HOUSE } from '../data/house'
+import { PRESETS } from '../data/ring'
 import { purposeFor, type VisitRequest } from '../data/visits'
 import { bilingual, useCopy } from '../i18n'
 import { useCatalog } from '../i18n/catalog'
@@ -61,6 +62,9 @@ const COPY = bilingual(
     ready: 'We’ll have it ready for you in the salon',
     readyRent: 'Try it on at your fitting; we deliver it for the evening',
     source: 'Prefer another shape or size? We’ll source it for your visit.',
+    designer: 'The ring designer',
+    makeItYours: 'Make it yours: another stone, other claws, another band, seen in 3D as you choose.',
+    designYourOwn: 'Or design it yourself, stone by stone, seen in 3D and priced as you choose.',
     makersNote: 'Maker’s note',
     watchNote: 'Swiss movement, regulated in our atelier and serviced for life by our horologist.',
     remember: 'We’ll remember your size.',
@@ -129,6 +133,9 @@ const COPY = bilingual(
     ready: 'Nous l’aurons prête pour vous au salon',
     readyRent: 'Essayez-la lors de votre essayage, nous la livrons pour la soirée',
     source: 'Une autre forme ou une autre taille ? Nous la trouverons pour votre visite.',
+    designer: 'Créer votre bague',
+    makeItYours: 'Faites-la vôtre : une autre pierre, d’autres griffes, un autre anneau, vus en 3D à chaque choix.',
+    designYourOwn: 'Ou créez-la vous-même, pierre par pierre, vue en 3D et chiffrée à chaque choix.',
     makersNote: 'Note de l’artisan',
     watchNote: 'Mouvement suisse, réglé dans notre atelier et entretenu à vie par notre horloger.',
     remember: 'Nous retiendrons votre taille.',
@@ -168,7 +175,7 @@ const COPY = bilingual(
     details: 'Détails et dimensions',
     reference: 'Référence',
     care: 'Entretien et service',
-    careText: 'Rangez-la à part, dans la pochette fournie. Retirez-la avant de vous baigner ou d’appliquer une lotion. Apportez-la à notre salon chaque année : nettoyage aux ultrasons, inspection des griffes et polissage vous sont offerts.',
+    careText: 'Rangez-la à part, dans la pochette fournie. Retirez-la avant de vous baigner ou d’appliquer une lotion. Apportez-la à notre salon chaque année : nettoyage aux ultrasons, inspection des griffes et polissage vous sont offerts.',
     shipTitle: { CAD: 'Livraison et retours · Canada', USD: 'Livraison et retours · États-Unis' },
     giftTitle: 'Présentation cadeau',
     giftText: 'Chaque pièce arrive dans notre écrin travertin signature, avec une pochette de lin, une carte d’entretien et, si vous le souhaitez, un mot écrit à la main. Les reçus-cadeaux n’indiquent jamais les prix.',
@@ -255,6 +262,8 @@ export default function Product({ slug, mode: asked }: { slug: string; mode?: st
   const pcfg = product.personalization
   const amount = rental ? rental[period][currency] : priceFor(product, currency, metal) + personalizationPrice(product, pcfg ? personal : undefined, currency)
   const ctaLabel = rental ? common.reserve : product.category === 'custom' ? common.commission : common.addToBag
+  // The designer's house design for this ring, or the designer itself for a commission.
+  const designFrom = PRESETS.find((x) => x.slug === product.slug)?.id ?? (product.type === 'commission' ? '' : undefined)
   // The address keeps Own or Rent when it differs from how the piece opens by default, so links and reloads keep it.
   const switchMode = (next: 'own' | 'rent') => {
     setMode(next)
@@ -631,6 +640,16 @@ export default function Product({ slug, mode: asked }: { slug: string; mode?: st
               {rental ? t.readyRent : t.ready} · <button type="button" onClick={() => openAsk([product.slug])} className="inline-flex items-center gap-1.5 text-[var(--text-espresso)] underline decoration-[var(--gold-vermeil)] underline-offset-4"><MessageCircle size={12} strokeWidth={1.4} /> {t.jeweller}</button>
             </p>
             {engagement && <p className="mt-2 text-center text-xs text-[var(--text-taupe)]">{t.source}</p>}
+            {/* This ring, or a commission, in the designer: a house design opens as it is, ready to change */}
+            {designFrom !== undefined && (
+              <a href={href.designer(designFrom ? { from: designFrom } : undefined)} className="group mt-6 flex items-center justify-between gap-4 border border-[var(--border-hairline)] px-5 py-4 transition-colors duration-500 hover:border-[var(--text-espresso)]">
+                <span>
+                  <span className="font-spec block text-[9px] uppercase tracking-[0.26em] text-[var(--gold-ink)]">{t.designer}</span>
+                  <span className="mt-1 block text-sm leading-relaxed">{designFrom ? t.makeItYours : t.designYourOwn}</span>
+                </span>
+                <ArrowRight size={14} strokeWidth={1.4} className="shrink-0 transition-transform duration-500 group-hover:translate-x-1" />
+              </a>
+            )}
           </div>
 
           {/* Maker's note: who made it, and where */}

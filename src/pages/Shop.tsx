@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { CATEGORIES, IMG, PRODUCTS, pic } from '../data/catalog'
 import { bilingual, useCopy } from '../i18n'
 import { useCatalog } from '../i18n/catalog'
@@ -18,6 +18,9 @@ const COPY = bilingual(
     text: 'Everything the house makes and curates, in one place: designed and finished in our atelier on rue Sherbrooke.',
     chapters: 'Or walk the chapters',
     alt: 'A tray of pieces from every chapter',
+    search: 'Search',
+    searchTitle: (q: string) => `“<em>${q}</em>”`,
+    searchText: 'From all nine chapters, with every filter below.',
   },
   {
     maison: 'Maison',
@@ -26,28 +29,39 @@ const COPY = bilingual(
     text: 'Tout ce que la maison fait et choisit, au même endroit : dessiné et fini dans notre atelier, rue Sherbrooke.',
     chapters: 'Ou parcourez les chapitres',
     alt: 'Un plateau de pièces de tous les chapitres',
+    search: 'Recherche',
+    searchTitle: (q) => `« <em>${q}</em> »`,
+    searchText: 'Dans les neuf chapitres, avec tous les filtres ci-dessous.',
   },
 )
 
-/** Shop all (`#/shop`, Shopify's /collections/all): every piece, filterable by chapter, type, metal, price and renting. */
+/** Shop all (`#/shop`, Shopify's /collections/all): every piece, filterable by chapter, type, metal, price and renting.
+ *  With a search (`?q=`, the header's "See all", Shopify's /search) its hero names the search and gives the grid room. */
 export default function Shop({ query }: { query: Query }) {
   const root = useRef<HTMLDivElement>(null)
   const { replaceQuery, openAsk } = useStore()
   const t = useCopy(COPY)
   const catalog = useCatalog()
+  // The search the grid holds: taking its chip out returns the hero to every piece.
+  const [searching, setSearching] = useState(query.q ?? '')
+  const q = searching.replace(/<\/?em>/g, '').trim()
   useReveal(root, [])
   // Gift cards have their own page; every other piece is here.
   const pieces = PRODUCTS.filter((p) => p.type !== 'gift-card')
+  const onQuery = (next: Query) => {
+    replaceQuery(next)
+    setSearching(next.q ?? '')
+  }
 
   return (
     <div ref={root}>
-      <section className="relative h-[56vh] min-h-[440px] overflow-hidden bg-[var(--bg-vault)]">
+      <section className={`relative overflow-hidden bg-[var(--bg-vault)] ${q ? 'min-h-[max(340px,40vh)]' : 'h-[56vh] min-h-[440px]'}`}>
         <img data-parallax {...pic(IMG.tray)} alt={t.alt} className="absolute inset-0 h-full w-full object-cover opacity-55" />
         <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-vault)]/90 to-transparent" />
-        <div className="relative mx-auto flex h-full max-w-[1600px] flex-col justify-end px-6 pb-14 text-[var(--bg-travertine)] lg:px-12">
-          <p className="font-spec text-[10px] uppercase tracking-[0.32em] text-[var(--gold-champagne)]"><a href={href.home} className="hover:text-white">{t.maison}</a> / {t.eyebrow}</p>
-          <h1 className="font-serif-editorial mt-5 text-7xl font-light leading-none lg:text-[8.5rem]">{rich(t.title, 'text-[var(--gold-champagne)]')}</h1>
-          <p className="mt-6 max-w-lg text-white/75">{t.text}</p>
+        <div className={`relative mx-auto flex max-w-[1600px] flex-col justify-end px-6 pb-14 text-[var(--bg-travertine)] lg:px-12 ${q ? 'min-h-[inherit] pt-24' : 'h-full'}`}>
+          <p className="font-spec text-[10px] uppercase tracking-[0.32em] text-[var(--gold-champagne)]"><a href={href.home} className="hover:text-white">{t.maison}</a> / {q ? t.search : t.eyebrow}</p>
+          <h1 className={`font-serif-editorial mt-5 font-light leading-none ${q ? 'text-5xl wrap-anywhere lg:text-7xl' : 'text-7xl lg:text-[8.5rem]'}`}>{rich(q ? t.searchTitle(q) : t.title, 'text-[var(--gold-champagne)]')}</h1>
+          <p className="mt-6 max-w-lg text-white/75">{q ? t.searchText : t.text}</p>
         </div>
       </section>
 
@@ -62,7 +76,7 @@ export default function Shop({ query }: { query: Query }) {
         </div>
       </nav>
 
-      <PieceGrid pieces={pieces} initial={query} onQuery={replaceQuery} chapters interlude={<Interlude />} onAsk={() => openAsk()} />
+      <PieceGrid pieces={pieces} initial={query} onQuery={onQuery} chapters interlude={<Interlude />} onAsk={() => openAsk()} />
       <VisitBand />
       <RecentlyViewed />
     </div>

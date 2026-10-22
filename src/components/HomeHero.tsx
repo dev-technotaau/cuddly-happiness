@@ -429,7 +429,9 @@ export default function HomeHero() {
                   const accent = li === SLIDES[i].italic
                   return (
                     // Keyed by position: a language switch rewrites the words in place, keeping the line's settled state.
-                    <span key={li} className="block overflow-hidden pb-[0.24em] -mb-[0.16em]">
+                    // The italic is larger and its descenders (g, f, y) deeper, so the line after it sits a little lower
+                    // and they clear its ascenders.
+                    <span key={li} className={`block overflow-hidden pb-[0.24em] ${accent ? '-mb-[0.05em]' : '-mb-[0.16em]'}`}>
                       <span data-line className="relative inline-flex items-start">
                         {accent && <span data-rule aria-hidden="true" className="mr-[0.3em] mt-[0.56em] h-px w-[0.9em] shrink-0 bg-[linear-gradient(90deg,rgba(212,185,130,0)_0%,rgba(212,185,130,0.55)_45%,var(--gold-champagne)_100%)] sm:w-[1.5em]" />}
                         <span

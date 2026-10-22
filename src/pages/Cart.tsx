@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import { ArrowRight, CalendarDays, Gem, Lock, RotateCcw, ShieldCheck, Truck } from 'lucide-react'
-import { formatDay } from '../data/catalog'
+import { formatDay, getProduct } from '../data/catalog'
+import { HOUSE } from '../data/house'
+import { RING_COPY } from '../data/ringCopy'
+import { DEPOSIT_SHARE } from '../data/ringPrice'
 import { PROVINCES, provinceName } from '../data/tax'
-import { bilingual, useCopy } from '../i18n'
+import { bilingual, formatNumber, useCopy } from '../i18n'
 import { COMMON } from '../i18n/common'
 import { rich } from '../i18n/rich'
 import { href, useStore } from '../store'
@@ -42,7 +45,7 @@ const COPY = bilingual(
       ['Insured, signature delivery', 'Shipped in discreet packaging and fully insured until it is in your hands.'],
       ['30-day returns', 'Complimentary returns on unworn pieces. Engraved and custom work is final sale.'],
       ['Lifetime care', 'Free annual cleaning, inspection and claw re-tightening at the atelier.'],
-      ['Certified & conflict-free', 'Every stone traceable, with GIA or IGI certification above 0.30 ct.'],
+      ['Certified & conflict-free', 'Every stone traceable, and every diamond with its GIA report.'],
     ] as [string, string][],
     summary: 'Summary',
     jewellery: 'Jewellery',
@@ -63,6 +66,7 @@ const COPY = bilingual(
     instalments: 'Or 4 interest-free payments of',
     shopPay: 'with Shop Pay',
     arrives: 'Order today, arrives by',
+    making: (weeks: number) => `Made to order in our atelier: about ${weeks} weeks.`,
     checkout: 'Secure checkout',
     codes: 'Gift cards and promo codes can be applied at checkout.',
     questions: 'Questions?',
@@ -86,7 +90,7 @@ const COPY = bilingual(
       ['Livraison assurée, avec signature', 'Expédiée dans un emballage discret et entièrement assurée jusqu’à ce qu’elle soit entre vos mains.'],
       ['Retours sous 30 jours', 'Retours gratuits pour les pièces non portées. Les gravures et les créations sur mesure sont des ventes finales.'],
       ['Entretien à vie', 'Nettoyage annuel, inspection et resserrage des griffes offerts à l’atelier.'],
-      ['Certifiées et exemptes de conflits', 'Chaque pierre est traçable, avec certification GIA ou IGI au-delà de 0,30 ct.'],
+      ['Certifiées et exemptes de conflits', 'Chaque pierre est traçable, et chaque diamant a son rapport GIA.'],
     ],
     summary: 'Récapitulatif',
     jewellery: 'Bijoux',
@@ -107,6 +111,7 @@ const COPY = bilingual(
     instalments: 'Ou 4 versements sans intérêt de',
     shopPay: 'avec Shop Pay',
     arrives: 'Commandez aujourd’hui, livraison d’ici le',
+    making: (weeks) => `Faite sur commande dans notre atelier\u00a0: environ ${weeks} semaines.`,
     checkout: 'Paiement sécurisé',
     codes: 'Les cartes-cadeaux et les codes promo s’appliquent au paiement.',
     questions: 'Des questions?',
@@ -122,13 +127,21 @@ const PERK_ICONS = [Truck, RotateCcw, Gem, ShieldCheck]
 export default function Cart() {
   const { cart, currency, clearCart, meta, openAsk } = useStore()
   // The bag's pieces, as a visit would prepare them.
-  const pieces = cart.filter((l) => !l.giftCard).map((l) => ({ slug: l.slug, metal: l.metal, size: l.size, rent: !!l.rental || undefined }))
+  const pieces = cart.filter((l) => !l.giftCard).map((l) => ({ slug: l.slug, metal: l.metal, size: l.size, rent: !!l.rental || undefined, design: l.design }))
+  // Made to order (a designed ring, a commission): the longest making time in the bag, instead of a delivery date.
+  const making = Math.max(0, ...cart.filter((l) => !l.giftCard && !l.rental).map((l) => getProduct(l.slug)?.leadTimeWeeks ?? 0))
   const t = useCopy(COPY)
   const common = useCopy(COMMON)
-  const { merch, giftCards, subtotal, count, installment, hasMerch, rewardUnlocked, hasRental } = useCartTotals()
+  const r = useCopy(RING_COPY)
+  const house = useCopy(HOUSE)
+  const { merch, giftCards, subtotal, count, installment, hasMerch, rewardUnlocked, hasRental, balance, dueNow, taxAt } = useCartTotals()
   const [region, setRegion] = useState('QC')
-  const tax = currency === 'CAD' ? Math.round(merch * (PROVINCES[region]?.rate ?? 0)) : null
+  const taxes = currency === 'CAD' ? taxAt(PROVINCES[region]?.rate ?? 0) : null
+  const tax = taxes ? taxes.total : null
   const total = subtotal + (tax ?? 0)
+  // A designed ring is paid in two parts: what checkout takes today, and the balance on approval of its design.
+  const today = dueNow + (taxes?.now ?? 0)
+  const later = balance + (taxes?.later ?? 0)
   const onlyGiftCards = cart.length > 0 && !hasMerch
 
   const row = (label: React.ReactNode, value: React.ReactNode, muted = false) => (
@@ -227,12 +240,22 @@ export default function Cart() {
                   <span className="text-[11px] uppercase tracking-[0.22em]">{tax !== null && hasMerch ? t.estimated : t.subtotal}</span>
                   <Price amount={total} className="font-serif-editorial text-3xl" />
                 </div>
-                <p className="mt-2 text-xs text-[var(--text-taupe)]">{t.instalments} <Price amount={installment} className="[&_span]:hidden" /> {t.shopPay}</p>
+                {later > 0 && (
+                  <div className="mt-4 space-y-2 border-t border-[var(--border-hairline)] pt-4">
+                    <div className="flex items-baseline justify-between gap-4">
+                      <span className="text-[11px] uppercase tracking-[0.22em]">{r.dueToday}</span>
+                      <Price amount={today} className="text-xl" />
+                    </div>
+                    {row(r.balance, <Price amount={later} />, true)}
+                    <p className="text-xs leading-relaxed text-[var(--text-taupe)]">{house.deposit(formatNumber(DEPOSIT_SHARE, { style: 'percent' }))}</p>
+                  </div>
+                )}
+                {balance === 0 && <p className="mt-2 text-xs text-[var(--text-taupe)]">{t.instalments} <Price amount={installment} className="[&_span]:hidden" /> {t.shopPay}</p>}
 
                 {hasMerch && !hasRental && (
                   <p className="mt-6 flex items-center gap-2.5 bg-[var(--bg-silk)] px-4 py-3 text-xs text-[var(--text-taupe)]">
                     <CalendarDays size={14} strokeWidth={1.3} className="shrink-0 text-[var(--gold-vermeil)]" />
-                    {t.arrives} <span className="text-[var(--text-espresso)]">{deliveryDate(4)}</span>
+                    {making ? t.making(making) : <>{t.arrives} <span className="text-[var(--text-espresso)]">{deliveryDate(4)}</span></>}
                   </p>
                 )}
 
@@ -250,7 +273,7 @@ export default function Cart() {
                 </div>
               )}
               <p className="mt-6 text-center text-xs text-[var(--text-taupe)]">
-                {t.questions} <button type="button" onClick={() => openAsk(pieces.map((p) => p.slug))} className="border-b border-[var(--gold-vermeil)] text-[var(--text-espresso)]">{t.consult}</button>
+                {t.questions} <button type="button" onClick={() => openAsk(pieces.filter((p) => !p.design).map((p) => p.slug), pieces.flatMap((p) => (p.design ? [p.design] : [])))} className="border-b border-[var(--gold-vermeil)] text-[var(--text-espresso)]">{t.consult}</button>
               </p>
             </aside>
           </div>

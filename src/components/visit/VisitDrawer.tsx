@@ -61,7 +61,7 @@ export default function VisitDrawer() {
   return (
     <>
       <div onClick={closeVisit} aria-hidden className={`fixed inset-0 z-[80] bg-[var(--bg-vault)]/45 backdrop-blur-[2px] transition-opacity duration-500 ${open ? 'opacity-100' : 'pointer-events-none opacity-0'}`} />
-      <aside role="dialog" aria-modal="true" aria-label={t.label} aria-hidden={!open} inert={!open} className={`fixed right-0 top-0 z-[90] flex h-full w-full max-w-[540px] flex-col bg-[var(--bg-travertine)] shadow-[-24px_0_60px_-30px_rgba(40,30,20,0.35)] transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${open ? 'translate-x-0' : 'translate-x-full'}`}>
+      <aside role="dialog" aria-modal="true" aria-label={t.label} aria-hidden={!open} inert={!open} className={`fixed right-0 top-0 z-[90] flex h-full w-full max-w-[540px] flex-col bg-[var(--bg-travertine)] shadow-[-24px_0_60px_-30px_rgba(40,30,20,0.35)] transition-[transform,visibility] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${open ? 'visible translate-x-0' : 'invisible translate-x-full'}`}>
         <header className="border-b border-[var(--border-hairline)] px-7 pb-6 pt-6">
           <div className="flex items-start justify-between gap-6">
             <div>

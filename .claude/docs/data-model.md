@@ -152,7 +152,7 @@ export interface RentalBooking {
 
 | Field | Type |
 |---|---|
-| `key` | `string` (`lineKey(...)` = slug, metal, rental, engraving, size, plus JSON of booking, personalization and giftCard, joined by `\|`) |
+| `key` | `string` (`lineKey(...)` = slug, metal, rental, engraving, size, plus JSON of booking, personalization and giftCard, then `design`, joined by `\|`) |
 | `slug` | `string` |
 | `metal?` | `Metal` |
 | `rental?` | `'weekend' \| 'week' \| 'month'` |
@@ -1053,7 +1053,7 @@ Line catalogue, in push order:
 | `insure` | services | `Insured shipping & presentation box` | CAD: `Signature courier, Canada`; USD: `Signature courier, duties prepaid` | always |
 | `engrave` | services | `Engraving` | `Hand or laser, up to 18 characters` (0, included) | `p.engravable` |
 | `care` | services | `Lifetime care plan` | `Annual cleaning, claw checks, polish` (0, included) | always |
-| `margin` | margin | `Design, showroom & maison margin` | `Design, salon, staff, warranty reserve` | always |
+| `margin` | margin | `Design, salon & maison margin` | `Design, salon, staff, warranty reserve` | always |
 | `accent` | options | `p.personalization?.accent?.label ?? 'Option'` | `Selected option` | accent > 0 |
 
 **Worked example:** `notre-dame-oval-solitaire`, platinum, CAD. The price is 19550 and `labourHours` is 15.
@@ -1070,7 +1070,7 @@ Line catalogue, in push order:
 | insure | Insured shipping & presentation box | Signature courier, Canada | 48 |
 | engrave | Engraving | Hand or laser, up to 18 characters | 0 (included) |
 | care | Lifetime care plan | Annual cleaning, claw checks, polish | 0 (included) |
-| margin | Design, showroom & maison margin | Design, salon, staff, warranty reserve | 5624 |
+| margin | Design, salon & maison margin | Design, salon, staff, warranty reserve | 5624 |
 
 Reference results with the default metal in CAD, useful for regression checks after changing constants:
 
@@ -1111,15 +1111,20 @@ Easing also runs for every gold variant, in both currencies, of `griffintown-cha
 ### 8.5 `splitTaxes` and `categoryName`
 
 ```ts
-export function splitTaxes(label: string, amount: number): { name: string; rate: number; amount: number }[] {
-  const parts = [...label.matchAll(/([A-Z]+)\s*([\d.]+)%/g)].map((x) => ({ name: x[1], rate: Number(x[2]) / 100 }))
-  return parts.map((t) => ({ ...t, amount: Math.round(amount * t.rate) }))
+export function splitTaxes(tax: { label: string; rate: number }, amount: number): { name: string; rate: number; amount: number }[] {
+  const parts = [...tax.label.matchAll(/([A-Z]+)\s*([\d.]+)%/g)].map((x) => ({ name: x[1], rate: Number(x[2]) / 100 }))
+  let left = Math.round(amount * tax.rate)
+  return parts.map((t, i) => {
+    const part = i === parts.length - 1 ? left : Math.round(amount * t.rate)
+    left -= part
+    return { ...t, amount: part }
+  })
 }
 ```
 
-`splitTaxes` parses a `PROVINCES[x].label` such as `GST 5% + QST 9.975%` into components and **rounds each component separately**. Applied to 10000, `QC` gives GST 500 + QST 997; `ON` gives HST 1300. Its only caller is `PriceBreakdown`, which uses the selected province (default `'QC'`). Cart and Checkout instead compute `Math.round(merch × rate)` on the combined rate (see Notes).
+`splitTaxes` takes a `PROVINCES` entry and parses its label, such as `GST 5% + QST 9.975%`, into lines. Each line rounds on its own except the last, which takes what remains of `Math.round(amount × rate)`, so the lines add up to the tax Cart and Checkout compute on the combined rate. Applied to 10000, `QC` gives GST 500 + QST 998 = 1498; `ON` gives HST 1300. Its callers are `PriceBreakdown` and the designer's `RingBreakdown`, each with its selected province (default `'QC'`).
 
-`categoryName = (p) => getCategory(p.category)?.name ?? ''` is exported, but nothing calls it.
+`categoryName = (p) => (getCategory(p.category) ? catalogFor().category(p.category).name : '')` gives a piece's chapter name in the visitor's language.
 
 ---
 
@@ -1149,7 +1154,7 @@ File comment: `// Canadian sales tax by province (GST/HST + PST/QST), 2024 rates
 
 | Export | Callers |
 |---|---|
-| `PROVINCES` | `src/pages/Cart.tsx` (default `'QC'`; `PROVINCES[region]?.rate ?? 0`, CAD only); `src/pages/Checkout.tsx` (default `'QC'`; `PROVINCES[province].rate`; summary label ``Tax · ${label}``); `src/components/pdp/PriceBreakdown.tsx` (`splitTaxes(label, price)`) |
+| `PROVINCES` | `src/pages/Cart.tsx` (default `'QC'`; `PROVINCES[region]?.rate ?? 0`, CAD only); `src/pages/Checkout.tsx` (default `'QC'`; `PROVINCES[province].rate`; summary label ``Tax · ${label}``); `src/components/pdp/PriceBreakdown.tsx` and `src/components/designer/RingBreakdown.tsx` (`splitTaxes(PROVINCES[province], price)`) |
 | `US_STATES` | `src/pages/Checkout.tsx` (uncontrolled `<select>`); `src/components/pdp/PriceBreakdown.tsx` (controlled; default `US_STATES[0]`) |
 
 ---
@@ -1367,7 +1372,7 @@ Observations and risks. These are not prescriptive, apart from the recommendatio
 2. **Bookings slide with today**, and a booking stored in the cart is never re-validated. A date that was free when added can show as reserved on a later day.
 3. **Three different USD rounding rules** (§5.2). With a metal delta, USD prices are not multiples of 5 (vermeil Plateau USD 1498, Mile End 1133, Griffintown 913, Initial Disc 203, Nameplate 623), while `toUSD(-400)` would give −290. Gift-card conversions use nearest-1 (250 CAD → 183 USD).
 4. **The base price differs from the default-metal price for platinum-first products.** For `notre-dame-oval-solitaire`, `basilique-emerald-cut-three-stone`, `promesse-wedding-band` and `bespoke-engagement-commission`, every list surface calls `priceFor(p, currency)` with no metal and shows the gold base: ProductCard, category sorting, RecentlyViewed, CartUpsell, GiftFinder, video chips, CompleteTheLook totals. The PDP, TryOnStudio, CompleteTheLook's "add set" and Wishlist's "add all" use `metals[0]` = platinum instead, which costs +650 CAD / +475 USD. For example, Notre-Dame is listed at 18900 CAD but the PDP opens at 19550, and a CompleteTheLook set shows the base price but adds platinum lines.
-5. **PDP tax can be $1 off cart and checkout tax.** `PriceBreakdown` rounds each component (`splitTaxes`), while Cart and Checkout round the combined rate. 82 product, metal and province combinations differ by $1, e.g. Mont-Royal 6850 CAD in BC: 823 vs 822; Mile End Huggies 1950 in QC: 293 vs 292.
+5. **PDP tax matches cart and checkout tax (fixed 2026-10-22, KI-027).** `splitTaxes` once rounded each component on its own and ran $1 over for 82 product, metal and province combinations (Mont-Royal 6850 CAD in BC: 823 vs 822). Its last line now takes the remainder, so the breakdown and the cart agree to the dollar.
 6. **The tax data may be stale.** It is hardcoded under a "2024 rates" comment. Verify every rate before production. For example, NS appears at 14%, but to the best of my knowledge NS HST was 15% throughout 2024, so the comment and the data may not describe the same year. There are no territories (YT, NT, NU), and Manitoba's tax is labelled `PST`.
 7. **Nameplate validation is loose and strict at once.**
    - `À-ÿ` admits `×` and `÷`.

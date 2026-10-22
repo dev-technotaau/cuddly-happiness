@@ -6,6 +6,8 @@ const WORDS: Record<string, string> = {
   jeweller: 'jeweler',
   jewellers: 'jewelers',
   jewelled: 'jeweled',
+  gemmological: 'gemological',
+  gemmologist: 'gemologist',
   centre: 'center',
   centres: 'centers',
   centred: 'centered',

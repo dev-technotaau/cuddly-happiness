@@ -1,12 +1,12 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { ArrowRight, Heart, MessageCircle, Search, ShoppingBag, User } from 'lucide-react'
-import { CATEGORIES, IMG, PRODUCTS, SIGNATURES, cardPrice, getCategory, getProduct, getProductsByCategory, signaturePieces, type Product } from '../../data/catalog'
+import { CATEGORIES, IMG, PRODUCTS, SIGNATURES, cardPrice, getProduct, getProductsByCategory, signaturePieces, type Product } from '../../data/catalog'
 import { HOUSE, HOUSE_IMG } from '../../data/house'
 import { DENOMINATIONS } from '../../data/giftcards'
 import { SALON, salonStatus } from '../../data/salon'
-import { bilingual, pick, useCopy, useLocale } from '../../i18n'
-import { catalogFor, useCatalog, type CatalogCopy } from '../../i18n/catalog'
+import { bilingual, useCopy, useLocale } from '../../i18n'
+import { useCatalog, type CatalogCopy } from '../../i18n/catalog'
 import { rich } from '../../i18n/rich'
 import { href, useStore } from '../../store'
 import GiftCardArt from '../giftcard/GiftCardArt'
@@ -15,7 +15,7 @@ import Price from '../Price'
 import { getLenis } from '../SmoothScroll'
 import Burger from './Burger'
 import Marked from './Marked'
-import { KEYWORDS, chapterFields, entry, pieceFields, rank, signatureFields } from './search'
+import useHouseSearch from './useHouseSearch'
 
 export type MenuFocus = 'pointer' | 'keyboard' | 'search'
 
@@ -58,7 +58,7 @@ interface RailItem {
 const COPY = bilingual(
   {
     // The desktop bar, repeated: [title, italic accent].
-    rail: { shop: ['Shop', 'La boutique'], bridal: ['Bridal', 'Mariage'], rentals: ['Rentals', 'Location'], atelier: ['The Atelier', 'L’Atelier'] } as Record<'shop' | 'bridal' | 'rentals' | 'atelier', [string, string]>,
+    rail: { shop: ['Shop', 'La boutique'], bridal: ['Bridal', 'Mariage'], rentals: ['Rentals', 'Location'], designer: ['Design your ring', 'Sur mesure'], atelier: ['The Atelier', 'L’Atelier'] } as Record<'shop' | 'bridal' | 'rentals' | 'designer' | 'atelier', [string, string]>,
     suggestions: ['Diamond', 'Pearl', 'Emerald', 'Mont-Royal', 'Platinum'],
     from: 'From',
     pieces: (n: number) => `${n} piece${n === 1 ? '' : 's'}`,
@@ -75,6 +75,7 @@ const COPY = bilingual(
     neverExpires: 'never expires',
     chooseGiftCard: 'Choose a gift card',
     atelier: { title: 'The Atelier', kicker: 'L’Atelier', note: 'Films from the bench, and private visits in our salon.', cta: 'Visit the atelier' },
+    designer: { title: 'The ring designer', kicker: 'Sur mesure', note: 'An engagement ring designed stone by stone, seen in 3D and priced line by line as you choose.', cta: 'Design your ring' },
     wishlist: { title: 'Wishlist', kicker: 'Liste de souhaits', saved: (n: number) => `${n} piece${n === 1 ? '' : 's'} saved on this device.`, empty: 'Save any piece with its heart to find it here.', cta: 'Open your wishlist' },
     account: { title: 'Your account', kicker: 'Mon compte', note: 'Orders, rental returns and your gift-card wallet.', open: 'Open your account' },
     signIn: 'Sign in',
@@ -108,7 +109,7 @@ const COPY = bilingual(
     tryThese: 'Try a stone, a metal or a Montréal place:',
   },
   {
-    rail: { shop: ['Boutique', 'les chapitres'], bridal: ['Mariage', 'pour la vie'], rentals: ['Location', 'le temps d’un soir'], atelier: ['L’Atelier', 'rue Sherbrooke'] },
+    rail: { shop: ['Boutique', 'les chapitres'], bridal: ['Mariage', 'pour la vie'], rentals: ['Location', 'le temps d’un soir'], designer: ['Créer votre bague', 'sur mesure'], atelier: ['L’Atelier', 'rue Sherbrooke'] },
     suggestions: ['Diamant', 'Perle', 'Émeraude', 'Mont-Royal', 'Platine'],
     from: 'Dès',
     pieces: (n) => `${n} pièce${n < 2 ? '' : 's'}`,
@@ -125,6 +126,7 @@ const COPY = bilingual(
     neverExpires: 'sans expiration',
     chooseGiftCard: 'Choisir une carte-cadeau',
     atelier: { title: 'L’Atelier', kicker: 'Montréal · Depuis 1962', note: 'Des films tournés à l’établi, et des visites privées dans notre salon.', cta: 'Visiter l’atelier' },
+    designer: { title: 'Créer votre bague', kicker: 'Sur mesure', note: 'Une bague de fiançailles créée pierre par pierre, vue en 3D et chiffrée ligne par ligne à chaque choix.', cta: 'Créer votre bague' },
     wishlist: { title: 'Liste de souhaits', kicker: 'Vos coups de cœur', saved: (n) => (n < 2 ? `${n} pièce enregistrée sur cet appareil.` : `${n} pièces enregistrées sur cet appareil.`), empty: 'Touchez le cœur d’une pièce pour la retrouver ici.', cta: 'Ouvrir votre liste' },
     account: { title: 'Votre compte', kicker: 'Espace client', note: 'Commandes, retours de location et portefeuille de cartes-cadeaux.', open: 'Ouvrir votre compte' },
     signIn: 'Se connecter',
@@ -238,9 +240,10 @@ function Preview({ dest, onNavigate }: { dest: Dest | null; onNavigate: () => vo
 export default function SiteMenu({ open, focus, onClose, trigger, onCover }: Props) {
   const { route, currency, setCurrency, wishlist, user, count, setCartOpen, recent, clearRecent, openVisit, openAsk } = useStore()
   const house = useCopy(HOUSE)
-  const { lang, locale } = useLocale()
+  const { locale } = useLocale()
   const t = useCopy(COPY)
   const catalog = useCatalog()
+  const { find } = useHouseSearch()
   const [shown, setShown] = useState(false)
   const [panel, setPanel] = useState<string | null>(null)
   const [query, setQuery] = useState('')
@@ -271,13 +274,13 @@ export default function SiteMenu({ open, focus, onClose, trigger, onCover }: Pro
 
   // Where the visitor is, so the menu can mark it.
   const currentCat = route.name === 'category' ? route.slug : route.name === 'product' ? getProduct(route.slug)?.category ?? null : null
-  const currentRail = route.name === 'atelier' ? 'atelier' : currentCat === 'bridal' || currentCat === 'rentals' ? currentCat : currentCat || route.name === 'giftcards' || route.name === 'shop' ? 'shop' : null
+  const currentRail = route.name === 'atelier' ? 'atelier' : route.name === 'designer' ? 'designer' : currentCat === 'bridal' || currentCat === 'rentals' ? currentCat : currentCat || route.name === 'giftcards' || route.name === 'shop' ? 'shop' : null
   const currentDest = route.name === 'giftcards' ? 'giftcards' : route.name === 'shop' ? 'all' : currentCat
 
   // The bar, repeated. New pages join it as they arrive; give an entry a `panel` to unfold a list beside the rail.
   const rail = useMemo<RailItem[]>(() => {
     const item = (id: keyof typeof t.rail, link: Partial<RailItem>): RailItem => ({ id, title: t.rail[id][0], accent: t.rail[id][1], ...link })
-    return [item('shop', { panel: 'shop' }), item('bridal', { url: href.category('bridal') }), item('rentals', { url: href.category('rentals') }), item('atelier', { url: href.atelier })]
+    return [item('shop', { panel: 'shop' }), item('bridal', { url: href.category('bridal') }), item('rentals', { url: href.category('rentals') }), item('designer', { url: href.designer() }), item('atelier', { url: href.atelier })]
   }, [t])
 
   const shop = useMemo<Dest[]>(() => [
@@ -329,6 +332,7 @@ export default function SiteMenu({ open, focus, onClose, trigger, onCover }: Pro
   const pages = useMemo<Dest[]>(() => {
     const saved = wishlist.map((slug) => getProduct(slug)).filter((p): p is Product => !!p)
     return [
+      { id: 'g:designer', title: t.designer.title, url: href.designer(), kicker: t.designer.kicker, note: t.designer.note, image: IMG.sketchRings, cta: t.designer.cta },
       { id: 'g:atelier', title: t.atelier.title, url: href.atelier, kicker: t.atelier.kicker, note: t.atelier.note, image: IMG.ring2, cta: t.atelier.cta },
       { id: 'g:giftcards', title: t.giftCards[0], url: href.giftcards, kicker: t.giftCards[1], note: t.giftNote, image: IMG.gift1, cta: t.chooseGiftCard },
       { id: 'g:wishlist', title: t.wishlist.title, url: href.wishlist, kicker: t.wishlist.kicker, note: saved.length ? t.wishlist.saved(saved.length) : t.wishlist.empty, image: saved[0]?.images[0] ?? IMG.necklace2, cta: t.wishlist.cta },
@@ -338,28 +342,18 @@ export default function SiteMenu({ open, focus, onClose, trigger, onCover }: Pro
     ]
   }, [wishlist, user, count, t])
 
-  // Search reads both languages: a visitor can type "ring" on the French site or "bague" on the English one. The
-  // language on screen ranks first, and results show in it.
-  const index = useMemo(() => {
-    const otherLocale = lang === 'fr' ? 'en-CA' : 'fr-CA'
-    const other = catalogFor(otherLocale)
-    const otherHouse = pick(HOUSE, otherLocale)
-    return {
-      // The two signature pages answer as chapters do, and rank with them.
-      chapters: shop.filter((d) => d.numeral || d.id.startsWith('sig:')).map((d) => {
-        const sig = SIGNATURES.find((x) => `sig:${x.id}` === d.id)
-        return entry(d.id, d, sig ? signatureFields(house.signatures[sig.id], otherHouse.signatures[sig.id]) : chapterFields(getCategory(d.id) ?? CATEGORIES[0], catalog, other))
-      }),
-      pieces: PRODUCTS.map((p) => entry(p.slug, p, pieceFields(p, catalog, other))),
-      pages: pages.map((d) => entry(d.id, d, [[d.title, 10], [KEYWORDS[d.id] ?? '', 4]])),
-    }
-  }, [shop, pages, catalog, house, lang])
-
-  const groups = useMemo<[string, Dest[]][]>(() => (held.q ? [
-    [t.groups.chapters, rank(index.chapters, held.q, 3).map((e) => e.item)],
-    [t.groups.pieces, rank(index.pieces, held.q, 6).map((e) => pieceDest(e.item, catalog, t.viewPiece))],
-    [t.groups.elsewhere, rank(index.pages, held.q, 3).map((e) => e.item)],
-  ] : []), [held.q, index, catalog, t])
+  // Search is the header's own (useHouseSearch): both languages, prices, renting and typos. Its chapters and pages show
+  // here as the menu's destinations, with their photographs; the two actions have their buttons below the rail.
+  const searched = useMemo(() => (held.q ? find(held.q, currency) : null), [held.q, currency, find])
+  const groups = useMemo<[string, Dest[]][]>(() => {
+    if (!searched) return []
+    const among = (list: Dest[], ids: string[]) => ids.map((id) => list.find((d) => d.id === id)).filter((d): d is Dest => !!d)
+    return [
+      [t.groups.chapters, among(shop, searched.ways.map((w) => w.id))],
+      [t.groups.pieces, searched.pieces.slice(0, 6).map((p) => pieceDest(p, catalog, t.viewPiece))],
+      [t.groups.elsewhere, among(pages, searched.doors.map((d) => d.id))],
+    ]
+  }, [searched, shop, pages, catalog, t])
 
   const sheet = held.mode && held.mode !== 'search' ? panels[held.mode] : undefined
   const list = held.mode === 'search' ? groups.flatMap(([, items]) => items) : sheet?.links ?? []
@@ -671,7 +665,7 @@ export default function SiteMenu({ open, focus, onClose, trigger, onCover }: Pro
       {frame.aligned && cross}
 
       {/* Rail */}
-      <div className={`absolute inset-y-0 left-0 z-[2] flex w-[clamp(340px,30vw,420px)] flex-col bg-[var(--bg-travertine)] shadow-[24px_0_60px_-30px_rgba(40,30,20,0.35)] transition-[translate,opacity] duration-700 ${ease} motion-reduce:duration-300 ${shown ? 'translate-x-0 opacity-100' : '-translate-x-full motion-reduce:translate-x-0 motion-reduce:opacity-0'}`}>
+      <div className={`absolute inset-y-0 left-0 z-[2] flex w-[clamp(340px,30vw,420px)] flex-col bg-[var(--bg-travertine)] shadow-[24px_0_60px_-30px_rgba(40,30,20,0.35)] transition-[translate,opacity,visibility] duration-700 ${ease} motion-reduce:duration-300 ${shown ? 'visible translate-x-0 opacity-100' : 'invisible -translate-x-full motion-reduce:translate-x-0 motion-reduce:opacity-0'}`}>
         {!frame.aligned && cross}
         {/* The announcement strip carries on, with the salon's hours as of now */}
         <div className="flex shrink-0 items-center bg-[var(--bg-vault)] pl-12 pr-8" style={{ height: frame.strip }}>
@@ -830,7 +824,7 @@ export default function SiteMenu({ open, focus, onClose, trigger, onCover }: Pro
                                 )}
                                 <span className="min-w-0 flex-1">
                                   <span className="font-spec block truncate text-[9px] uppercase tracking-[0.22em] text-[var(--text-taupe)]">{d.kicker}</span>
-                                  <span className={`font-serif-editorial mt-1 block truncate pb-0.5 text-[18px] leading-tight transition-colors duration-300 ${d.id === activeId ? 'text-[var(--text-espresso)]' : 'text-[var(--text-taupe)]'}`}><Marked text={d.title} query={held.q} /></span>
+                                  <span className={`font-serif-editorial mt-1 block truncate pb-0.5 text-[18px] leading-tight transition-colors duration-300 ${d.id === activeId ? 'text-[var(--text-espresso)]' : 'text-[var(--text-taupe)]'}`}><Marked text={d.title} query={searched?.reading.words ?? held.q} /></span>
                                 </span>
                               </a>
                             </li>

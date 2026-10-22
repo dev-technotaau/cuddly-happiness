@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { CalendarHeart, Mail, MessageCircle, MessageSquareText, Phone, PhoneIncoming, X } from 'lucide-react'
 import { getProduct, type Product } from '../../data/catalog'
+import { DESIGN_SLUG, decodeDesign } from '../../data/ring'
+import { describeDesign } from '../../data/ringCopy'
 import { SALON, salonDial, salonStatus } from '../../data/salon'
 import { bilingual, formatList, useCopy } from '../../i18n'
 import { useCatalog } from '../../i18n/catalog'
@@ -66,11 +68,12 @@ const WHENS: When[] = ['morning', 'afternoon', 'evening']
  *  the pieces the visitor was looking at written into the message. The links open the visitor's own apps; the call-back
  *  request is simulated. */
 export default function AskSheet() {
-  const { askAbout, closeAsk, openVisit, user } = useStore()
+  const { askAbout, askDesigns, closeAsk, openVisit, user, designs } = useStore()
   const t = useCopy(COPY)
   const catalog = useCatalog()
   const [open, setOpen] = useState(false)
   const [about, setAbout] = useState<string[]>([])
+  const [aboutDesigns, setAboutDesigns] = useState<string[]>([])
   const [name, setName] = useState(user?.name ?? '')
   const [phone, setPhone] = useState('')
   const [when, setWhen] = useState<When>('afternoon')
@@ -84,11 +87,12 @@ export default function AskSheet() {
       return
     }
     setAbout(askAbout)
+    setAboutDesigns(askDesigns)
     setSent(false)
     setError(false)
     const id = requestAnimationFrame(() => setOpen(true))
     return () => cancelAnimationFrame(id)
-  }, [askAbout])
+  }, [askAbout, askDesigns])
 
   useEffect(() => {
     if (!open) return
@@ -112,7 +116,12 @@ export default function AskSheet() {
   }, [open, closeAsk])
 
   const pieces = about.map(getProduct).filter((p): p is Product => !!p)
-  const names = pieces.map(catalog.name)
+  // Rings from the designer are named as designed, with the picture kept with them.
+  const designed = aboutDesigns.flatMap((code) => {
+    const d = decodeDesign(code)
+    return d ? [{ code, title: describeDesign(d).title, image: designs.find((x) => x.code === code)?.image }] : []
+  })
+  const names = [...pieces.map(catalog.name), ...designed.map((x) => x.title)]
   const message = encodeURIComponent(t.message(names))
   const status = salonStatus()
 
@@ -136,7 +145,7 @@ export default function AskSheet() {
   return (
     <>
       <div onClick={closeAsk} aria-hidden className={`fixed inset-0 z-[80] bg-[var(--bg-vault)]/45 backdrop-blur-[2px] transition-opacity duration-500 ${open ? 'opacity-100' : 'pointer-events-none opacity-0'}`} />
-      <aside role="dialog" aria-modal="true" aria-label={t.label} aria-hidden={!open} inert={!open} className={`fixed right-0 top-0 z-[90] flex h-full w-full max-w-[440px] flex-col bg-[var(--bg-travertine)] shadow-[-24px_0_60px_-30px_rgba(40,30,20,0.35)] transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${open ? 'translate-x-0' : 'translate-x-full'}`}>
+      <aside role="dialog" aria-modal="true" aria-label={t.label} aria-hidden={!open} inert={!open} className={`fixed right-0 top-0 z-[90] flex h-full w-full max-w-[440px] flex-col bg-[var(--bg-travertine)] shadow-[-24px_0_60px_-30px_rgba(40,30,20,0.35)] transition-[transform,visibility] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${open ? 'visible translate-x-0' : 'invisible translate-x-full'}`}>
         <header className="border-b border-[var(--border-hairline)] px-7 pb-6 pt-6">
           <div className="flex items-start justify-between gap-6">
             <div>
@@ -151,7 +160,7 @@ export default function AskSheet() {
           <p className="mt-3 text-sm leading-relaxed text-[var(--text-taupe)]">{t.answer}</p>
         </header>
         <div className="flex-1 overflow-y-auto px-7 py-7" data-lenis-prevent>
-          {pieces.length > 0 && (
+          {names.length > 0 && (
             <div className="mb-7">
               <p className="mb-3 text-[11px] uppercase tracking-[0.2em] text-[var(--text-taupe)]">{t.about}</p>
               <div className="flex flex-wrap gap-2">
@@ -159,6 +168,12 @@ export default function AskSheet() {
                   <span key={p.slug} className="flex items-center gap-2.5 border border-[var(--border-hairline)] py-1 pl-1 pr-3 text-[13px]">
                     <img src={p.images[0]} alt="" className="h-9 w-7 object-cover" />
                     <span className="font-serif-editorial text-base">{catalog.name(p)}</span>
+                  </span>
+                ))}
+                {designed.map((x) => (
+                  <span key={x.code} className="flex items-center gap-2.5 border border-[var(--border-hairline)] py-1 pl-1 pr-3 text-[13px]">
+                    {x.image ? <img src={x.image} alt="" className="h-9 w-7 object-cover" /> : <span aria-hidden className="h-9 w-7 bg-[var(--bg-silk)]" />}
+                    <span className="font-serif-editorial text-base">{x.title}</span>
                   </span>
                 ))}
               </div>
@@ -177,7 +192,7 @@ export default function AskSheet() {
               </li>
             ))}
             <li>
-              <button type="button" onClick={() => openVisit({ pieces: about.map((slug) => ({ slug })) })} className="group flex w-full items-center gap-4 py-4 text-left">
+              <button type="button" onClick={() => openVisit({ pieces: [...about.map((slug) => ({ slug })), ...designed.map((x) => ({ slug: DESIGN_SLUG, design: x.code }))] })} className="group flex w-full items-center gap-4 py-4 text-left">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--border-hairline)] text-[var(--gold-vermeil)] transition-colors group-hover:border-[var(--text-espresso)]"><CalendarHeart size={16} strokeWidth={1.3} /></span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm">{t.visit[0]}</span>

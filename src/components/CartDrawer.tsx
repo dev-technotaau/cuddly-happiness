@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { ArrowRight, CalendarHeart, Lock, RotateCcw, ShieldCheck, X } from 'lucide-react'
+import { RING_COPY } from '../data/ringCopy'
 import { bilingual, useCopy } from '../i18n'
 import { useCatalog } from '../i18n/catalog'
 import { href, useStore } from '../store'
@@ -66,7 +67,8 @@ export default function CartDrawer() {
   const { cart, cartOpen, setCartOpen, currency, meta, openVisit, openAsk } = useStore()
   const t = useCopy(COPY)
   const catalog = useCatalog()
-  const { subtotal, count, installment, hasMerch } = useCartTotals()
+  const { subtotal, count, installment, hasMerch, balance, dueNow } = useCartTotals()
+  const r = useCopy(RING_COPY)
   const closeBtn = useRef<HTMLButtonElement>(null)
   const close = () => setCartOpen(false)
 
@@ -103,7 +105,7 @@ export default function CartDrawer() {
         aria-label={t.label}
         aria-hidden={!cartOpen}
         inert={!cartOpen}
-        className={`fixed right-0 top-0 z-[90] flex h-full w-full max-w-[460px] flex-col bg-[var(--bg-travertine)] shadow-[-24px_0_60px_-30px_rgba(40,30,20,0.35)] transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${cartOpen ? 'translate-x-0' : 'translate-x-full'}`}
+        className={`fixed right-0 top-0 z-[90] flex h-full w-full max-w-[460px] flex-col bg-[var(--bg-travertine)] shadow-[-24px_0_60px_-30px_rgba(40,30,20,0.35)] transition-[transform,visibility] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${cartOpen ? 'visible translate-x-0' : 'invisible translate-x-full'}`}
       >
         <header className="border-b border-[var(--border-hairline)] px-7 pb-5 pt-6">
           <div className="flex items-center justify-between">
@@ -149,16 +151,32 @@ export default function CartDrawer() {
 
         {cart.length > 0 && (
           <footer className="border-t border-[var(--border-hairline)] bg-[var(--bg-travertine)] px-7 pb-6 pt-5">
-            <div className="flex items-baseline justify-between">
+            <div className="flex items-baseline justify-between gap-4">
               <span className="text-[11px] uppercase tracking-[0.22em]">{t.subtotal}</span>
               <Price amount={subtotal} className="text-lg" />
             </div>
+            {/* A designed ring: its deposit is what checkout takes; the balance waits for the approval of its design */}
+            {balance > 0 && (
+              <div className="mt-2 space-y-1">
+                <div className="flex items-baseline justify-between gap-4">
+                  <span className="text-[11px] uppercase tracking-[0.22em]">{r.dueTodayPreTax}</span>
+                  <Price amount={dueNow} className="text-lg" />
+                </div>
+                <div className="flex items-baseline justify-between gap-4 text-xs text-[var(--text-taupe)]">
+                  <span>{r.balance}</span>
+                  <Price amount={balance} />
+                </div>
+              </div>
+            )}
             <p className="mt-1.5 text-xs text-[var(--text-taupe)]">
               {shipping}. {t.taxes}{meta.giftWrap && t.wrapped}
             </p>
-            <p className="mt-1 text-xs text-[var(--text-taupe)]">
-              {t.instalments} <Price amount={installment} className="[&_span]:hidden" /> {t.shopPay}
-            </p>
+            {/* Instalments split a whole bag; beside a deposit they would read as splitting it */}
+            {balance === 0 && (
+              <p className="mt-1 text-xs text-[var(--text-taupe)]">
+                {t.instalments} <Price amount={installment} className="[&_span]:hidden" /> {t.shopPay}
+              </p>
+            )}
             <a href={href.checkout} onClick={close} className="group mt-5 flex w-full items-center justify-center gap-3 bg-[var(--text-espresso)] py-4 text-[11px] font-medium uppercase tracking-[0.26em] text-[var(--bg-travertine)] transition-colors hover:bg-[var(--gold-vermeil)]">
               <Lock size={12} strokeWidth={1.6} /> {t.checkout}
               <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
@@ -173,9 +191,9 @@ export default function CartDrawer() {
             {/* The other doors: see it first, or ask */}
             <p className="mt-4 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 border-t border-[var(--border-hairline)] pt-4 text-xs text-[var(--text-taupe)]">
               {t.seeFirst}
-              <button type="button" onClick={() => openVisit({ pieces: cart.filter((l) => !l.giftCard).map((l) => ({ slug: l.slug, metal: l.metal, size: l.size, rent: !!l.rental || undefined })) })} className="inline-flex items-center gap-1.5 text-[var(--text-espresso)] underline decoration-[var(--gold-vermeil)] underline-offset-4"><CalendarHeart size={12} strokeWidth={1.4} /> {t.book}</button>
+              <button type="button" onClick={() => openVisit({ pieces: cart.filter((l) => !l.giftCard).map((l) => ({ slug: l.slug, metal: l.metal, size: l.size, rent: !!l.rental || undefined, design: l.design })) })} className="inline-flex items-center gap-1.5 text-[var(--text-espresso)] underline decoration-[var(--gold-vermeil)] underline-offset-4"><CalendarHeart size={12} strokeWidth={1.4} /> {t.book}</button>
               <span aria-hidden>·</span>
-              <button type="button" onClick={() => openAsk(cart.filter((l) => !l.giftCard).map((l) => l.slug))} className="text-[var(--text-espresso)] underline decoration-[var(--gold-vermeil)] underline-offset-4">{t.ask}</button>
+              <button type="button" onClick={() => openAsk(cart.filter((l) => !l.giftCard && !l.design).map((l) => l.slug), cart.flatMap((l) => (l.design ? [l.design] : [])))} className="text-[var(--text-espresso)] underline decoration-[var(--gold-vermeil)] underline-offset-4">{t.ask}</button>
             </p>
           </footer>
         )}

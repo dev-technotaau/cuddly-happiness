@@ -52,6 +52,10 @@ Container `mx-auto max-w-[1400px] px-6 py-16 lg:px-12 lg:py-24`.
 - Grid: `mt-14 grid gap-x-8 gap-y-16 sm:grid-cols-2 lg:grid-cols-4` of `ProductCard` (with `index` for reveal stagger).
 - Empty state: `Nothing saved yet.` / `Tap the heart on any piece to keep it here.` / `Explore Rings` (`#/c/rings`) and a `RecentlyViewedStrip title="Pieces you looked at" limit={4}`.
 
+### Your designs (2026-10-22)
+
+In the signed-in dashboard, after the visits, when the store keeps any designs (`designs`, `tns-designs`): a hairline box headed `Gem` + “Your designs” / “Vos créations”, a `link-line` “Design another ring” / “Créer une autre bague” to `href.designer()`, and a grid (`grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5`) of hairline-bordered cards: the kept picture in a 4:5 box, the title (`describeDesign`), the price (`<Price amount={ringPrice(d, currency)} />`), and an × (“Remove {title}” / “Retirer {title}”) that calls `forgetDesign`. Picture and title open the designer on that design. See [../features/ring-designer.md](../features/ring-designer.md).
+
 ## Notes & gotchas
 
 - "Add all to bag" skips rentals/personalized/gift card but still adds rings and bridal pieces **without a size** and custom commissions at `metals[0]` (platinum-first pieces add +650 CAD). Mirror the PDP/try-on "needs configuration" rules if you touch it.

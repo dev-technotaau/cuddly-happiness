@@ -10,7 +10,7 @@ type Faq = { id: string; title: string; content: string }
 const COPY = bilingual(
   {
     base: [
-      { id: 'auth', title: 'How do I know my piece is authentic?', content: 'Every piece is hallmarked with our maker’s mark and metal purity, and arrives with a Teresa & Sons certificate of authenticity. Diamonds over 0.50 ct include their original GIA report.' },
+      { id: 'auth', title: 'How do I know my piece is authentic?', content: 'Every piece is hallmarked with our maker’s mark and metal purity, and arrives with a Teresa & Sons certificate of authenticity. Every diamond includes its original GIA report.' },
       { id: 'ship', title: 'Do you ship to the United States?', content: 'Yes. U.S. orders are priced in USD and shipped insured with duties and import fees prepaid — there is nothing to pay on delivery. Canadian orders ship free in CAD.' },
       { id: 'return', title: 'What is your return policy?', content: 'Unworn pieces may be returned within 30 days, and the return is on us. Engraved, personalized and made-to-order pieces are final sale, though we will always work with you to make it right.' },
       { id: 'pay', title: 'Can I pay in instalments?', content: 'Yes — Shop Pay Installments lets you split your purchase into four interest-free payments, or monthly plans on orders over $1,000, subject to approval.' },
@@ -37,7 +37,7 @@ const COPY = bilingual(
   },
   {
     base: [
-      { id: 'auth', title: 'Comment savoir si ma pièce est authentique?', content: 'Chaque pièce porte notre poinçon de maître et le titre de son métal, et arrive avec un certificat d’authenticité Teresa & Sons. Les diamants de plus de 0,50 ct sont accompagnés de leur rapport GIA original.' },
+      { id: 'auth', title: 'Comment savoir si ma pièce est authentique?', content: 'Chaque pièce porte notre poinçon de maître et le titre de son métal, et arrive avec un certificat d’authenticité Teresa & Sons. Chaque diamant est accompagné de son rapport GIA original.' },
       { id: 'ship', title: 'Livrez-vous aux États-Unis?', content: 'Oui. Les commandes américaines sont facturées en dollars américains et expédiées assurées, droits et frais d’importation prépayés — rien à payer à la livraison. Les commandes canadiennes sont livrées gratuitement, en dollars canadiens.' },
       { id: 'return', title: 'Quelle est votre politique de retour?', content: 'Les pièces non portées peuvent être retournées dans les 30 jours, sans frais. Les pièces gravées, personnalisées ou faites sur commande sont des ventes finales, mais nous trouverons toujours une solution avec vous.' },
       { id: 'pay', title: 'Puis-je payer en plusieurs versements?', content: 'Oui — Shop Pay en versements vous permet de répartir votre achat en quatre paiements sans intérêt, ou en mensualités pour les commandes de plus de 1 000 $, sous réserve d’approbation.' },
@@ -46,7 +46,7 @@ const COPY = bilingual(
       bridal: [
         { id: 'conflict', title: 'Vos diamants sont-ils exempts de conflits?', content: 'Tous nos diamants sont achetés conformément au Processus de Kimberley, et nos fournisseurs adhèrent au Système de garanties. Des pierres extraites au Canada sont offertes sur demande.' },
         { id: 'size-surprise', title: 'Une demande surprise — et si la taille n’est pas la bonne?', content: 'Choisissez votre meilleure estimation. Un ajustement de taille est offert la première année, et nous pouvons vous envoyer un baguier discret d’ici là.' },
-        { id: 'natural', title: 'Diamant naturel ou de laboratoire?', content: 'Nous ne sertissons que des diamants naturels, chacun avec son rapport GIA. Vous avez une pierre en tête, une forme, une taille ? Nous la trouvons pour votre visite.' },
+        { id: 'natural', title: 'Diamant naturel ou de laboratoire?', content: 'Nous ne sertissons que des diamants naturels, chacun avec son rapport GIA. Vous avez une pierre en tête, une forme, une taille? Nous la trouvons pour votre visite.' },
       ],
       rentals: [
         { id: 'deposit', title: 'Comment fonctionne le dépôt?', content: 'Un dépôt remboursable est préautorisé sur votre carte au moment de la réservation, puis libéré dans les 48 heures suivant le retour et l’inspection de la pièce.' },
@@ -60,7 +60,7 @@ const COPY = bilingual(
     title: 'Avant de <em>décider</em>',
     concierge: 'Vous ne trouvez pas votre réponse? Un joaillier vous répond en moins d’une heure, du mardi au samedi.',
     contact: 'Parler à un joaillier',
-    credit: { id: 'credit', title: 'Puis-je la louer avant de l’acheter?', content: 'Oui. Louez-la le temps d’un soir, d’une semaine ou d’un mois ; si vous décidez de la garder dans les 60 jours, vos frais de location sont déduits du prix.' },
+    credit: { id: 'credit', title: 'Puis-je la louer avant de l’acheter?', content: 'Oui. Louez-la le temps d’un soir, d’une semaine ou d’un mois; si vous décidez de la garder dans les 60 jours, vos frais de location sont déduits du prix.' },
   },
 )
 

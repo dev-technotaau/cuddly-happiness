@@ -26,7 +26,7 @@ Which building blocks each surface uses:
 | `CartUpsell` | default `layout` (`'rail'`) and `limit` (`3`), `onNavigate={close}` | `layout="grid" limit={4}` | not used |
 | `GiftOptions` | under a "Gifting" label | under "Gifting & notes" | not used; `meta` is never read by checkout |
 | `RewardProgress` | drawer header, if `hasMerch` | Summary box, if `hasMerch` | not used |
-| `useCartTotals` | `subtotal, count, installment, hasMerch` | `merch, giftCards, subtotal, count, installment, hasMerch, rewardUnlocked, hasRental` | not used (computes its own totals) |
+| `useCartTotals` | `subtotal, count, installment, hasMerch, balance, dueNow` | `merch, giftCards, subtotal, count, installment, hasMerch, rewardUnlocked, hasRental, balance, dueNow, taxAt` | `merch, giftCards` (as `giftTotal`), `balance, taxAt` |
 | `lineDetails` | through `CartLineItem` (one `<li>` per detail) | through `CartLineItem` | joined with `' · '` |
 | `Price` | yes | yes | yes |
 | `RecentlyViewedStrip` (`src/components/RecentlyViewed.tsx`) | empty state, `onNavigate={close}` | empty state, and below the upsell grid | empty state |
@@ -53,7 +53,7 @@ export interface CartLine {
 }
 ```
 
-Line identity comes from `lineKey(line)`. It joins `slug`, `metal`, `rental`, `engraving`, `size`, `JSON.stringify(booking ?? '')`, `JSON.stringify(personalization ?? '')` and `JSON.stringify(giftCard ?? '')` with a pipe character. Adding a configuration that is already in the bag increments that line's `qty`; any other configuration creates a new line.
+Line identity comes from `lineKey(line)`. It joins `slug`, `metal`, `rental`, `engraving`, `size`, `JSON.stringify(booking ?? '')`, `JSON.stringify(personalization ?? '')`, `JSON.stringify(giftCard ?? '')` and, only when there is one, `design`, with a pipe character. A ring from the designer (2026-10-22) is a `bespoke-engagement-commission` (`DESIGN_SLUG`) line with `size` and `design` (its code as made, `designCode`): the bag and checkout show it as designed (`designedLine`: its title, “Designed by you”, its kept picture, `lineDetails` listing the design and the size from its code), its price has no struck-through `fullPrice`, its Edit opens the designer on it (`href.designer({ r: code, edit: '1' })`, where “Update the bag” replaces the line and keeps its quantity), it has no try-on chip, and “Save for later” keeps the design rather than wishing the commission. Lines whose design code fails `isDesignCode` are dropped when `tns-cart` is read. With a made-to-order piece in the bag (a design or a commission), the cart page's delivery line reads “Made to order in our atelier: about {n} weeks.” (the longest `leadTimeWeeks`) instead of a delivery date. A designed ring is paid in two parts (2026-10-22): its line shows its 30% deposit (“$3,050 today”); the drawer adds “Due today” and “Balance on approval” under the subtotal; the cart page adds them under the estimated total, with each part's tax and the policy line (`HOUSE.deposit`); checkout shows “Order total”, “− Balance on approval” and “Due today”, lets gift cards pay only what is due today, and its confirmation names the balance. Formulas: [../commerce-logic.md](../commerce-logic.md) §5.1 and §8.2. See [../features/ring-designer.md](../features/ring-designer.md). Adding a configuration that is already in the bag increments that line's `qty`; any other configuration creates a new line.
 
 ### 2.2 `CartMeta` (order-level gift options)
 
@@ -113,7 +113,10 @@ The default export is a hook that calls `useStore()` and recomputes on every ren
 | `rewardProgress` | `Math.min(1, merch / threshold)` |
 | `rewardRemaining` | `Math.max(0, threshold - merch)` |
 | `rewardUnlocked` | `merch >= threshold` |
-| `installment` | `Math.round(subtotal / 4)` (pre-tax) |
+| `installment` | `Math.round(subtotal / 4)` (pre-tax). The drawer and the Cart page show it only when `balance === 0`. |
+| `balance` | What designed rings leave for the approval of their final design, before tax: Σ `linePrice − designDeposit(unit) × qty` over lines with `design` |
+| `dueNow` | `subtotal − balance`: what checkout takes, before tax |
+| `taxAt(rate)` | `{ total, now, later }`: `Math.round(merch × rate)`, split between what is due today and what comes with the balance |
 | `hasMerch` | `cart.some((l) => !l.giftCard)` |
 | `hasRental` | `cart.some((l) => l.rental)` |
 
@@ -245,10 +248,11 @@ There is no focus trap, focus is not returned to the trigger on close, and the r
 #### Footer (only if `cart.length > 0`)
 
 - Subtotal row: label `text-[11px] uppercase tracking-[0.22em]`, `<Price amount={subtotal} className="text-lg" />`.
-- Shipping line (`mt-1.5 text-xs text-[var(--text-linen)]`): `{shipping}. Taxes calculated at checkout.`, with ` Gift wrapped.` appended when `meta.giftWrap`. `shipping` depends only on `currency`:
+- With a designed ring (`balance > 0`), under the subtotal: `Due today, before tax` (`text-[11px] uppercase tracking-[0.22em]`) with `<Price amount={dueNow} className="text-lg" />`, then `Balance on approval` with `<Price amount={balance} />` in `text-xs` taupe. "Before tax" because the Cart page and Checkout add the tax due today to the same figure.
+- Shipping line (`mt-1.5 text-xs text-[var(--text-taupe)]`): `{shipping}. Taxes calculated at checkout.`, with ` Gift wrapped.` appended when `meta.giftWrap`. `shipping` depends only on `currency`:
   - CAD: `Complimentary insured shipping across Canada`
   - USD: `Complimentary insured shipping to the U.S., duties included`
-- Installments line (`mt-1 text-xs text-[var(--text-linen)]`): "Or 4 interest-free payments of" + `<Price amount={installment} className="[&_span]:hidden" />` + "with Shop Pay".
+- Installments line (`mt-1 text-xs text-[var(--text-taupe)]`), only when `balance === 0`: "Or 4 interest-free payments of" + `<Price amount={installment} className="[&_span]:hidden" />` + "with Shop Pay". Beside a deposit it would read as splitting the deposit.
 - Primary CTA (anchor): `group mt-5 flex w-full items-center justify-center gap-3 bg-[var(--text-espresso)] py-4 text-[11px] font-medium uppercase tracking-[0.26em] text-[var(--bg-travertine)] transition-colors hover:bg-[var(--gold-vermeil)]`. It contains `Lock` (12/1.6), the label "Secure checkout" and `ArrowRight` (14) with `transition-transform group-hover:translate-x-1`.
 - Secondary CTA (anchor): `mt-3 block w-full border border-[var(--border-hairline)] py-3.5 text-center text-[11px] uppercase tracking-[0.22em] transition-colors hover:border-[var(--text-espresso)]`, label "View full bag".
 - Trust row: `mt-4 flex justify-center gap-6 text-[10px] uppercase tracking-[0.16em] text-[var(--text-linen)]` containing `ShieldCheck` + "Fully insured" and `RotateCcw` + "30-day returns" (icons 12/1.4).
@@ -302,9 +306,10 @@ Pairs beautifully with   (CartUpsell grid: 2 cols, lg:4 cols, max 4)
 
 ### 6.2 Local state & derived values
 
-- From the store: `cart, currency, clearCart, meta`. From `useCartTotals()`: `merch, giftCards, subtotal, count, installment, hasMerch, rewardUnlocked, hasRental`.
+- From the store: `cart, currency, clearCart, meta`. From `useCartTotals()`: `merch, giftCards, subtotal, count, installment, hasMerch, rewardUnlocked, hasRental, balance, dueNow, taxAt`.
 - `const [region, setRegion] = useState('QC')` is the province used for the estimated tax. It is local to this page, not shared with checkout and not persisted.
-- `tax = currency === 'CAD' ? Math.round(merch * (PROVINCES[region]?.rate ?? 0)) : null`, so it is `null` in USD.
+- `taxes = currency === 'CAD' ? taxAt(PROVINCES[region]?.rate ?? 0) : null` and `tax = taxes ? taxes.total : null`, so `tax` is `null` in USD.
+- A designed ring is paid in two parts: `today = dueNow + (taxes?.now ?? 0)` and `later = balance + (taxes?.later ?? 0)`.
 - `total = subtotal + (tax ?? 0)`.
 - `onlyGiftCards = cart.length > 0 && !hasMerch`.
 - `row(label, value, muted = false)` is a local helper that renders `div.flex.items-baseline.justify-between.gap-4.text-sm`, adding `text-[var(--text-taupe)]` when `muted`.
@@ -362,8 +367,9 @@ Rows sit in `mt-7 space-y-3 border-t border-[var(--border-hairline)] pt-6`, in t
 
 - The Est. tax row is hand-built rather than using `row()`. A `<label>` wraps the text "Est. tax" and a `<select aria-label="Province">` (`border-b border-[var(--border-hairline)] bg-transparent pb-0.5 text-xs outline-none`). Its options come from `Object.entries(PROVINCES)`, with the province code as value and `name` as text. The select is controlled by `region`.
 - Total row (`mt-6 flex items-baseline justify-between border-t border-[var(--border-hairline)] pt-6`): the label is `Estimated total` when `tax !== null && hasMerch`, otherwise `Subtotal`. The value is `<Price amount={total} className="font-serif-editorial text-3xl" />`.
-- "Or 4 interest-free payments of `{installment}` with Shop Pay" (`mt-2 text-xs text-[var(--text-linen)]`). The installment is a quarter of the pre-tax `subtotal`.
-- Delivery estimate, shown only if `hasMerch && !hasRental`: `p.mt-6.flex.items-center.gap-2.5.bg-[var(--bg-silk)].px-4.py-3.text-xs.text-[var(--text-taupe)]` with a `CalendarDays` icon (14/1.3, gold) and "Order today, arrives by" + `<span className="text-[var(--text-espresso)]">{deliveryDate(4)}</span>`.
+- With a designed ring (`later > 0`), a block under the total (`mt-4 space-y-2 border-t pt-4`): `Due today` with `<Price amount={today} className="text-xl" />`, `Balance on approval` with `<Price amount={later} />` (muted `row`), and the policy `HOUSE.deposit` (“A ring you design begins with a 30% deposit, which reserves its stones and sets the atelier to work. The balance is due when you approve the final design, before it is cast.”).
+- "Or 4 interest-free payments of `{installment}` with Shop Pay" (`mt-2 text-xs text-[var(--text-taupe)]`), only when `balance === 0`. The installment is a quarter of the pre-tax `subtotal`.
+- Delivery estimate, shown only if `hasMerch && !hasRental`: `p.mt-6.flex.items-center.gap-2.5.bg-[var(--bg-silk)].px-4.py-3.text-xs.text-[var(--text-taupe)]` with a `CalendarDays` icon (14/1.3, gold). It reads `Made to order in our atelier: about {making} weeks.` when the bag holds a made-to-order piece (`making`, the longest `leadTimeWeeks` among its lines: a designed ring, a commission), otherwise "Order today, arrives by" + `<span className="text-[var(--text-espresso)]">{deliveryDate(4)}</span>`.
 - **Secure checkout** goes to `href.checkout`. It uses the same class recipe as the drawer CTA but with `mt-6`.
 - "Gift cards and promo codes can be applied at checkout." (`mt-4 text-center text-xs text-[var(--text-linen)]`).
 - Below the box: "Questions?" plus a link "Book a private consultation" to `href.atelier` (`#/atelier`), styled `border-b border-[var(--gold-vermeil)] text-[var(--text-espresso)]`, inside `mt-6 text-center text-xs text-[var(--text-taupe)]`.
@@ -654,38 +660,41 @@ The `h1` "Checkout" uses `font-serif-editorial text-6xl font-light`.
 | Name | Kind | Initial or formula |
 |---|---|---|
 | `province` | state | `'QC'` |
-| `placed` | state | `null`, or `{ order, issued, paidWithCards }` |
+| `placed` | state | `null`, or `{ order, issued, paidWithCards, balance, currency }`: `balance` is what designed rings leave for later (tax included in CAD), `currency` the order's own |
 | `code` | state | `''`, the raw text typed in the gift-card field |
 | `codeError` | state | `null` |
-| `applied` | state | `Applied[]` = `{ card: IssuedCard; available: number }`, where `available` is in the checkout currency |
+| `applied` | state | `IssuedCard[]`, the cards themselves. Each card's `available` is converted to the checkout currency on every render, so any currency switcher re-prices it |
 | `isCA` | derived | `currency === 'CAD'` |
 | `giftLines`, `merchLines` | derived | cart split on `l.giftCard` |
 
 ```ts
-const merch = merchLines.reduce((s, l) => s + linePrice(l), 0)
-const giftTotal = giftLines.reduce((s, l) => s + linePrice(l), 0)
-// Gift cards are not taxed at sale; tax applies to merchandise only.
-const tax = isCA ? Math.round(merch * PROVINCES[province].rate) : 0
-// Gift cards can pay for merchandise and tax, but not for other gift cards.
-const payableByCards = merch + tax
+const { merch, giftCards: giftTotal, balance, taxAt } = useCartTotals()
+// Gift cards are not taxed at sale; tax applies to merchandise only, and a designed ring's balance carries its own.
+const taxes = isCA ? taxAt(PROVINCES[province].rate) : { total: 0, now: 0, later: 0 }
+const tax = taxes.total
+const later = balance + taxes.later
+// Gift cards can pay for merchandise and tax due today, but not for other gift cards, nor for a balance not yet due.
+const payableByCards = merch - balance + taxes.now
 let remaining = payableByCards
-const usage = applied.map((a) => {
-  const use = Math.min(a.available, remaining)
+const usage = applied.map((card) => {
+  // Converted on every render, so a currency switched here or in the header re-prices each card (KI-024).
+  const available = convert(card.balance, card.currency, currency)
+  const use = Math.min(available, remaining)
   remaining -= use
-  return { ...a, use }
+  return { card, available, use }
 })
 const cardsTotal = usage.reduce((s, u) => s + u.use, 0)
 const total = payableByCards - cardsTotal + giftTotal
 const needsShipping = merchLines.length > 0 || giftLines.some((l) => l.giftCard!.delivery === 'physical')
 ```
 
-Applied cards are used in the order they were applied. Worked example: in CAD with Québec selected, one Mont-Royal Solitaire Pendant (6,850) and the seeded demo card `TERESASONS1962MT` (CAD 250, defined in `src/data/giftcards.ts`) applied. Tax = `Math.round(6850 × 0.14975)` = 1,026. `payableByCards` = 7,876. The card covers 250, so **Total due** is 7,626.
+Applied cards are used in the order they were applied. Worked example: in CAD with Québec selected, one Mont-Royal Solitaire Pendant (6,850) and the seeded demo card `TERESASONS1962MT` (CAD 250, defined in `src/data/giftcards.ts`) applied. Tax = `Math.round(6850 × 0.14975)` = 1,026. `payableByCards` = 7,876. The card covers 250, so **Total due** is 7,626. With a designed ring the cards pay only what is due today: for the 10,180 CAD design of [commerce-logic.md](../commerce-logic.md) §5.1, `payableByCards` = 3,050 + 457 = 3,507, and the balance (7,130 + 1,067 = 8,197) is never paid by a card.
 
 ### 13.4 "Shopping in" currency fieldset
 
 - `fieldset.mt-12` with `legend` "Shopping in" in the `label` style. It holds a `mt-3 grid grid-cols-2 border border-[var(--border-hairline)]` of two `button type="button"` elements labelled `Canada · CAD` and `United States · USD`.
-- Button classes: `py-4 text-[11px] uppercase tracking-[0.2em]`. The active one adds `bg-[var(--text-espresso)] text-[var(--bg-travertine)]`. There is no `aria-pressed`.
-- On click: `setCurrency(c)`, which changes and persists the site-wide currency, and re-converts every applied card with `available: convert(x.card.balance, x.card.currency, c)`.
+- Button classes: `py-4 text-[11px] uppercase tracking-[0.2em]`. The active one adds `bg-[var(--text-espresso)] text-[var(--bg-travertine)]`, and each has `aria-pressed`.
+- On click: `setCurrency(c)`, which changes and persists the site-wide currency. Applied cards follow on the next render, as they do for the header's and the desktop menu's switchers.
 
 ### 13.5 Contact & shipping fields
 
@@ -718,8 +727,8 @@ There is no shipping-method selector. Insured shipping is always shown as `Compl
 - `p` "Order summary" in the `label` style, followed by `ul.mt-6.divide-y.divide-[var(--border-hairline)]`.
 - For each line, `p = getProduct(l.slug)`. Lines with an unknown slug render nothing.
 - Each row is `li.flex.gap-4.py-4`:
-  - Thumbnail: gift-card lines get `div.w-16.shrink-0.pt-1` with `GiftCardArt` (`design`, `currency`, `amount`; no recipient, no code). Other lines get `img src={p.images[0]} alt="" className="h-20 w-16 object-cover"`.
-  - Name: `font-serif-editorial text-lg leading-tight`.
+  - Thumbnail: gift-card lines get `div.w-16.shrink-0.pt-1` with `GiftCardArt` (`design`, `currency`, `amount`; no recipient, no code). Other lines get `img src={designed?.image || p.images[0]} alt="" className="h-20 w-16 object-cover"`, where `designed = designedLine(l, designs)`: a designed ring shows its own picture.
+  - Name: `font-serif-editorial text-lg leading-tight`: the design's title for a designed ring, otherwise `catalog.name(p)`.
   - Meta line: `font-spec mt-1 text-[10px] uppercase tracking-[0.14em] text-[var(--text-taupe)]`, rendering `{lineDetails(l, p).join(' · ')} · ×{l.qty}`.
   - Price: `<Price amount={linePrice(l)} className="text-sm" />`.
 - Lines cannot be edited from checkout. The header bag icon still opens the drawer, though, and the drawer can change the cart; checkout recomputes when it does.
@@ -744,8 +753,8 @@ Markup, inside `div.mt-4.border-t.pt-6`:
 | 2 | `lookupCard(code)` returns `null` (searches the `tns-giftcard-ledger` list, which always includes the demo card) | `This gift card could not be found.` |
 | 3 | `card.balance <= 0` | `This gift card has no remaining balance.` |
 | 4 | that code is already in `applied` | `This gift card is already applied.` |
-| 5 | `payableByCards - cardsTotal <= 0` | `Your order is already fully covered.` when `merch` is non-zero; otherwise `Gift cards can’t be used to buy other gift cards.` |
-| ✓ | all checks pass | appends `{ card, available: convert(card.balance, card.currency, currency) }` and clears `code` |
+| 5 | `payableByCards - cardsTotal <= 0` | `Gift cards can’t be used to buy other gift cards.` when `giftTotal > 0` (what is left today is gift cards); otherwise `Everything due today is already covered.` when a balance is owed later (`later > 0`), else `Your order is already fully covered.` |
+| ✓ | all checks pass | appends the card to `applied` and clears `code` |
 
 Applied-card rows (`ul.mt-3.space-y-2`, each `li.flex.items-center.justify-between.gap-3.text-xs`):
 - Left side: a remove button (`X` size 12, `type="button"`, `aria-label="Remove gift card"`) that filters the card out of `applied`, then `maskCode(code)`, which renders `•••• •••• •••• 62MT`.
@@ -759,8 +768,10 @@ Applied-card rows (`ul.mt-3.space-y-2`, each `li.flex.items-center.justify-betwe
 | Gift cards | `giftTotal > 0` | `<Price amount={giftTotal} />` |
 | Insured shipping | `needsShipping` | `Complimentary` (`font-spec`) |
 | `Tax · {PROVINCES[province].label}` (CAD) / `Sales tax` (USD) | `merch > 0` | CAD: `<Price amount={tax} />`. USD: `<span className="text-xs text-[var(--text-taupe)]">Calculated by Shopify</span>` |
-| Gift cards applied (row in `text-[var(--gold-vermeil)]`) | `cardsTotal > 0` | `− <Price amount={cardsTotal} />` |
-| Total due (`text-[11px] uppercase tracking-[0.2em]`, row `border-t pt-4 text-base`) | always | `<Price amount={total} />` in `dd.text-xl` |
+| `Order total` (row `border-t pt-3`) | `later > 0` | `<Price amount={merch + tax + giftTotal} />` |
+| `Balance on approval` (taupe) | `later > 0` | `− <Price amount={later} />` |
+| Gift cards applied (row in `text-[var(--gold-ink)]`) | `cardsTotal > 0` | `− <Price amount={cardsTotal} />` |
+| Total due, or `Due today` with a designed ring (`text-[11px] uppercase tracking-[0.22em]`, row `border-t pt-4 text-base`) | always | `<Price amount={total} />` in `dd.text-xl`; with a balance, `HOUSE.deposit` follows under the list |
 
 ### 13.10 Tax & duties
 
@@ -790,7 +801,7 @@ Duty messaging appears in two places:
 There is no card, wallet or address-verification UI. The only payment-related elements are:
 - gift-card redemption;
 - the notice "Payment is completed securely through Shopify Checkout.";
-- the submit button, whose label is `Place order` normally and `Place order — no payment due` when `total === 0`.
+- the submit button, whose label is `Place order` when `total > 0`; at 0, `Place order — nothing due today` when a designed ring's balance is still owed (`later > 0`), otherwise `Place order — no payment due`.
 
 The button classes are `mt-8 flex w-full items-center justify-center gap-3 bg-[var(--text-espresso)] py-5 text-[11px] font-medium uppercase tracking-[0.28em] text-[var(--bg-travertine)] transition-colors hover:bg-[var(--gold-vermeil)]`, with a `Lock` icon (14/1.6). "Shop Pay" appears only in the installment copy in the drawer and on the cart page.
 
@@ -800,15 +811,16 @@ The button classes are `mt-8 flex w-full items-center justify-center gap-3 bg-[v
 3. `debitCards(usage.filter((u) => u.use > 0).map((u) => ({ code: u.card.code, amount: u.use, currency })))`. For each card this subtracts `convert(amount, currency, card.currency)` from its ledger balance, floored at 0.
 4. `issueCards(giftLines.map((l) => l.giftCard!), giftLines.map((l) => l.qty))` creates one card per unit, each with a generated 16-character code. Cards are written to the ledger with `recipientName` left undefined for "toSelf", and `expiresAt: null`.
 5. Each issued card is paired with its source line (`flatMap` over `qty`, consuming the issued array in order).
-6. `` setPlaced({ order: `TS-${Date.now().toString().slice(-6)}`, issued, paidWithCards: cardsTotal }) ``.
+6. `` setPlaced({ order: `TS-${Date.now().toString().slice(-6)}`, issued, paidWithCards: cardsTotal, balance: later, currency }) ``.
 7. `clearCart()`, which empties the cart, resets `meta` and clears `lastRemoved`.
 
 ### 13.12 Confirmation screen
 
 `section.mx-auto.max-w-3xl.px-6.py-32.text-center`:
-- Eyebrow `Order {placed.order}`, e.g. `Order TS-849280` (`font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]`).
+- Eyebrow `Order {placed.order}`, e.g. `Order TS-849280` (`font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-ink)]`).
 - `h1` `Merci.` (`font-serif-editorial mt-6 text-6xl font-light`).
-- `p.mt-6.text-[var(--text-taupe)]`: `A confirmation is on its way.`, followed by ` {Price} was paid with gift cards.` if `paidWithCards > 0`. That price shows its currency code.
+- `p.mt-6.text-[var(--text-taupe)]`: `A confirmation is on its way.`, followed by ` {amount} was paid with gift cards.` if `paidWithCards > 0`. The confirmation's amounts print as `formatPrice(amount, placed.currency)` plus the ISO code, so a later switch in the header doesn't relabel them.
+- With a designed ring's balance (`placed.balance > 0`): `Your deposit is paid. A jeweller will write to arrange your design consultation. The balance of {amount}, tax included, is due when you approve the final design.` (“, tax included,” in CAD only; in USD Shopify works out the tax).
 - If gift cards were issued: the label "Your gift cards", then `ul.mt-6.grid.gap-8.sm:grid-cols-2`. Each item shows `GiftCardArt` with the full `code`, `amount={card.initial}` and `to={card.recipientName}`, plus a delivery line (`mt-4 text-sm text-[var(--text-taupe)]`):
   - physical delivery: `Mailed in our travertine box, 2–5 business days.`
   - `toSelf`: `Emailed to you now.`
@@ -924,15 +936,15 @@ Dynamic parts appear as `{…}`. Text shown uppercase by CSS keeps its source ca
 | No-shipping note | `Digital gift cards only — no shipping address needed.` |
 | Notice, CAD | `Payment is completed securely through Shopify Checkout. Orders ship insured via signature-required courier.` |
 | Notice, USD | `Payment is completed securely through Shopify Checkout. Duties and import fees are prepaid by Teresa & Sons; orders ship insured, signature required.` |
-| Submit | `Place order` / `Place order — no payment due` |
+| Submit | `Place order` / `Place order — nothing due today` / `Place order — no payment due` |
 | Summary label | `Order summary` |
 | Line meta | `{detail} · {detail} · ×{qty}` |
 | Gift-card label / button | `Gift card` / `Apply` |
-| Gift-card errors | `Enter the 16-character code from your gift card.` · `This gift card could not be found.` · `This gift card has no remaining balance.` · `This gift card is already applied.` · `Your order is already fully covered.` · `Gift cards can’t be used to buy other gift cards.` |
+| Gift-card errors | `Enter the 16-character code from your gift card.` · `This gift card could not be found.` · `This gift card has no remaining balance.` · `This gift card is already applied.` · `Your order is already fully covered.` · `Everything due today is already covered.` · `Gift cards can’t be used to buy other gift cards.` |
 | Applied card | aria-label `Remove gift card`; `•••• •••• •••• {last4}`; `− {amount}`; `({amount} left)` |
-| Totals | `Merchandise` · `Gift cards` · `Insured shipping` (`Complimentary`) · `Tax · {label}` / `Sales tax` (`Calculated by Shopify`) · `Gift cards applied` (`− {amount}`) · `Total due` |
+| Totals | `Merchandise` · `Gift cards` · `Insured shipping` (`Complimentary`) · `Tax · {label}` / `Sales tax` (`Calculated by Shopify`) · `Order total` · `Balance on approval` (`− {amount}`) · `Gift cards applied` (`− {amount}`) · `Total due` / `Due today` |
 | Empty state | `Your bag is empty.` / `Continue shopping` |
-| Confirmation | `Order {TS-xxxxxx}` · `Merci.` · `A confirmation is on its way.` · ` {amount} was paid with gift cards.` · `Your gift cards` · `Mailed in our travertine box, 2–5 business days.` · `Emailed to you now.` · `Emailed to {email} on {Wed, Oct 21}.` · `Emailed to {email} now.` · `Return to the maison` · `View in your account` |
+| Confirmation | `Order {TS-xxxxxx}` · `Merci.` · `A confirmation is on its way.` · ` {amount} was paid with gift cards.` · `Your deposit is paid. A jeweller will write to arrange your design consultation.` · `The balance of {amount}` · `, tax included,` · ` is due when you approve the final design.` · `Your gift cards` · `Mailed in our travertine box, 2–5 business days.` · `Emailed to you now.` · `Emailed to {email} on {Wed, Oct 21}.` · `Emailed to {email} now.` · `Return to the maison` · `View in your account` |
 | Console (developer) | `[Shopify] gift card cart items` |
 
 `GiftCardArt` adds its own copy: `Teresa & Sons`, `Carte-cadeau · Montréal`, `For {name}` and `•••• •••• •••• ••••`. See [Gift cards](gift-cards.md).
@@ -943,7 +955,6 @@ Dynamic parts appear as `{…}`. Text shown uppercase by CSS keeps its source ca
 
 ### Probable bugs
 
-- **The header currency toggle skips the gift-card re-conversion.** Checkout's own "Shopping in" buttons re-convert `applied[].available`, but the header toggle only calls `setCurrency`, and the header stays visible on `#/checkout`. After switching through the header, a card applied in one currency keeps its `available` figure but is spent in the other. `debitCards` then converts the spend back, so the value used and the value debited no longer match. Example: CAD 250 applied, then switched to USD, uses USD 250 and debits `round(250 / 0.73)` = 342 CAD, which clamps to 0.
 - **The stepper's "+" can lower a quantity.** It sets `Math.min(10, qty + 1)`, but `addToCart` is uncapped and the gift-card builder lets you add up to 20 at once. A line at 12 drops to 10 when "+" is pressed.
 - **The upsell "Added" state is effectively dead.** After a quick add the product is in the cart and leaves `picks` on the next render, so "Added" and the `Check` icon are never seen. `added` is never reset, though. If the product is later removed while that `CartUpsell` is still mounted, it comes back already styled as "Added".
 - **Quick add on the cart page opens the drawer** over `#/cart`, because `addToCart` always sets `cartOpen`. The same applies to adds from the video viewer (`z-[100]`) and the try-on studio (`z-[110]`): the drawer (`z-[90]`) opens underneath those overlays.
@@ -956,7 +967,7 @@ Dynamic parts appear as `{…}`. Text shown uppercase by CSS keeps its source ca
 - **Province is chosen twice.** The cart page's `region` and checkout's `province` are separate states, each defaulting to `QC`. A province picked on the cart page is not carried over.
 - **USD orders can show $0 due before tax.** In USD, `tax` is `0` in the math while the row says "Calculated by Shopify". `Total due` excludes sales tax, and gift cards can bring it to 0, which produces "Place order — no payment due".
 - **Promo codes are promised but missing.** The cart page says "Gift cards and promo codes can be applied at checkout.", but checkout has no promo-code field.
-- **Installments use the pre-tax subtotal.** The figure is `Math.round(subtotal / 4)`, while the cart page's "Estimated total" includes estimated tax in CAD.
+- **Installments use the pre-tax subtotal.** The figure is `Math.round(subtotal / 4)`, while the cart page's "Estimated total" includes estimated tax in CAD. Beside a designed ring's deposit the line is hidden, since it would read as splitting the deposit.
 - **Spelling (fixed 2026-10-21).** English is Canadian on every surface ("Jewellery", "Bridal Jewellery"); US visitors get US spelling ("Jewelry") through `src/i18n/us.ts`. All cart and checkout copy is bilingual; see [../features/languages.md](../features/languages.md).
 
 ### Behaviour to know before changing anything

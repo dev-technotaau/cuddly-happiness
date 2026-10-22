@@ -46,7 +46,7 @@ Recipes:
 - **Headlines:** light serif with one italic accent word, `<em className="text-[var(--gold-vermeil)]">…</em>` (champagne on dark). Section titles use `<SectionHeader index eyebrow title aside tone />`.
 - **Buttons** (2026-10-21): use the recipes in `src/components/ui.ts` (`btnPrimary`, `btnVisit`, `btnQuiet`, `btnOnDark`, `btnVisitOnDark`) and `VisitButton` for every "Book a visit". A visit paired with a primary action has the primary's size.
 - **Focus:** a global `:focus-visible` ring (1 px vermeil) covers links, buttons and sliders; fields that use `outline-none` show focus with their underline.
-- **Money:** always `<Price amount={…} />`. It always renders in the spec face, even if you pass `font-serif-editorial`. Restyle the currency code with `[&_span]:…`.
+- **Money:** always `<Price amount={…} />`. It always renders in the spec face, even if you pass `font-serif-editorial`, and never wraps between the amount and its code (`whitespace-nowrap`, 2026-10-22). Restyle the currency code with `[&_span]:…`.
 - **Wordmark:** tracked capitals with a gold italic ampersand. Copy it from `Header.tsx`; never restyle it per page.
 
 ## Layout
@@ -78,9 +78,9 @@ Place new layers inside this ladder:
 | Layer | Value |
 |---|---|
 | Local overlays | `z-10` |
-| StickyBar | `z-40` |
+| StickyBar (and the ring designer's phone bar) | `z-40` |
 | Back-to-top, language notice (opposite corners; the notice carries `data-fab-avoid`) | `z-[45]` |
-| Header | `z-50` |
+| Header (its mega menu and the search dropdown live inside it) | `z-50` |
 | Film grain | 60 |
 | Mobile menu, desktop menu (never together) | `z-[70]` |
 | Cart backdrop / drawer; the booking drawer and "Ask a jeweller" use the same two levels (only one is ever open) | `z-[80]` / `z-[90]` |

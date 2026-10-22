@@ -1,8 +1,10 @@
 import { formatDay, formatSlot, parseIso, rentalReturnDate, type Product } from '../data/catalog'
+import { decodeDesign } from '../data/ring'
+import { describeDesign } from '../data/ringCopy'
 import { bilingual, pick } from '../i18n'
 import { catalogFor } from '../i18n/catalog'
 import { COMMON } from '../i18n/common'
-import type { CartLine } from '../store'
+import type { CartLine, SavedDesign } from '../store'
 import { describePersonalization } from './pdp/Personalizer'
 import { sizeLabel } from './pdp/RingSize'
 
@@ -29,12 +31,27 @@ const COPY = bilingual(
   },
 )
 
+/** A designed ring's line as designed: its name, and the picture kept with the design (if it still is). */
+export function designedLine(line: CartLine, saved: SavedDesign[]): { title: string; image: string | null } | null {
+  const design = line.design ? decodeDesign(line.design) : null
+  if (!design) return null
+  return { title: describeDesign(design).title, image: saved.find((s) => s.code === line.design)?.image || null }
+}
+
 /** Human-readable option lines for a cart line, shared by the bag and checkout, in the visitor's language. */
 export function lineDetails(line: CartLine, product: Product): string[] {
   const t = pick(COPY)
   const common = pick(COMMON)
   const catalog = catalogFor()
   const out: string[] = []
+  // A designed ring: the design in words, then its size.
+  const design = line.design ? decodeDesign(line.design) : null
+  if (design) {
+    out.push(...describeDesign(design).lines)
+    // The size the ring is made in is the design's own.
+    if (design.size) out.push(common.size(sizeLabel(design.size)))
+    return out
+  }
   const g = line.giftCard
   if (g) {
     out.push(t.design(catalog.design(g.design), g.delivery === 'email'))

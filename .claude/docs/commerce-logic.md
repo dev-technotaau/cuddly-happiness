@@ -19,11 +19,11 @@ Which surface computes which figure:
 |---|---|---|---|---|
 | Line price | `linePrice` (in `CartLineItem`) | `linePrice` | `linePrice` | `amount` (same formula, computed locally) |
 | Merchandise / gift-card split | — | `merch`, `giftCards` from `useCartTotals` | own `merch`, `giftTotal` (does not use `useCartTotals`) | — |
-| Tax | copy only: "Taxes calculated at checkout." | CAD: `Math.round(merch * rate[region])` | CAD: `Math.round(merch * rate[province])`; USD: 0 | CAD: sum of `splitTaxes` (each component rounded on its own) |
+| Tax | copy only: "Taxes calculated at checkout." | CAD: `Math.round(merch * rate[region])` | CAD: `Math.round(merch * rate[province])`; USD: 0 | CAD: `splitTaxes` lines, which add up to `Math.round(price * rate)` |
 | Shipping | copy only | label "Complimentary" / "Digital delivery" | "Insured shipping · Complimentary" row | `insure` cost line (already inside the price) |
 | Gift-card redemption | — | — | yes | — |
 | Total | `subtotal` | `subtotal + (tax ?? 0)` | `merch + tax − cardsTotal + giftTotal` | `price + taxTotal` |
-| Instalment | `Math.round(subtotal / 4)` | `Math.round(subtotal / 4)` | — | `Math.round(amount / 4)`, only when `amount >= 400` (not for rentals) |
+| Instalment | `Math.round(subtotal / 4)`, hidden when a designed ring leaves a balance | same | — | `Math.round(amount / 4)`, only when `amount >= 400` (not for rentals) |
 
 ---
 
@@ -41,7 +41,7 @@ Which surface computes which figure:
 | Header toggle | `src/components/Header.tsx` (every page) | `CA · CAD` / `US · USD` inside `role="group" aria-label="Currency"` | `setCurrency` only |
 | Desktop menu toggle | `src/components/menu/SiteMenu.tsx` (≥ `lg`, while the menu is open) | `CA · CAD` / `US · USD` inside `role="group" aria-label="Currency"`, with `aria-pressed` | `setCurrency` only |
 | Preferred market | `src/pages/Account.tsx` (signed-in view) | "Preferred market" / "Sets currency, taxes and shipping options." / `Canada` · `United States` | `setCurrency` only |
-| Shopping in | `src/pages/Checkout.tsx` | legend "Shopping in", buttons `Canada · CAD` / `United States · USD` | `setCurrency(c)` **and** re-converts the `available` amount of every applied gift card: `convert(x.card.balance, x.card.currency, c)` |
+| Shopping in | `src/pages/Checkout.tsx` | legend "Shopping in", buttons `Canada · CAD` / `United States · USD` | `setCurrency(c)` only. Applied gift cards follow any switcher, because Checkout converts each card's balance on every render (section 8.3) |
 
 ### 2.2 Every conversion path
 
@@ -192,6 +192,7 @@ export interface CartLine {
   booking?: RentalBooking
   personalization?: Personalization
   giftCard?: GiftCardLine
+  design?: string
   qty: number
 }
 ```
@@ -214,6 +215,7 @@ All three are in `src/data/catalog.ts` and `src/data/giftcards.ts`.
 | Personalized | adds `personalization`: `{ ...personal, text: personal.text.trim() }` | #1 only, when `product.personalization` exists | `+ personalizationPrice(...)`, i.e. the accent only |
 | Rental | `rental` (period) + `booking`; `metal` is `undefined` | #1 and #3 | `product.rental[period][currency]`; the deposit is **not** included |
 | Gift card | `slug: 'gift-card'`, `giftCard` | #6 | `convert(giftCard.amount, giftCard.currency, currency)` |
+| Designed ring (2026-10-22) | `slug: 'bespoke-engagement-commission'` (`DESIGN_SLUG`), `size`, `design` (the ring as made, `designCode`) | #7 (with a design), #9 | `ringPrice(decodeDesign(design), currency)`; the commission's own price and `metal` play no part |
 
 `showEngraving = !!product.engravable && !rental && (!pcfg || !!pcfg.backEngraving)`.
 
@@ -233,8 +235,9 @@ All three are in `src/data/catalog.ts` and `src/data/giftcards.ts`.
 | 4 | `src/components/cart/CartUpsell.tsx` (quick-add button) | `+` icon (rail) / `Quick add` → `Added` (grid) | `{ slug: p.slug, metal: p.metals[0] }` | only rendered when `quickAddable(p)` |
 | 5 | `src/pages/Wishlist.tsx` | `Add all to bag` | `{ slug: p.slug, metal: p.metals[0] }` for each item | filter `p.category !== 'rentals' && !p.personalization && p.slug !== 'gift-card'`. Rings, bridal and custom pass, without a size. |
 | 6 | `src/pages/GiftCards.tsx` · `submit` | `Add to bag — {Price}` → `Added to bag` (2400 ms) | `{ slug: GIFT_CARD_SLUG /* 'gift-card' */, giftCard: line }`, called **`qty` times** in a loop | amount range, recipient name and email (section 8.6) |
-| 7 | `src/components/tryon/TryOnStudio.tsx` · `add` | `Add to bag` → `Added to bag` | `{ slug: product.slug, metal }` (the metal chosen in the studio) | rendered only when `!needsConfig`, where `needsConfig = rental \|\| personalization \|\| rings \|\| bridal \|\| custom` |
+| 7 | `src/components/tryon/TryOnStudio.tsx` · `add` | `Add to bag` → `Added to bag` | `{ slug: product.slug, metal }` (the metal chosen in the studio); for a design from the designer, `{ slug, size, design: code }` | rendered only when `!needsConfig`, where `needsConfig = rental \|\| personalization \|\| rings \|\| bridal \|\| custom`; a design shows it only with a size (else “Choose your size”), and `add` returns early for a sizeless design |
 | 8 | `src/components/video/VideoViewer.tsx` (desktop side panel) | `Add to bag` → `Added` | `{ slug: p.slug, metal: p.metals[0] }` | rendered only when not `configurable`, where `configurable = rental \|\| personalization \|\| rings \|\| bridal` |
+| 9 | `src/pages/Designer.tsx` · `add` | `Add to bag`, or `Update the bag` when opened from a bag line's Edit (`?edit=1`) | `{ slug: DESIGN_SLUG, size: design.size, design: designCode(design) }` | a size, else it goes to the size step and flags it. Editing: the edited line is removed (`updateQty(key, 0)`) and the new one added with the old quantity added to any line already holding that design. |
 
 `quickAddable(p)` (CartUpsell) is `!p.rental && !p.personalization && p.metals.length > 0 && p.category !== 'rings' && p.category !== 'bridal' && p.category !== 'custom'`.
 
@@ -251,8 +254,10 @@ Validation messages come from `validatePersonalization`: `Please enter a letter`
 
 ```ts
 export const lineKey = (line: Omit<CartLine, 'key' | 'qty'>) =>
-  [line.slug, line.metal, line.rental, line.engraving, line.size, JSON.stringify(line.booking ?? ''), JSON.stringify(line.personalization ?? ''), JSON.stringify(line.giftCard ?? '')].join('|')
+  [line.slug, line.metal, line.rental, line.engraving, line.size, JSON.stringify(line.booking ?? ''), JSON.stringify(line.personalization ?? ''), JSON.stringify(line.giftCard ?? ''), ...(line.design ? [line.design] : [])].join('|')
 ```
+
+The design joins the key only when there is one, so every line stored before the designer keeps the key it was stored with.
 
 `Array.join` turns `undefined` into an empty string, and `JSON.stringify('')` gives `""`. These keys were generated by running the function:
 
@@ -262,7 +267,10 @@ teresa-signet|18k-yellow||J & M|7|""|{"text":"TMS","font":"serif"}|""
 engraved-nameplate-necklace|18k-yellow||||""|{"text":"Sofia","font":"script","chainLength":"18 in","accent":true}|""
 gala-diamond-collar||weekend|||{"method":"courier","start":"2026-10-19","slot":"09:00 – 11:00"}|""|""
 gift-card|||||""|""|{"amount":250,"currency":"USD","design":"travertine","delivery":"email","toSelf":false,"recipientName":"Ana","recipientEmail":"ana@example.com"}
+bespoke-engagement-commission||||6|""|""|""|10133111110103000-e8-100-25-20-6-Toujours%20%C2%B7%202026
 ```
+
+- `tns-cart` is read back as an array of objects with a string `key` and `slug`; a line whose `design` fails `isDesignCode` is dropped, never priced at 0.
 
 - Two adds stack (`qty + 1`) only when every component matches. Quantity and price play no part in identity.
 - `JSON.stringify` drops `undefined` properties, so `chainLength: undefined` disappears. It is sensitive to key **order** and to an explicit `accent: false`: `{…,"accent":false}` does not match an otherwise identical object that never toggled the accent.
@@ -371,6 +379,9 @@ export const REWARD_THRESHOLD = { CAD: 1000, USD: 750 } as const
 const merch = cart.filter((l) => !l.giftCard).reduce((s, l) => s + linePrice(l), 0)
 const giftCards = cart.filter((l) => l.giftCard).reduce((s, l) => s + linePrice(l), 0)
 const subtotal = merch + giftCards
+// A designed ring is paid in two parts: its deposit at checkout, the balance once its final design is approved.
+const balance = cart.filter((l) => l.design).reduce((s, l) => s + linePrice(l) - designDeposit(linePrice(l) / l.qty) * l.qty, 0)
+const dueNow = subtotal - balance
 ```
 
 | Output | Formula | Consumers |
@@ -383,19 +394,25 @@ const subtotal = merch + giftCards
 | `rewardProgress` | `Math.min(1, merch / threshold)` | `RewardProgress` |
 | `rewardRemaining` | `Math.max(0, threshold - merch)` | `RewardProgress` |
 | `rewardUnlocked` | `merch >= threshold` | `RewardProgress`, Cart page |
-| `installment` | `Math.round(subtotal / 4)` (pre-tax, gift cards included) | drawer, Cart page |
+| `installment` | `Math.round(subtotal / 4)` (pre-tax, gift cards included) | drawer, Cart page (both hide it when `balance > 0`) |
 | `hasMerch` | `cart.some((l) => !l.giftCard)` | drawer, Cart page, `RewardProgress` |
 | `hasRental` | `cart.some((l) => l.rental)` | Cart page |
+| `balance` | Σ over designed lines of `linePrice − designDeposit(unit) × qty`: what designed rings leave for the approval of their design, before tax | drawer, Cart page, Checkout |
+| `dueNow` | `subtotal − balance`: what checkout takes, before tax | drawer, Cart page |
+| `taxAt(rate)` | `{ total: round(merch × rate), now: round((merch − balance) × rate), later: total − now }`: the bag's one rounding, split between today and the balance | Cart page, Checkout |
 
-The hook does **not** compute shipping, tax, duties, discounts, gift-card redemption or deposits. Where those live is covered in sections 6–8.
+The hook does **not** compute shipping, duties, discounts or gift-card redemption. Where those live is covered in sections 6–8.
+
+**A designed ring's deposit** (2026-10-22, owner decision). `DEPOSIT_SHARE` = 0.3 and `designDeposit(price) = Math.min(price, Math.round(price × 0.3 / 10) × 10)` (`src/data/ringPrice.ts`), per ring in the market's currency. Example: the design `10133111110103000-e8-100-25-20-6-` (an oval 1.00 ct in 18k rose gold, size 6) is 10,180 CAD: 3,050 today and 7,130 on approval. In QC the tax splits 457 today and 1,067 later (1,524 in all, as `Math.round(10,180 × 0.14975)`), so the Cart page and Checkout show Due today 3,507 and a balance of 8,197. In USD the ring is 7,430: 2,230 today and 5,200 later, tax calculated by Shopify. The policy line is `HOUSE.deposit` (`src/data/house.ts`): “A ring you design begins with a 30% deposit, which reserves its stones and sets the atelier to work. The balance is due when you approve the final design, before it is cast.”
 
 ### 5.2 Totals per surface
 
 **Drawer** (`src/components/CartDrawer.tsx`, footer only when the cart is non-empty):
 
 - `Subtotal` + `<Price amount={subtotal} />`
+- With a designed ring: `Due today, before tax` + `<Price amount={dueNow} />` and `Balance on approval` + `<Price amount={balance} />`. The label says "before tax" because the Cart page and Checkout add the tax due today to the same figure.
 - `` `${shipping}. Taxes calculated at checkout.` `` plus ` Gift wrapped.` when `meta.giftWrap`. `shipping` is `Complimentary insured shipping across Canada` (CAD) or `Complimentary insured shipping to the U.S., duties included` (USD).
-- `Or 4 interest-free payments of {installment} with Shop Pay`
+- `Or 4 interest-free payments of {installment} with Shop Pay`, only when `balance === 0`.
 - `Secure checkout` → `#/checkout`, `View full bag` → `#/cart`
 - `Fully insured` · `30-day returns`
 - `RewardProgress` appears in the header when `hasMerch`.
@@ -404,8 +421,12 @@ The hook does **not** compute shipping, tax, duties, discounts, gift-card redemp
 
 ```ts
 const [region, setRegion] = useState('QC')
-const tax = currency === 'CAD' ? Math.round(merch * (PROVINCES[region]?.rate ?? 0)) : null
+const taxes = currency === 'CAD' ? taxAt(PROVINCES[region]?.rate ?? 0) : null
+const tax = taxes ? taxes.total : null
 const total = subtotal + (tax ?? 0)
+// A designed ring is paid in two parts: what checkout takes today, and the balance on approval of its design.
+const today = dueNow + (taxes?.now ?? 0)
+const later = balance + (taxes?.later ?? 0)
 const onlyGiftCards = cart.length > 0 && !hasMerch
 ```
 
@@ -421,9 +442,10 @@ Summary rows, in render order:
 8. When `hasMerch` and USD: `Tax` = `Calculated at checkout`.
 9. `Gift cards are not taxed.` when `giftCards > 0`.
 10. Total label: `Estimated total` when `tax !== null && hasMerch`, else `Subtotal`, with `<Price amount={total} />`.
-11. `Or 4 interest-free payments of {installment} with Shop Pay`.
-12. When `hasMerch && !hasRental`: `Order today, arrives by {deliveryDate(4)}`. This is four business days skipping Saturday and Sunday, formatted `toLocaleDateString('en-CA', { weekday: 'short', month: 'long', day: 'numeric' })`; on 2026-10-15 Node 24 gives `Wed, October 21`.
-13. `Secure checkout` and `Gift cards and promo codes can be applied at checkout.`
+11. When `later > 0` (a designed ring): `Due today` · `<Price amount={today} />`, `Balance on approval` · `<Price amount={later} />` (taupe), then `HOUSE.deposit`.
+12. `Or 4 interest-free payments of {installment} with Shop Pay`, only when `balance === 0`.
+13. When `hasMerch && !hasRental`: `Made to order in our atelier: about {making} weeks.` when a line is made to order (`making`, the longest `leadTimeWeeks` in the bag), otherwise `Order today, arrives by {deliveryDate(4)}`. This is four business days skipping Saturday and Sunday, formatted `toLocaleDateString('en-CA', { weekday: 'short', month: 'long', day: 'numeric' })`; on 2026-10-15 Node 24 gives `Wed, October 21`.
+14. `Secure checkout` and `Gift cards and promo codes can be applied at checkout.`
 
 **Checkout**: see section 8.2.
 
@@ -437,7 +459,7 @@ Summary rows, in render order:
 
 ### 5.4 Instalments ("Shop Pay")
 
-- **Drawer / Cart page:** `Math.round(subtotal / 4)`, always shown, pre-tax, gift cards included, ISO code hidden.
+- **Drawer / Cart page:** `Math.round(subtotal / 4)`, pre-tax, gift cards included, ISO code hidden. Hidden when a designed ring leaves a balance (`balance > 0`): instalments split a whole order, and beside a deposit the line would read as splitting the deposit.
 - **PDP (non-rental only):** `{amount >= 400 && <>Or 4 interest-free payments of <Price amount={Math.round(amount / 4)} …/> with Shop Pay · </>}`, with the ISO code visible. In the current catalog only `pearl-stud-gift-set` in USD (395) falls below 400.
 
 ### 5.5 Upsell selection — `CartUpsell`
@@ -493,28 +515,28 @@ There are no territories (YT, NT, NU). `US_STATES = ['New York', 'California', '
 |---|---|---|---|---|---|
 | Cart page | `merch` (rentals in, gift cards out) | `Math.round(merch * (PROVINCES[region]?.rate ?? 0))` | local `region` (`useState('QC')`), select visible only when CAD and `hasMerch` | QC | `tax = null`; row `Tax · Calculated at checkout` |
 | Checkout | `merch` | `isCA ? Math.round(merch * PROVINCES[province].rate) : 0` | local `province`, select shown only when `needsShipping && isCA` (always used in the formula) | QC | 0; row `Sales tax · Calculated by Shopify` (when `merch > 0`) |
-| PDP `PriceBreakdown` | `price` (fee for rentals; base + accent otherwise) | `splitTaxes(PROVINCES[province].label, price)`, each component rounded | local `province` / `state` | QC / `New York` | rows `Sales tax · {state}` → `At checkout`, and `Import duties & customs fees` → `Prepaid` |
+| PDP `PriceBreakdown` (and the designer's `RingBreakdown`) | `price` (fee for rentals; base + accent otherwise; the design's price) | `splitTaxes(PROVINCES[province], price)`, whose lines add up to `Math.round(price * rate)` | local `province` / `state` | QC / `New York` | rows `Sales tax · {state}` → `At checkout`, and `Import duties & customs fees` → `Prepaid` |
 | Drawer / PDP price line | — | none | — | — | drawer: "Taxes calculated at checkout."; PDP: CAD `Taxes calculated at checkout`, USD `Duties prepaid` |
 
 These three region states are independent of one another, are not persisted, and are not tied to the address.
 
 ```ts
 // src/data/costing.ts
-export function splitTaxes(label: string, amount: number): { name: string; rate: number; amount: number }[] {
-  const parts = [...label.matchAll(/([A-Z]+)\s*([\d.]+)%/g)].map((x) => ({ name: x[1], rate: Number(x[2]) / 100 }))
-  return parts.map((t) => ({ ...t, amount: Math.round(amount * t.rate) }))
+export function splitTaxes(tax: { label: string; rate: number }, amount: number): { name: string; rate: number; amount: number }[] {
+  const parts = [...tax.label.matchAll(/([A-Z]+)\s*([\d.]+)%/g)].map((x) => ({ name: x[1], rate: Number(x[2]) / 100 }))
+  // The bag rounds the whole rate once; each line rounds on its own and the last takes the rest, so they meet to the dollar.
+  let left = Math.round(amount * tax.rate)
+  return parts.map((t, i) => {
+    const part = i === parts.length - 1 ? left : Math.round(amount * t.rate)
+    left -= part
+    return { ...t, amount: part }
+  })
 }
 ```
 
-`splitTaxes` parses rates out of the **label**, not out of `rate`. Rounding each component separately can differ by $1 from the single combined rounding used on the Cart page and at Checkout:
+`splitTaxes` takes a `PROVINCES` entry: the names and rates of the lines come from its **label**, their total from its `rate`. The last line takes the remainder, so the breakdown always matches the single rounding on the Cart page and at Checkout (fixed 2026-10-22, KI-027). Before, each line rounded on its own and could run $1 over: 6,850 CAD in BC now splits 343 + 479 = 822 (it was 343 + 480 = 823); 1,430 in QC 72 + 142 = 214 (was 215); 650 in QC 33 + 64 = 97 (was 98).
 
-| Amount (CAD) | QC | ON | BC / MB | AB | SK | NS | NB / NL / PE |
-|---|---|---|---|---|---|---|---|
-| 6,850 | 1,026 | 891 | 822 (split 343 + 480 = **823**) | 343 | 754 | 959 | 1,028 |
-| 1,430 | 214 (split 72 + 143 = **215**) | 186 | 172 | 72 | 157 (split 72 + 86 = **158**) | 200 | 215 |
-| 650 | 97 (split 33 + 65 = **98**) | 85 | 78 (split 33 + 46 = **79**) | 33 | 72 | 91 | 98 |
-
-In the breakdown, the rate shown in each tax row is `(t.rate * 100).toFixed(t.rate * 100 % 1 ? 3 : 0).replace(/0+$/, '').replace(/\.$/, '')`, rendered as `{rate}% of <Price amount={price} …/>`. It yields `5`, `9.975`, `13`, `7` and so on. For an integer rate ending in zero it would strip that zero; a 10% rate would print `1`.
+In the breakdown, the rate shown in each tax row is `formatNumber(x.rate, { style: 'percent', maximumFractionDigits: 3 })`, rendered as `{rate} of <Price amount={price} …/>`: `5%`, `9.975%`, `13%` (`5 %`, `9,975 %` in French), and a 10% rate prints as `10%`.
 
 **Tax treatment rules encoded in code:**
 
@@ -534,6 +556,7 @@ In the breakdown, the rate shown in each tax row is `(t.rate * 100).toFixed(t.ra
 | Discounts / promo codes | **None.** The Cart page says "Gift cards and promo codes can be applied at checkout.", but Checkout has only a gift-card field. The `CartLineItem` strike-through is the only compare-at hook, and it never fires. |
 | Gift wrap / receipt / message / note | `CartMeta` (`giftWrap`, `giftReceipt`, `giftMessage` ≤ 200 characters, `note` ≤ 500 characters), persisted in `tns-cart-meta`. Every `GiftOptions` toggle is tagged `Free`, and none affects price. The store comment says it maps to Shopify cart `note` / `attributes`. |
 | Rental deposits | Display only (section 4). |
+| Designed-ring deposit | Charged: checkout takes `designDeposit` per designed ring (30%) with its share of tax; the rest (`balance` + `taxAt(rate).later`) is shown as `Balance on approval` and left for the approval of the final design (section 5.1). Gift cards can't pay it. |
 | Delivery promises | Cart page `deliveryDate(4)`. PDP availability: `Available for reservation · fitted in salon` (rental), `` `Made to order · approx. ${leadTimeWeeks} weeks` `` or `In stock · ships within 48 hours`. Physical gift cards: `2–5 days` / `Mailed in our travertine box, 2–5 business days.` |
 
 ---
@@ -550,7 +573,7 @@ Checkout is a **single page**. There is no step navigation, no shipping-method c
   - `Email`, `First name`, `Last name` (all `required`)
   - when `needsShipping`: `Address`, `City`, `Province` (a select of `PROVINCES`) or `State` (an uncontrolled select of `US_STATES`), then `Postal code` (pattern `[A-Za-z]\d[A-Za-z] ?\d[A-Za-z]\d`, placeholder `H3G 1K4`) or `ZIP code` (pattern `\d{5}(-\d{4})?`, placeholder `10001`), then `Phone`. Otherwise the line "Digital gift cards only — no shipping address needed."
   - the payment note "Payment is completed securely through Shopify Checkout. " followed by the CAD/USD shipping sentence
-  - the submit button `Place order — no payment due` when `total === 0`, otherwise `Place order`
+  - the submit button `Place order` when `total > 0`; at 0, `Place order — nothing due today` when a balance is still owed (`later > 0`), otherwise `Place order — no payment due`
 - **Aside (`lg:col-span-5`, sticky):**
   - `Order summary` lines
   - the `Gift card` code field
@@ -561,15 +584,19 @@ Browser HTML validation (`required` / `pattern`) is the only gate on submit.
 ### 8.2 Totals
 
 ```ts
-const merch = merchLines.reduce((s, l) => s + linePrice(l), 0)
-const giftTotal = giftLines.reduce((s, l) => s + linePrice(l), 0)
-const tax = isCA ? Math.round(merch * PROVINCES[province].rate) : 0
-const payableByCards = merch + tax
+const { merch, giftCards: giftTotal, balance, taxAt } = useCartTotals()
+const taxes = isCA ? taxAt(PROVINCES[province].rate) : { total: 0, now: 0, later: 0 }
+const tax = taxes.total
+const later = balance + taxes.later
+// Gift cards can pay for merchandise and tax due today, but not for other gift cards, nor for a balance not yet due.
+const payableByCards = merch - balance + taxes.now
 let remaining = payableByCards
-const usage = applied.map((a) => {
-  const use = Math.min(a.available, remaining)
+const usage = applied.map((card) => {
+  // Converted on every render, so a currency switched here or in the header re-prices each card (KI-024).
+  const available = convert(card.balance, card.currency, currency)
+  const use = Math.min(available, remaining)
   remaining -= use
-  return { ...a, use }
+  return { card, available, use }
 })
 const cardsTotal = usage.reduce((s, u) => s + u.use, 0)
 const total = payableByCards - cardsTotal + giftTotal
@@ -582,10 +609,11 @@ The totals `<dl>` renders these rows in order:
 2. `Gift cards` when `giftTotal > 0`.
 3. `Insured shipping` · `Complimentary` when `needsShipping`.
 4. When `merch > 0`: `` `Tax · ${PROVINCES[province].label}` `` with `<Price amount={tax} />` in CAD, or `Sales tax` · `Calculated by Shopify` in USD.
-5. `Gift cards applied` · `− <Price amount={cardsTotal} />` (in gold) when `cardsTotal > 0`.
-6. `Total due` · `<Price amount={total} />`.
+5. With a designed ring (`later > 0`): `Order total` · `<Price amount={merch + tax + giftTotal} />`, then `Balance on approval` · `− <Price amount={later} />`.
+6. `Gift cards applied` · `− <Price amount={cardsTotal} />` (in gold) when `cardsTotal > 0`.
+7. `Total due` (or `Due today` with a designed ring) · `<Price amount={total} />`, followed by `HOUSE.deposit` when there is a balance.
 
-USD totals never include sales tax.
+USD totals never include sales tax. The confirmation keeps the order's own currency (`Confirmation.currency`): its amounts print as `formatPrice(amount, placed.currency)` plus the ISO code, so a later switch in the header doesn't relabel them. With a balance it adds: “Your deposit is paid. A jeweller will write to arrange your design consultation. The balance of {later}, tax included, is due when you approve the final design.” (“, tax included,” in CAD only).
 
 ### 8.3 Gift-card redemption (`applyCode`)
 
@@ -595,11 +623,11 @@ The code input shows `formatCode(code)` (groups of 4), with `maxLength={19}`, pl
 2. `lookupCard(code)` is null → `This gift card could not be found.`
 3. `card.balance <= 0` → `This gift card has no remaining balance.`
 4. Already applied → `This gift card is already applied.`
-5. `payableByCards - cardsTotal <= 0` → `Your order is already fully covered.` when `merch` is non-zero, otherwise `Gift cards can’t be used to buy other gift cards.`
-6. Success: `setApplied([...a, { card, available: convert(card.balance, card.currency, currency) }])`, then clear the input.
+5. `payableByCards - cardsTotal <= 0` → what is still due today is either gift-card lines or nothing: `Gift cards can’t be used to buy other gift cards.` when `giftTotal > 0`; otherwise `Everything due today is already covered.` when a balance is owed later (`later > 0`), else `Your order is already fully covered.`
+6. Success: `setApplied([...a, card])`, then clear the input.
 
 - Cards are consumed in the order they were applied. Each row shows `maskCode` (`•••• •••• •••• ABCD`), `− {use}`, and `({available − use} left)` when there is remainder. The `X` button removes the card.
-- `available` is a snapshot in the checkout currency. It is re-converted only by the Checkout `Shopping in` toggle.
+- `applied` holds the cards themselves (`IssuedCard[]`). Each card's `available` is `convert(card.balance, card.currency, currency)`, worked out on every render, so every currency switcher (the header, the desktop menu, `Shopping in`) re-prices it (KI-024, fixed 2026-10-22).
 - The demo card `TERESASONS1962MT` holds CAD 250 and is always present in the ledger (`loadLedger` prepends it). See [Gift cards](pages/gift-cards.md) for the ledger.
 
 ### 8.4 Placing the order (`placeOrder`, form `onSubmit`)
@@ -608,7 +636,7 @@ The code input shows `formatCode(code)` (groups of 4), with `maxLength={19}`, pl
 2. `toShopifyCartItem` runs over gift-card lines. If there are any, `console.info('[Shopify] gift card cart items', shopifyItems)` logs them. Merchandise lines are not mapped.
 3. `debitCards(usage.filter((u) => u.use > 0).map((u) => ({ code, amount: u.use, currency })))` sets each card to `card.balance = Math.max(0, card.balance - convert(amount, currency, card.currency))` and saves the ledger.
 4. `issueCards(giftLines.map((l) => l.giftCard!), giftLines.map((l) => l.qty))` creates one card per unit. Each gets a random 16-character code from `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`, `initial = balance = amount` in the line's **own** currency, `recipientName` (unless `toSelf`), `issuedAt` (UTC date), and `expiresAt: null`. The cards are appended to `tns-giftcard-ledger`.
-5. `` setPlaced({ order: `TS-${Date.now().toString().slice(-6)}`, issued, paidWithCards: cardsTotal }) ``. The order number is the last six digits of the millisecond timestamp.
+5. `` setPlaced({ order: `TS-${Date.now().toString().slice(-6)}`, issued, paidWithCards: cardsTotal, balance: later, currency }) ``. The order number is the last six digits of the millisecond timestamp.
 6. `clearCart()` empties the cart, resets `CartMeta` and clears the undo state.
 
 No merchandise order is recorded anywhere; the Account "Orders" tile always reads "No orders yet. Track deliveries and rental returns here." The confirmation lives only in Checkout component state.
@@ -659,7 +687,7 @@ When the cart is empty and there is no confirmation, the page shows `Your bag is
 | Findings (materials) | By name: necklace / pendant / chain / collar / rivi → `Chain & clasp` (`Solid gold spring ring`); earring / stud / drop / huggie → `Posts & backs` (`Secure screw or hinged backs`); bracelet → `Clasp & safety` (`Double box clasp`); watches → `Strap & buckle` (`specs.Strap ?? 'Leather strap'`). Amount `r((watches ? 220 : 45) * fx)`. |
 | Making | `making = base * (MAKING_SHARE[cat] ?? 0.16) * (hasStones \|\| watches ? 1 : 2.2)`; `labour = making * (hasStones ? 0.55 : 0.8)`; `hours = Math.max(2, Math.round(labour / (95 * fx)))`. Lines: `Bench work · casting & fabrication` (watches: `Regulation & assembly`) `r(labour)` with detail `` `${hours} h × ${r(95*fx)}/h · Montréal atelier` ``; `Stone setting` `r(making * 0.3)` when there are stones (`Hand-set under microscope`); `Polishing & hallmarking` `r(making * (hasStones ? 0.15 : 0.2))` (`12-stage finish, maker’s mark`). |
 | Services | `GIA grading report` `r(165 * fx)` (`№ {report}`) when there is a GIA report; `Insured shipping & presentation box` `r(48 * fx)` (`Signature courier, Canada` / `Signature courier, duties prepaid`); `Engraving` included at 0 when engravable (`Hand or laser, up to 18 characters`); `Lifetime care plan` included at 0 (`Annual cleaning, claw checks, polish`) |
-| Margin | `margin = base − Σ lines`. If below `floor = base * 0.12`, the stone and movement lines (`id` starting with `st`, or `movement`; only when their total is above 0) are scaled by `k = max(0, (stoneTotal − (floor − margin)) / stoneTotal)`, rounded again, and the margin recomputed. Label `Design, showroom & maison margin`, detail `Design, salon, staff, warranty reserve`. |
+| Margin | `margin = base − Σ lines`. If below `floor = base * 0.12`, the stone and movement lines (`id` starting with `st`, or `movement`; only when their total is above 0) are scaled by `k = max(0, (stoneTotal − (floor − margin)) / stoneTotal)`, rounded again, and the margin recomputed. Label `Design, salon & maison margin`, detail `Design, salon, staff, warranty reserve`. |
 | Options | When `accent` is non-zero: an `options` line with label `p.personalization?.accent?.label ?? 'Option'`, detail `Selected option` |
 | Return | `{ lines, price: base + accent, metalWeight: weight, labourHours: hours }`. The statement reconciles exactly to `price`, because the margin absorbs the rounding. |
 
@@ -771,7 +799,7 @@ All amounts are whole dollars. "QC" means the default province on the Cart page,
    | GIA grading report — `№ 2231874590` | services | 165 | 120 |
    | Insured shipping & presentation box | services | 48 | 35 |
    | Lifetime care plan | services | Included | Included |
-   | Design, showroom & maison margin | margin | 1,560 | 1,139 |
+   | Design, salon & maison margin | margin | 1,560 | 1,139 |
    | **Price before tax** | | **6,850** | **5,000** |
 
    - Composition: Materials 3,981 (58%), Making 1,096 (16%), Certification & services 213 (3.1%), Maison margin 1,560 (23%). Metal weight 6.2 g; at the bench 6 h. The USD percentages are the same.
@@ -874,8 +902,7 @@ All amounts are whole dollars. "QC" means the default province on the Cart page,
 
 - Four rounding policies coexist: catalog/rental/accent use nearest $5, metal deltas and gift-card conversion use nearest $1, and costing rounds each line. The result is inconsistent USD figures (section 2.4). Pick one policy before connecting real Shopify Markets pricing; Shopify computes converted prices itself.
 - `convert` is not symmetric (CAD 250 → USD 183 → CAD 251). `debitCards` converts the applied USD amount back into the card's currency with the same rounding, so it can over-debit by $1. `Math.max(0, …)` hides this.
-- **Bug risk:** `Applied.available` is re-converted only by Checkout's own "Shopping in" toggle. The Header toggle is also on the checkout page. Suppose a CAD 250 card is applied in CAD, and the Header then switches to USD. `available` stays 250 but is now read as USD 250. The order is credited USD 250, and the debit (`convert(250, USD, CAD) = 342`) clamps to 0. The customer gains about USD 67.
-- The confirmation's `paidWithCards` is a number in the checkout currency, but it is formatted with the *current* currency. Switching currency after placing the order relabels it without converting.
+- Fixed 2026-10-22 (KI-024): applied cards used to keep `available` from when they were applied, re-converted only by Checkout's own toggle, so a CAD 250 card applied in CAD and then a header switch to USD credited USD 250. Cards are now converted on every render. The confirmation's amounts keep the order's currency the same way.
 - `REWARD_THRESHOLD.USD` (750) is not 1,000 × 0.73 (730). `CUSTOM_RANGE.USD` max (7,500) is not 10,000 × 0.73. The gift-finder budgets and the PDP's `>= 400` instalment threshold use the same numbers in both currencies.
 - `formatPrice` builds a new `Intl.NumberFormat` on every call. `maximumFractionDigits: 0` with currency style works in current engines, but some older engines threw `RangeError` when the maximum was below the currency's default minimum (2). Verify this if legacy browsers matter (unverified here).
 - The `tns-currency` read is neither validated nor wrapped in try/catch. A bad stored value such as `"foo"` would make `Intl.NumberFormat` throw, and blocked storage would throw during provider init.
@@ -893,7 +920,7 @@ All amounts are whole dollars. "QC" means the default province on the Cart page,
 - The province is chosen in three unlinked places (Cart `region`, Checkout `province`, breakdown `province`), all defaulting to QC. None follows the shipping address or is persisted.
 - There are no territories (YT/NT/NU). US sales tax is never estimated, so the USD "Total due" excludes it.
 - The `tax.ts` header comment says "2024 rates", but NS is listed at 14%. Nova Scotia's HST was 15% until it was reduced to 14% on 2025-04-01 (external knowledge; re-verify all rates before production).
-- `splitTaxes` parses the **label**. Changing `rate` without changing `label` (or the reverse) makes the cart/checkout and the PDP breakdown disagree. The breakdown's rate formatter would print a 10% or 20% rate as `1` / `2` (it strips trailing zeros from integers).
+- `splitTaxes` names its lines from the **label** and totals them from `rate`. Changing one without the other makes the lines' rates disagree with their amounts (the last line absorbs the difference).
 
 ### Cart lines and quantities
 

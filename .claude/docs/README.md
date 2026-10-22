@@ -34,6 +34,7 @@ Scope: everything in `.claude/docs/`
 | Account and wishlist | [pages/account-and-wishlist.md](pages/account-and-wishlist.md) |
 | Header, Footer and shared components (Price, ProductCard, WishButton, SectionHeader, useReveal…) | [components/global-and-shared.md](components/global-and-shared.md) |
 | Virtual try-on studio | [features/virtual-try-on.md](features/virtual-try-on.md) |
+| The ring designer: the 3D engine (stage, lights, setups, the ring's parts and stones), the design model and its code, the cost-plus price, the atelier's notes, the page, and its bag, visit, try-on and share integrations | [features/ring-designer.md](features/ring-designer.md) |
 | Sharing and gift hints (PDP and wishlist) | [features/sharing.md](features/sharing.md) |
 | Shoppable video and the Atelier page | [features/shoppable-video-and-atelier.md](features/shoppable-video-and-atelier.md) |
 | Languages: English (Canada, US) and French (Canada), `bilingual()` copy, the switch, the notice, formatting | [features/languages.md](features/languages.md) |

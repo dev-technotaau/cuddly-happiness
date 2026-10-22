@@ -1,10 +1,10 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { getCategory, getProduct, signatureFor } from './data/catalog'
 import { HOUSE } from './data/house'
 import { bilingual, pick, useCopy, useLocale } from './i18n'
 import { catalogFor } from './i18n/catalog'
 import { plain } from './i18n/rich'
-import { StoreProvider, queryString, useStore, type Route } from './store'
+import { StoreProvider, parseHash, queryString, useStore, type Route } from './store'
 import { TryOnProvider } from './components/tryon/TryOnProvider'
 import SmoothScroll from './components/SmoothScroll'
 import Header from './components/Header'
@@ -28,6 +28,9 @@ import GiftCards from './pages/GiftCards'
 import Cart from './pages/Cart'
 import Shop from './pages/Shop'
 
+// The ring designer carries a 3D engine, so it loads only when it is opened.
+const Designer = lazy(() => import('./pages/Designer'))
+
 // The site-wide English title and description come from .figma/make/site.json (read from the og tags, which never
 // change); the French ones are here, as Shopify's Translate & Adapt would hold them.
 const SITE = bilingual(
@@ -42,13 +45,16 @@ const SITE = bilingual(
     cart: 'Your Bag',
     checkout: 'Checkout',
     atelier: 'The Atelier',
+    designer: 'Design Your Ring',
+    designerDescription: 'Design your engagement ring with the Montréal atelier: the stone, its setting, the claws, the band, the metal and the details, seen in 3D and priced line by line as you choose.',
     shop: 'Every Piece',
     shopDescription: 'Every piece of Teresa & Sons in one place: engagement rings, diamond tennis necklaces, gold, watches and the rental vault, made in our Montréal atelier since 1962.',
+    searchFor: (q: string) => `Search: ${q}`,
     skip: 'Skip to content',
   },
   {
     title: 'Teresa & Sons — Joaillerie fine à Montréal depuis 1962',
-    description: 'Une maison familiale de joaillerie fine, rue Sherbrooke Ouest depuis 1962 : diamants certifiés GIA, mariage, bijoux d’or à transmettre et location, sertis à la main à Montréal.',
+    description: 'Une maison familiale de joaillerie fine, rue Sherbrooke Ouest depuis 1962 : diamants certifiés GIA, mariage, bijoux d’or à transmettre et location, sertis à la main à Montréal.',
     chapterMissing: 'Chapitre introuvable',
     pieceMissing: 'Pièce introuvable',
     wishlist: 'Liste de souhaits',
@@ -57,8 +63,11 @@ const SITE = bilingual(
     cart: 'Votre panier',
     checkout: 'Paiement',
     atelier: 'L’Atelier',
+    designer: 'Créer votre bague',
+    designerDescription: 'Créez votre bague de fiançailles avec l’atelier montréalais : la pierre, sa monture, les griffes, l’anneau, le métal et les détails, vus en 3D et chiffrés ligne par ligne à chaque choix.',
     shop: 'Toutes les pièces',
     shopDescription: 'Toutes les pièces de Teresa & Sons au même endroit : bagues de fiançailles, colliers tennis en diamants, or, montres et le coffre de location, faits dans notre atelier montréalais depuis 1962.',
+    searchFor: (q) => `Recherche : ${q}`,
     skip: 'Passer au contenu',
   },
 )
@@ -79,7 +88,7 @@ function headFor(route: Route): [string, string] {
       }
       return category ? named(catalog.category(category).name, catalog.category(category).description) : named(t.chapterMissing)
     }
-    case 'shop': return named(t.shop, t.shopDescription)
+    case 'shop': return route.query.q ? named(t.searchFor(route.query.q), t.shopDescription) : named(t.shop, t.shopDescription)
     case 'product': {
       const product = getProduct(route.slug)
       const copy = product && catalog.product(product)
@@ -91,6 +100,7 @@ function headFor(route: Route): [string, string] {
     case 'cart': return named(t.cart)
     case 'checkout': return named(t.checkout)
     case 'atelier': return named(t.atelier)
+    case 'designer': return named(t.designer, t.designerDescription)
     default: return [t.title, t.description]
   }
 }
@@ -117,6 +127,14 @@ function Routes({ route }: { route: Route }) {
       return <Checkout />
     case 'atelier':
       return <Atelier />
+    // A link to another design (the bag's Edit, a shared ring) opens it fresh; the page rewrites its own address as
+    // the design changes, which keeps the route (and this key) as it opened.
+    case 'designer':
+      return (
+        <Suspense fallback={<div className="min-h-screen" />}>
+          <Designer key={route.query.r ?? route.query.from ?? ''} query={route.query} />
+        </Suspense>
+      )
     default:
       return <Home />
   }
@@ -127,10 +145,17 @@ function Pages() {
   const { route } = useStore()
   const { locale } = useLocale()
   useEffect(() => {
-    const [title, description] = headFor(route)
-    document.title = title
-    document.querySelector('meta[name="description"]')?.setAttribute('content', description)
+    const name = (r: Route) => {
+      const [title, description] = headFor(r)
+      document.title = title
+      document.querySelector('meta[name="description"]')?.setAttribute('content', description)
+    }
+    name(route)
     document.querySelector('meta[property="og:locale"]')?.setAttribute('content', locale.replace('-', '_'))
+    // A page that rewrites its own options (a filter, a search taken out) is renamed with them.
+    const onAddress = () => name(parseHash())
+    window.addEventListener('tns:address', onAddress)
+    return () => window.removeEventListener('tns:address', onAddress)
   }, [route, locale])
   return <PageTransition>{(shown) => <Routes route={shown} />}</PageTransition>
 }

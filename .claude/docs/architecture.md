@@ -39,7 +39,7 @@ Imports point downward: a layer may import any lower layer. §1.4 lists the edge
 | `src/components/home/` | Home page sections and the shared editorial header | `CategoryIndex`, `FourCs`, `GiftFinder`, `MakingScroll`, `PressStrip`, `SectionHeader`, `Services`, `SocialGrid`, `Testimonials`, `Treasured`, `TryOnFeature`, `VisitSalon`, `WatchSpotlight` |
 | `src/components/pdp/` | Product-page modules | `Accordion`, `CompleteTheLook`, `CraftStory`, `Gallery`, `Personalizer`, `PriceBreakdown`, `ProductFAQ`, `RentalCalendar`, `Reviews`, `RingSize`, `StickyBar` |
 | `src/components/cart/` | Bag modules shared by `CartDrawer` and `pages/Cart` | `CartLineItem`, `CartUpsell`, `GiftOptions`, `RewardProgress`, `UndoToast`, `useCartTotals.ts` |
-| `src/components/tryon/` | Virtual try-on | `TryOnProvider`, `TryOnStudio` (lazy), `TryOnButton`, `JewelryOverlay` |
+| `src/components/tryon/` | Virtual try-on | `TryOnProvider`, `TryOnStudio` (lazy), `TryOnButton`, `JewelryOverlay`; the live 3D ring try-on `RingTryOn` (lazy again, with `fingerPose` and `handTracker`) |
 | `src/components/menu/` | Desktop menu | `SiteMenu` (lazy, from `Header`), `Burger`, `search.ts` |
 | `src/components/splash/` | The intro | `Splash` |
 | `src/components/transition/` | Page transitions | `PageTransition`, `transitions.ts` |
@@ -60,6 +60,7 @@ index.html  (<script type="module" src="/src/main.tsx">)
         └─► src/App.tsx   (provider tree + Routes switch; all 9 pages imported statically)
               ├─► src/store.tsx ──────────────────────────────► data/catalog.ts, data/giftcards.ts
               ├─► components/tryon/TryOnProvider.tsx ─lazy()─► tryon/TryOnStudio.tsx ─► tryon/JewelryOverlay.tsx
+              │                                                     └─lazy()─► tryon/RingTryOn.tsx ─► designer/three/tryOnStage.ts (three.js) · tryon/handTracker.ts (MediaPipe)
               ├─► components/SmoothScroll.tsx ──► lenis · gsap + gsap/ScrollTrigger · store
               ├─► components/{Header,Footer,CartDrawer}.tsx ──► cart/* · shared · store · data
               └─► pages/*.tsx
@@ -184,9 +185,11 @@ Scrollable areas that must bypass Lenis carry `data-lenis-prevent`: the drawer b
 ```ts
 export type Route =
   | { name: 'home' }
-  | { name: 'category'; slug: string }
-  | { name: 'product'; slug: string }
+  | { name: 'shop'; query: Query }
+  | { name: 'category'; slug: string; query: Query }
+  | { name: 'product'; slug: string; query: Query }
   | { name: 'atelier' }
+  | { name: 'designer'; query: Query }
   | { name: 'checkout' }
   | { name: 'wishlist' }
   | { name: 'account' }
@@ -200,15 +203,17 @@ export type Route =
 
 | # | Condition | Example hashes | Route object | Rendered by `Routes` in `src/App.tsx` |
 |---|---|---|---|---|
-| 1 | `parts[0] === 'c' && parts[1]` | `#/c/rings` | `{ name: 'category', slug: 'rings' }` | `<Category key={route.slug} slug={route.slug} />` |
-| 2 | `parts[0] === 'gift-cards' \|\| (parts[0] === 'p' && parts[1] === 'gift-card')` | `#/gift-cards`, `#/p/gift-card` | `{ name: 'giftcards' }` | `<GiftCards />` |
-| 3 | `parts[0] === 'p' && parts[1]` | `#/p/teresa-signet` | `{ name: 'product', slug: 'teresa-signet' }` | `<Product key={route.slug} slug={route.slug} />` |
-| 4 | `parts[0] === 'atelier'` | `#/atelier` | `{ name: 'atelier' }` | `<Atelier />` |
-| 5 | `parts[0] === 'checkout'` | `#/checkout` | `{ name: 'checkout' }` | `<Checkout />` |
-| 6 | `parts[0] === 'cart'` | `#/cart` | `{ name: 'cart' }` | `<Cart />` |
-| 7 | `parts[0] === 'wishlist'` | `#/wishlist` | `{ name: 'wishlist' }` | `<Wishlist />` |
-| 8 | `parts[0] === 'account'` | `#/account` | `{ name: 'account' }` | `<Account />` |
-| 9 | Anything else | empty hash, `#`, `#/`, `#/c`, `#/p`, `#/shop`, `#reviews` | `{ name: 'home' }` | `<Home />`, through the `default:` branch (there is no explicit `case 'home'`) |
+| 1 | `parts[0] === 'shop'` | `#/shop`, `#/shop?q=pearl` | `{ name: 'shop', query }` | `<Shop key={queryString(route.query)} query={route.query} />` |
+| 2 | `parts[0] === 'c' && parts[1]` | `#/c/rings`, `#/c/bridal?type=engagement` | `{ name: 'category', slug, query }` | `<Category key={route.slug + queryString(route.query)} … />` |
+| 3 | `parts[0] === 'gift-cards' \|\| (parts[0] === 'p' && parts[1] === 'gift-card')` | `#/gift-cards`, `#/p/gift-card` | `{ name: 'giftcards' }` | `<GiftCards />` |
+| 4 | `parts[0] === 'p' && parts[1]` | `#/p/teresa-signet`, `?mode=rent` | `{ name: 'product', slug, query }` | `<Product key={route.slug + (route.query.mode ?? '')} … />` |
+| 5 | `parts[0] === 'atelier'` | `#/atelier` | `{ name: 'atelier' }` | `<Atelier />` |
+| 6 | `parts[0] === 'designer'` | `#/designer`, `#/designer?r=<code>&step=band`, `?from=bonsecours` | `{ name: 'designer', query }` | `<Suspense …><Designer key={route.query.r ?? route.query.from ?? ''} query={route.query} /></Suspense>` (lazy, 2026-10-22; see [features/ring-designer.md](features/ring-designer.md)) |
+| 7 | `parts[0] === 'checkout'` | `#/checkout` | `{ name: 'checkout' }` | `<Checkout />` |
+| 8 | `parts[0] === 'cart'` | `#/cart` | `{ name: 'cart' }` | `<Cart />` |
+| 9 | `parts[0] === 'wishlist'` | `#/wishlist` | `{ name: 'wishlist' }` | `<Wishlist />` |
+| 10 | `parts[0] === 'account'` | `#/account` | `{ name: 'account' }` | `<Account />` |
+| 11 | Anything else | empty hash, `#`, `#/`, `#/c`, `#/p`, `#/shop`, `#reviews` | `{ name: 'home' }` | `<Home />`, through the `default:` branch (there is no explicit `case 'home'`) |
 
 Rule 2 runs before rule 3 so that the catalog's `gift-card` product (`tns-gf-003`) opens the gift-card builder instead of a product page. `ProductCard` links to it as `#/p/gift-card`, both in the `gifts` category grid and in `GiftFinder` results.
 
@@ -338,6 +343,8 @@ export interface CartLine {
   booking?: RentalBooking
   personalization?: Personalization
   giftCard?: GiftCardLine
+  /** A ring designed in the designer: its code (see `encodeDesign`). It rides on the commission piece and is priced from the design. */
+  design?: string
   qty: number
 }
 ```
@@ -381,6 +388,12 @@ See [data-model.md](data-model.md).
 | `recent` | `string[]` | Lazy `load('tns-recent', [])` | Viewed product slugs, most recent first, at most 12 ("Most recent first, capped at 12, persisted per device."). |
 | `recordView` | `(slug: string) => void` | `useCallback(…, [])` | Returns the same array when `slug` is already first (no re-render, no write). Otherwise produces `[slug, ...r.filter((s) => s !== slug)].slice(0, 12)`. |
 | `clearRecent` | `() => void` | `useCallback(…, [])` | `setRecent([])`. |
+| `searches` | `string[]` | Lazy `load('tns-searches', [])`, kept only if an array of non-empty strings, at most 5 | What the visitor searched for and followed (2026-10-22), most recent first; the header search lists four. |
+| `rememberSearch` | `(query: string) => void` | `useCallback(…, [])` | Trims, collapses spaces, cuts at 80 characters, ignores under 2; moves it to the front without a case-insensitive repeat, keeps 5. |
+| `forgetSearches` | `() => void` | `useCallback(…, [])` | `setSearches([])` (the dropdown's `Clear`). |
+| `designs` | `SavedDesign[]` (`{ code, image, saved }`) | Lazy `load('tns-designs', [])`, kept only when each code decodes, at most 12 | Rings designed and kept on this device, newest first (2026-10-22). |
+| `saveDesign` / `forgetDesign` | `(design: SavedDesign) => void` / `(code: string) => void` | `useCallback(…, [])` | Puts a design first (replacing the same code) / removes it. |
+| `designDraft` / `setDesignDraft` | `string \| null` / `(code: string \| null) => void` | Lazy `load('tns-design-draft', null)`, kept only when it decodes | The ring being designed, so the designer reopens it. |
 | `linePrice` | `(line: CartLine) => number` | `useCallback(…, [currency])` | Line total (unit price × `qty`) in the current currency. See §4.6. |
 | `subtotal` | `number` | Computed inside the value `useMemo` | `cart.reduce((s, l) => s + linePrice(l), 0)`. **No consumer reads it.** |
 | `count` | `number` | Computed inside the value `useMemo` | `cart.reduce((s, l) => s + l.qty, 0)`. Shown as the header bag badge. |
@@ -388,12 +401,14 @@ See [data-model.md](data-model.md).
 ### 4.4 Cart-line identity: `lineKey`
 
 ```ts
-/** Identity of a configured piece; identical configurations stack in one line. */
+/** Identity of a configured piece; identical configurations stack in one line. A design joins the key only when there
+ *  is one, so every other line keeps the key it was stored with. */
 export const lineKey = (line: Omit<CartLine, 'key' | 'qty'>) =>
-  [line.slug, line.metal, line.rental, line.engraving, line.size, JSON.stringify(line.booking ?? ''), JSON.stringify(line.personalization ?? ''), JSON.stringify(line.giftCard ?? '')].join('|')
+  [line.slug, line.metal, line.rental, line.engraving, line.size, JSON.stringify(line.booking ?? ''), JSON.stringify(line.personalization ?? ''), JSON.stringify(line.giftCard ?? ''), ...(line.design ? [line.design] : [])].join('|')
 ```
 
 - `Array.prototype.join` turns `undefined` fields into empty strings. Objects are compared through `JSON.stringify`, which is sensitive to property insertion order and omits `undefined` properties.
+- A designed ring's `design` is its `designCode` (the ring as made), so two rings made the same stack.
 - `pages/Product.tsx` uses the same function to compute `inBag`, which switches the CTA to "Go to bag".
 
 ### 4.5 Cart mutation semantics
@@ -415,6 +430,8 @@ export const lineKey = (line: Omit<CartLine, 'key' | 'qty'>) =>
   | `tryon/TryOnStudio.tsx` (`add`) | `{ slug: product.slug, metal }`, only when `!needsConfig` |
   | `pages/Wishlist.tsx` ("Add all to bag") | `{ slug: p.slug, metal: p.metals[0] }` for items that are not rentals, not personalized and not `gift-card` |
   | `pages/GiftCards.tsx` (`submit`) | `{ slug: GIFT_CARD_SLUG, giftCard: line }`, called `qty` times |
+  | `pages/Designer.tsx` (`add`) | `{ slug: 'bespoke-engagement-commission', size, design: code }`, only with a size (otherwise it opens the size step) |
+  | `tryon/TryOnStudio.tsx` (a design) | The same, when the design has a size |
 
 - **`updateQty(key, qty)`** is called only by `CartLineItem`: "−" when `qty > 1`, "+" capped at 10.
 - **`removeLine(key)`**
@@ -434,6 +451,10 @@ const linePrice = useCallback(
   (line: CartLine) => {
     const product = getProduct(line.slug)
     if (line.giftCard) return convert(line.giftCard.amount, line.giftCard.currency, currency) * line.qty
+    if (line.design) {
+      const design = decodeDesign(line.design)
+      return design ? ringPrice(design, currency) * line.qty : 0
+    }
     if (!product) return 0
     if (line.rental && product.rental) return product.rental[line.rental][currency] * line.qty
     return (priceFor(product, currency, line.metal) + personalizationPrice(product, line.personalization, currency)) * line.qty
@@ -445,6 +466,7 @@ const linePrice = useCallback(
 - Gift-card lines are checked before the product lookup. They keep their own currency and are converted for display: `convert` multiplies or divides by `CAD_TO_USD = 0.73` and rounds.
 - Merchandise lines store no currency. They are repriced from the catalog's `price.CAD` / `price.USD` whenever `currency` changes.
 - Engraving and size never affect price. Rental lines do not include the deposit.
+- A designed ring is priced from its design (`ringPrice`, `src/data/ringPrice.ts`), not from the commission piece it rides on; a code that won't decode prices at 0.
 - `subtotal` and `count` are computed inside the context `useMemo`. Cart UIs use the `useCartTotals()` hook instead (§4.9). See [commerce-logic.md](commerce-logic.md) for the formulas behind `priceFor`, `personalizationPrice` and `convert`.
 
 ### 4.7 Memoisation and re-render model
@@ -494,7 +516,7 @@ const linePrice = useCallback(
 - `merch`, `giftCards`, `subtotal`, `count`
 - `threshold`, from `REWARD_THRESHOLD = { CAD: 1000, USD: 750 }`
 - `rewardProgress`, `rewardRemaining`, `rewardUnlocked`
-- `installment` (`Math.round(subtotal / 4)`)
+- `installment` (`Math.round(subtotal / 4)`; the drawer and Cart page hide it beside a designed ring's balance)
 - `hasMerch`, `hasRental`
 
 `CartDrawer`, `pages/Cart` and `cart/RewardProgress` use it. `pages/Checkout` computes its own totals.
@@ -516,6 +538,9 @@ A grep for `localStorage|sessionStorage|indexedDB|document.cookie` finds only `l
 | `tns-cart-meta` | JSON `CartMeta`, merged over `DEFAULT_META` on read | `src/store.tsx` | Once, via `load` | Effect on `[meta]` | `load` catches errors (falls back to `{}`). Write is unguarded. |
 | `tns-wishlist` | JSON `string[]` (slugs) | `src/store.tsx` | Once, via `load` | Effect on `[wishlist]` | Same as above. |
 | `tns-recent` | JSON `string[]` (at most 12, most recent first) | `src/store.tsx` | Once, via `load` | Effect on `[recent]` | Same as above. |
+| `tns-searches` | JSON `string[]` (at most 5, most recent first) | `src/store.tsx` | Once, via `load`, validated | Effect on `[searches]` | Same as above (2026-10-22). |
+| `tns-designs` | JSON `SavedDesign[]` (at most 12, newest first; `image` a JPEG data URL) | `src/store.tsx` | Once, via `load`, validated (each code must decode) | Effect on `[designs]` | If `setItem` throws (storage full), it stores the list again without pictures (2026-10-22). |
+| `tns-design-draft` | JSON string (a design code) or `null` | `src/store.tsx` | Once, via `load`, validated | Effect on `[designDraft]` | Same as `tns-wishlist` (2026-10-22). |
 | `tns-account` | JSON `Account` `{ name, email }` | `src/store.tsx` | Once, via `load` (falls back to `null`) | Effect on `[user]`: `setItem` while signed in, `removeItem('tns-account')` when `null` | Same as above. |
 | `tns-giftcard-ledger` | JSON `IssuedCard[]`: `{ code, initial, balance, currency, design, recipientName?, issuedAt, expiresAt }` | `src/data/giftcards.ts` (`LEDGER_KEY`) | On every `loadLedger()`: `lookupCard` (Checkout "Apply", `BalanceChecker`), `issueCards` / `debitCards` (Checkout `placeOrder`) and every render of the signed-in `pages/Account` | `saveLedger()`, called by `issueCards` and `debitCards` | Read is in try/catch (falls back to `[DEMO]`). The demo card `TERESASONS1962MT` is prepended in memory when absent and gets persisted by the next save. Write is unguarded. |
 | `tns-reviews-<slug>` | JSON `Review[]`: `{ id: 'mine-<timestamp>', a, loc, t, b, stars, days: 0, media, mine: true }` | `src/components/pdp/Reviews.tsx` (`storeKey`) | Once per `Reviews` mount (`loadMine`) | `saveMine` on review submit | Read is in try/catch (falls back to `[]`). On write, video media are dropped because object URLs only live for the session; images are stored as JPEG data URLs (≤1200 px, quality 0.8). If `setItem` throws, it retries with `media: []`, and that retry is unguarded. |
@@ -524,7 +549,7 @@ A grep for `localStorage|sessionStorage|indexedDB|document.cookie` finds only `l
 
 - Store keys are read exactly once, when `StoreProvider` mounts. Nothing listens for the `storage` event, so tabs do not sync and the last tab to write wins.
 - Store writes run in passive effects after commit, except `tns-currency`, which `setCurrency` writes inside the event handler.
-- On first mount every effect writes its slice back, so a fresh profile gets `tns-cart` (`[]`), `tns-wishlist`, `tns-recent` and `tns-cart-meta` immediately, and `tns-account` is removed.
+- On first mount every effect writes its slice back, so a fresh profile gets `tns-cart` (`[]`), `tns-wishlist`, `tns-recent`, `tns-searches` and `tns-cart-meta` immediately, and `tns-account` is removed.
 - `src/data/giftcards.ts` reads the ledger fresh on every call. It never caches.
 
 ### 5.3 In-memory only (lost on reload)
@@ -693,7 +718,7 @@ Studio internals are covered in [features/virtual-try-on.md](features/virtual-tr
 1. **Triggers that call `setCurrency(c)`:**
    - The Header toggle (`role="group" aria-label="Currency"`, buttons "CA · CAD" / "US · USD").
    - The signed-in Account page's "Preferred market" ("Canada" / "United States").
-   - Checkout's "Shopping in" control ("Canada · CAD" / "United States · USD"). Checkout also re-converts each applied gift card's `available` balance with `convert(x.card.balance, x.card.currency, c)`.
+   - Checkout's "Shopping in" control ("Canada · CAD" / "United States · USD"). Checkout converts each applied gift card's balance with `convert(card.balance, card.currency, currency)` on every render, so any of these switchers re-prices it.
 2. **Store.** `setCurrencyState(c)` runs and `tns-currency` is written synchronously. `linePrice` gets a new identity (`[currency]` dependency), and the memoised value recomputes `subtotal`.
 3. **Consumers re-render.**
    - Callers recompute amounts for the new currency from catalog values: `priceFor`, `rental[period][currency]`, `rental.deposit[currency]`, `personalizationPrice`, `CUSTOM_RANGE[currency]`, `DENOMINATIONS[currency]`, `REWARD_THRESHOLD[currency]`.

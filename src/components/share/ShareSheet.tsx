@@ -336,7 +336,8 @@ export default function ShareSheet({ subject, initialMode = 'share', onClose }: 
       { id: 'whatsapp', label: 'WhatsApp', note: t.channels.whatsapp },
       ...(touch ? [{ id: 'sms' as const, label: t.messages, note: t.channels.sms }] : []),
       { id: 'email', label: t.email, note: piece ? t.channels.emailPiece : t.channels.emailList },
-      ...(piece && subject.image ? [{ id: 'pinterest' as const, label: 'Pinterest', note: t.channels.pinterest }] : []),
+      // Pinterest pins a public photograph; a ring drawn here in the browser (the designer's) has none.
+      ...(piece && subject.image && /^https?:/.test(subject.image) ? [{ id: 'pinterest' as const, label: 'Pinterest', note: t.channels.pinterest }] : []),
       ...(piece ? [{ id: 'facebook' as const, label: 'Facebook', note: t.channels.facebook }, { id: 'x' as const, label: 'X', note: t.channels.x }] : []),
     ]
     const recent = lastChannel()

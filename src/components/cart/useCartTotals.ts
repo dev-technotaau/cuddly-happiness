@@ -1,3 +1,4 @@
+import { designDeposit } from '../../data/ringPrice'
 import { useStore } from '../../store'
 
 /** Spend at which a complimentary care kit is added, per currency. */
@@ -11,6 +12,9 @@ export default function useCartTotals() {
   const count = cart.reduce((s, l) => s + l.qty, 0)
   const threshold = REWARD_THRESHOLD[currency]
   const hasMerch = cart.some((l) => !l.giftCard)
+  // A designed ring is paid in two parts: its deposit at checkout, the balance once its final design is approved.
+  const balance = cart.filter((l) => l.design).reduce((s, l) => s + linePrice(l) - designDeposit(linePrice(l) / l.qty) * l.qty, 0)
+  const dueNow = subtotal - balance
   return {
     merch,
     giftCards,
@@ -23,5 +27,14 @@ export default function useCartTotals() {
     installment: Math.round(subtotal / 4),
     hasMerch,
     hasRental: cart.some((l) => l.rental),
+    /** Before tax: what the designed rings leave to pay on approval, and what is paid at checkout. */
+    balance,
+    dueNow,
+    /** Tax at a rate, as the bag rounds it once, split into what is paid now and with the balance. */
+    taxAt: (rate: number) => {
+      const total = Math.round(merch * rate)
+      const now = Math.round((merch - balance) * rate)
+      return { total, now, later: total - now }
+    },
   }
 }

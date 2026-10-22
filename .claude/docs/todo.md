@@ -38,7 +38,7 @@ Scope: compiled 2026-10-15 from `history/figma-make-log.md`, `design-intent.md`,
 ## 1. Asked of Figma Make — not delivered or only partly delivered
 
 - [ ] ✗ **P2 · PROTO · "Go to bag" inside the video viewer and try-on studio.** Figma Make offered "close the overlay, then show the drawer" but never built it. Today adding from these overlays opens the drawer *underneath* them (drawer `z-[90]` vs viewer `z-[100]` and studio `z-[110]`). Files: `video/VideoViewer.tsx`, `tryon/TryOnStudio.tsx`. Source: step 23, KI-068.
-- [ ] ✗ **P3 · PROTO · Face/hand tracking for try-on.** Offered in step 16 and never requested. It would need a large tracking library, which goes against the minimal-dependency rule, so **ask the owner before starting**. Today placement is manual.
+- [x] **P3 · PROTO · Face/hand tracking for try-on.** Done for rings, 2026-10-22, at the owner's request ("realistic 3D, not 2D"): MediaPipe's hand landmarker tracks the hand and the designer's 3D ring sits on the chosen finger (`features/virtual-try-on.md` §3a). Necklaces, earrings, bracelets and watches are still placed by hand; face and wrist tracking with 3D models of those pieces would be the next step.
 - [x] ◐ **P2 · PROTO · Home chapter numbering.** Step 9 numbered the home page 01–09. Sections added later (TryOnFeature, ShoppableVideos, RecentlyViewed "—") sit outside that sequence, and the indexes are hand-typed. Renumber them, or compute them as the PDP does with `sectionOrder`. Files: `pages/Home.tsx`, `components/home/*`. **Done 2026-10-21:** Home numbers its 18 acts from `ACTS` in `pages/Home.tsx`; every home section takes an `index` prop.
 - [x] ✗ **P1 · PROTO · Newsletter thank-you.** Step 3 said it shows a thank-you. Today `Footer.tsx` only calls `preventDefault()`. Add a sent state ("Merci…"), mirroring the Atelier form. Source: KI-065. **Done 2026-10-21:** the Footer checks the email and thanks the visitor (simulated).
 - [x] ✗ **P1 · PROTO · Rentals hero slide photo.** Done 2026-10-16: the hero now features catalog pieces, and slide 2 frames the Gala Diamond Collar's boxed-strand photo (`jewelryFlat`). Real photography is still a placeholder (§7).
@@ -77,7 +77,7 @@ Scope: compiled 2026-10-15 from `history/figma-make-log.md`, `design-intent.md`,
    - Source: KI-021.
 3. [ ] **P2 · `lineKey` is order-sensitive and treats `accent: false` as different.** A toggled-then-untoggled accent won't stack, and "Go to bag" shows the wrong state. Normalise before stringifying. Source: KI-012.
 4. [ ] **P2 · Bag "+" lowers quantities above 10.** It uses `Math.min(10, qty + 1)` while gift cards can be added up to 20. Clamp at add time, or fix the stepper. File: `cart/CartLineItem.tsx`. Source: KI-023.
-5. [ ] **P2 · Header currency switch on checkout doesn't re-convert applied gift cards** (front-end simulation math). File: `pages/Checkout.tsx`. Source: KI-024.
+5. [x] **P2 · Header currency switch on checkout doesn't re-convert applied gift cards** (front-end simulation math). File: `pages/Checkout.tsx`. Source: KI-024. **Done 2026-10-22:** Checkout keeps the cards and converts each balance on every render; the confirmation keeps the order's currency.
 6. [ ] **P2 · Overlays survive navigation.** The drawer and studio stay open on Back. Close overlays on `hashchange`. Scroll restoration on Back shipped with the page transitions (2026-10-20). Source: KI-016.
 7. [ ] **P2 · Escape closes both the try-on studio and the drawer** when try-on was opened from a bag line. Scroll locks aren't reference-counted (body vs html). Source: KI-043, KI-044.
 8. [ ] **P2 · Guard the localStorage writes** and optionally add an error boundary. (`tns-currency` is validated since 2026-10-21.) Source: KI-011.
@@ -91,7 +91,7 @@ Scope: compiled 2026-10-15 from `history/figma-make-log.md`, `design-intent.md`,
     - The confirmation's `paidWithCards` is formatted in the current currency without conversion.
     - The order number `TS-` + 6 digits repeats.
     - Source: KI-030.
-15. [ ] **P3 · PriceBreakdown tax can differ by $1** from the cart/checkout total, and the rate formatter strips trailing zeros (a 10% rate would print "1"). Source: KI-027.
+15. [x] **P3 · PriceBreakdown tax can differ by $1** from the cart/checkout total, and the rate formatter strips trailing zeros (a 10% rate would print "1"). Done 2026-10-22: `splitTaxes` lines now add up to the bag's rounding, and the rate prints through `formatNumber` as a percent. Source: KI-027 (closed).
 16. [ ] **P3 · Three USD rounding rules** (nearest 5 vs 1), and the vermeil USD prices fall off the $5 grid. Document or unify. Source: KI-026.
 17. [ ] **P3 · Gift-card debit round-trip can over-debit $1.** Source: KI-025.
 18. [ ] **P3 · Ghost cart lines.** Stale slugs are priced at 0 but still counted. Reconcile on load. Source: KI-013.
@@ -213,6 +213,10 @@ These are recorded so the owner's real build has the full list. **Do not impleme
 
 ## 10. Done since this list was compiled
 
+- [x] **The ring designer (2026-10-22, owner request).** `#/designer`: eight steps from the stone to the size, a real-time 3D ring (ray-traced stones, three setups, five lights, views, 360°, exploded parts), a live itemised price, the atelier's notes with one-tap fixes, a budget finder, house designs, saved designs, undo; the bag, a design consultation, the try-on and sharing all take a design. Record: `features/ring-designer.md`.
+
+- [x] **Search in the bar (2026-10-22, owner request).** Atelier moved from the desktop bar to the menus; `HeaderSearch` puts a field in its place with a full dropdown, and `useHouseSearch` gives the bar, the desktop menu, phones and the shop page (`?q=`) one engine that reads prices, renting and typos. Record: `components/global-and-shared.md` §2.2–2.3.
+
 - [x] **Home refine (2026-10-21, owner request).** Home trimmed to ten acts plus the hero, press, house in numbers and the salon; what left Home lives on its own page. Plan and answers: `.claude/plans/home-refine.md`; record: `features/legacy-redesign.md`.
 
 - [x] **The legacy redesign (2026-10-21, owner request).** Plan: `.claude/plans/legacy-redesign.md`; record: `features/legacy-redesign.md`.
@@ -297,6 +301,14 @@ Work that was never on the list, logged so it isn't redone or undone:
 - [x] **P3 · Contrast:** small linen and vermeil text (KI-045). **Done 2026-10-21:** measured sweep, no small text fails; see `features/legacy-redesign.md`.
 - [ ] **P3 · Owner decision: the brand gold for large accents.** Large italic accents in vermeil are 2.81:1 (2.57:1 on silk), under 3:1. Darkening the gold 8% (#A98441) passes; it changes the signature colour slightly, so show the owner first.
 - [ ] **P3 · KB:** the long page docs predate the redesign in parts; run `/kb-refresh` to re-audit them.
+- [ ] **P2 · Ring designer follow-ups:** real stone photography or a GIA feed behind the centre stone in the theme. The copy had a French read on 2026-10-22 (the `copy-editor` review: agreement, the catalog's terms, `création` throughout); a Québec jeweller should still confirm “millegrain” and “pointes d’aigle”.
+- [x] **P2 · Owner decision: what a designed ring charges at checkout.** Decided 2026-10-22 ("whichever is best and enterprise grade"): a 30% deposit at checkout, the balance on approval of the final design, before casting (`DEPOSIT_SHARE`, `designDeposit`; the bag, cart, checkout, designer and try-on show it).
+- [x] **P3 · Owner decision: which diamonds come with a GIA report.** Decided 2026-10-22: every diamond. The announcement bar, Home's services, the piece page's FAQ and the bag's perks now say so, as `HOUSE.natural` did. (Pavé and halo stones aren't graded one by one in practice; the wording is the owner's.) The designer prices the centre stone's report and, since the review of 2026-10-22, a three-stone ring's two side diamonds.
+- [ ] **P2 · Owner decision: "every diamond" for the smallest stones.** The copy promises a GIA report for every diamond, but pavé, halo and accent stones (Redpath's 112, Drummond's 0.05 ct graduations) aren't graded one by one in practice. Keep it as a placeholder policy, or narrow it to "every centre diamond" (the copy-editor's wording, 2026-10-22).
+- [ ] **P2 · Owner decision: is a designed ring's deposit refundable?** `HOUSE.deposit` doesn't say what happens if the visitor doesn't approve the final design, while made-to-order pieces are final sale. Drafts: "The deposit is refunded in full if you decide against the final design." / "The deposit is not refundable once its stones are reserved." (French in the copy review). The confirmation's "A jeweller will write to arrange your design consultation" is a placeholder promise too.
+- [ ] **P3 · Try-on studio, older issues:** at 320 × 568 the stage's controls run into the shutter; on a phone held sideways the stage is small (the designer's `max-lg:[@media(max-height:520px)]:` pattern would fix it); the studio doesn't move the focus in or trap it (the KI-041 family).
+- [ ] **P3 · Try-on follow-ups:** host MediaPipe's engine and model with the theme; let any ring product opt into the 3D try-on with its design code (a metafield); 3D models and face or wrist tracking for necklaces, earrings, bracelets and watches.
+- [ ] **THEME · Designed rings in Shopify:** price a design server-side and take the 30% deposit (a deposit selling plan with a Cart Transform on Plus, or a draft order with the balance on approval), carry the code and its lines as line-item properties (`_design` plus `Design`, `Details`, `Ring size`, `Engraving`, `Lettering`); see `shopify-integration.md` B7 and B9.
 - [ ] **THEME · Booking app** behind the visit drawer (Booxi, Calendly or a Shopify appointments app), real availability, emails and reminders; rental credit applied at the salon or by the theme.
 
 ## Notes & gotchas

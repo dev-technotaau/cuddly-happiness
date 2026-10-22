@@ -20,6 +20,7 @@ import TennisGuide from '../components/home/TennisGuide'
 import WatchSpotlight from '../components/home/WatchSpotlight'
 import VisitBand from '../components/visit/VisitBand'
 import VisitButton from '../components/visit/VisitButton'
+import { btnOnDark } from '../components/ui'
 
 const COPY = bilingual(
   {
@@ -37,6 +38,8 @@ const COPY = bilingual(
     calloutEyebrow: (numeral: string) => `Our signature · ${numeral}`,
     calloutCount: (n: number) => `${n} pieces`,
     designOwn: 'Design your own',
+    designRing: 'Design your ring',
+    consult: 'Book a design consultation',
     filmsEyebrow: (name: string) => `${name} · in motion`,
     filmsTitle: 'Worn & <em>filmed</em>',
   },
@@ -55,6 +58,8 @@ const COPY = bilingual(
     calloutEyebrow: (numeral) => `Notre signature · ${numeral}`,
     calloutCount: (n) => `${n} pièces`,
     designOwn: 'Créer la vôtre',
+    designRing: 'Créer votre bague',
+    consult: 'Réserver une consultation création',
     filmsEyebrow: (name) => `${name} · en mouvement`,
     filmsTitle: 'Portés et <em>filmés</em>',
   },
@@ -106,7 +111,7 @@ export default function Category({ slug, query }: { slug: string; query: Query }
               <p className="mt-6 max-w-lg text-white/75">{sig.line}</p>
               <div className="mt-8 flex flex-wrap items-center gap-6">
                 <VisitButton tone="dark" request={{ purpose }} />
-                {signature?.id === 'engagement' && <a href={href.category('custom')} className="link-line text-[var(--bg-travertine)]">{t.designOwn}</a>}
+                {signature?.id === 'engagement' && <a href={href.designer()} className="link-line text-[var(--bg-travertine)]">{t.designOwn}</a>}
               </div>
             </>
           ) : (
@@ -118,6 +123,13 @@ export default function Category({ slug, query }: { slug: string; query: Query }
                 <em className="ml-4 inline-block whitespace-nowrap align-top text-2xl text-[var(--gold-champagne)] lg:text-4xl">{copy.accent}</em>
               </h1>
               <p className="mt-6 max-w-lg text-white/75">{copy.description}</p>
+              {/* The made-to-order chapter opens on its two ways in: the designer, and a consultation */}
+              {slug === 'custom' && (
+                <div className="mt-8 flex flex-wrap items-center gap-3">
+                  <a href={href.designer()} className={btnOnDark}>{t.designRing}</a>
+                  <VisitButton tone="dark" request={{ purpose: 'design' }}>{t.consult}</VisitButton>
+                </div>
+              )}
             </>
           )}
         </div>

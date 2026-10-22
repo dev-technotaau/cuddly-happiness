@@ -21,7 +21,7 @@ Background: `.claude/docs/design-system.md` §5 has the verbatim class recipes. 
 Don't invent new values. Take them from the recipe table.
 
 - **Type:**
-  - Eyebrow: `font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-vermeil)]`.
+  - Eyebrow: `font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-ink)]` (champagne on dark; `eyebrow` in `src/components/ui.ts`).
   - Label: `text-[11px] uppercase tracking-[0.22em]`.
   - Serif title: `font-serif-editorial … font-light`, with an `<em className="text-[var(--gold-vermeil)]">` accent word.
   - Body: `leading-relaxed text-[var(--text-taupe)]`.

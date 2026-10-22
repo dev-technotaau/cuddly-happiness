@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-21",
-  "gitHead": "ba62612",
+  "generatedAt": "2026-10-22",
+  "gitHead": "dedcf9d",
   "files": {
     ".figma/make/analyze-routes": {
       "hash": "d51912b900af",
@@ -103,7 +103,7 @@
       ]
     },
     "package.json": {
-      "hash": "3e60c126f68a",
+      "hash": "07dec18342c6",
       "docs": [
         "architecture.md",
         "code-conventions.md",
@@ -141,13 +141,14 @@
       ]
     },
     "src/App.tsx": {
-      "hash": "fda02b67f4ba",
+      "hash": "f7ab79e05f51",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
         "components/global-and-shared.md",
         "components/pdp-modules.md",
         "features/legacy-redesign.md",
+        "features/ring-designer.md",
         "features/virtual-try-on.md",
         "known-issues.md",
         "motion-and-interaction.md",
@@ -166,7 +167,7 @@
       ]
     },
     "src/components/CartDrawer.tsx": {
-      "hash": "3e39ff59a341",
+      "hash": "f6ab4ba2651b",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -183,7 +184,7 @@
       ]
     },
     "src/components/Footer.tsx": {
-      "hash": "4c02c07d4b56",
+      "hash": "4a886469f2b4",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -193,7 +194,7 @@
       ]
     },
     "src/components/Header.tsx": {
-      "hash": "616eb9c49b28",
+      "hash": "85695b85a134",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -209,7 +210,7 @@
       ]
     },
     "src/components/HomeHero.tsx": {
-      "hash": "71793d883085",
+      "hash": "c75db459debf",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -229,7 +230,7 @@
       ]
     },
     "src/components/Price.tsx": {
-      "hash": "97d0e4dd27e5",
+      "hash": "aa5bc9218ea1",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -313,11 +314,12 @@
       ]
     },
     "src/components/cart/CartLineItem.tsx": {
-      "hash": "78e34f1057d5",
+      "hash": "0dd1c1905040",
       "docs": [
         "architecture.md",
         "commerce-logic.md",
         "data-model.md",
+        "features/ring-designer.md",
         "pages/cart-and-checkout.md",
         "pages/category.md",
         "product-overview.md"
@@ -365,7 +367,7 @@
       ]
     },
     "src/components/cart/useCartTotals.ts": {
-      "hash": "6098a1fa081c",
+      "hash": "109a89bc8944",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -381,16 +383,120 @@
       ]
     },
     "src/components/catalog/PieceGrid.tsx": {
-      "hash": "8ebfbf1ecdde",
+      "hash": "e09b195bc36b",
       "docs": [
         "features/legacy-redesign.md",
         "known-issues.md"
       ]
     },
     "src/components/contact/AskSheet.tsx": {
-      "hash": "fb20f33d661a",
+      "hash": "c51deb89efc7",
       "docs": [
-        "features/legacy-redesign.md"
+        "features/legacy-redesign.md",
+        "features/ring-designer.md"
+      ]
+    },
+    "src/components/designer/BudgetFinder.tsx": {
+      "hash": "4272566538eb",
+      "docs": [
+        "features/ring-designer.md"
+      ]
+    },
+    "src/components/designer/CaratField.tsx": {
+      "hash": "276cc85e0bf0",
+      "docs": [
+        "features/ring-designer.md"
+      ]
+    },
+    "src/components/designer/DesignNotes.tsx": {
+      "hash": "c7e9a1e883a8",
+      "docs": [
+        "features/ring-designer.md"
+      ]
+    },
+    "src/components/designer/DesignSpec.tsx": {
+      "hash": "5492a2d2b0f5",
+      "docs": [
+        "features/ring-designer.md"
+      ]
+    },
+    "src/components/designer/Glyph.tsx": {
+      "hash": "e5817dfe930f",
+      "docs": [
+        "features/ring-designer.md"
+      ]
+    },
+    "src/components/designer/LivePrice.tsx": {
+      "hash": "3325059b735a",
+      "docs": [
+        "features/ring-designer.md"
+      ]
+    },
+    "src/components/designer/RingBreakdown.tsx": {
+      "hash": "36c006000372",
+      "docs": [
+        "data-model.md",
+        "features/ring-designer.md"
+      ]
+    },
+    "src/components/designer/RingViewer.tsx": {
+      "hash": "47f53e72a37d",
+      "docs": [
+        "features/ring-designer.md"
+      ]
+    },
+    "src/components/designer/outline.ts": {
+      "hash": "abd50387580d",
+      "docs": [
+        "features/ring-designer.md"
+      ]
+    },
+    "src/components/designer/three/gems.ts": {
+      "hash": "f985f2fe9dc0",
+      "docs": [
+        "features/ring-designer.md"
+      ]
+    },
+    "src/components/designer/three/lighting.ts": {
+      "hash": "fb578c549a44",
+      "docs": [
+        "features/ring-designer.md"
+      ]
+    },
+    "src/components/designer/three/materials.ts": {
+      "hash": "b6aadf7b1943",
+      "docs": [
+        "features/ring-designer.md"
+      ]
+    },
+    "src/components/designer/three/parts.ts": {
+      "hash": "bf34297377e5",
+      "docs": [
+        "features/ring-designer.md"
+      ]
+    },
+    "src/components/designer/three/ringModel.ts": {
+      "hash": "436cdcc3383c",
+      "docs": [
+        "features/ring-designer.md"
+      ]
+    },
+    "src/components/designer/three/setups.ts": {
+      "hash": "c089a328db73",
+      "docs": [
+        "features/ring-designer.md"
+      ]
+    },
+    "src/components/designer/three/stage.ts": {
+      "hash": "6b70df99de2c",
+      "docs": [
+        "features/ring-designer.md"
+      ]
+    },
+    "src/components/designer/three/tryOnStage.ts": {
+      "hash": "28f6c8f9f224",
+      "docs": [
+        "features/virtual-try-on.md"
       ]
     },
     "src/components/giftcard/BalanceChecker.tsx": {
@@ -507,7 +613,7 @@
       ]
     },
     "src/components/home/Services.tsx": {
-      "hash": "eeb81f26aad8",
+      "hash": "8d518e5bcec0",
       "docs": [
         "brand-voice-and-copy.md",
         "motion-and-interaction.md",
@@ -522,7 +628,7 @@
       ]
     },
     "src/components/home/SketchToRing.tsx": {
-      "hash": "7d747520b83b",
+      "hash": "f1ba16170486",
       "docs": [
         "features/legacy-redesign.md"
       ]
@@ -602,7 +708,7 @@
       ]
     },
     "src/components/lineDetails.ts": {
-      "hash": "bfe99cbccf01",
+      "hash": "fa105e8b4027",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -611,6 +717,7 @@
         "components/global-and-shared.md",
         "components/pdp-modules.md",
         "data-model.md",
+        "features/ring-designer.md",
         "pages/cart-and-checkout.md",
         "pages/gift-cards.md",
         "pages/product.md",
@@ -643,6 +750,12 @@
         "components/global-and-shared.md"
       ]
     },
+    "src/components/menu/HeaderSearch.tsx": {
+      "hash": "ea5a3af4db9f",
+      "docs": [
+        "components/global-and-shared.md"
+      ]
+    },
     "src/components/menu/Marked.tsx": {
       "hash": "bb4f9544478d",
       "docs": [
@@ -650,14 +763,14 @@
       ]
     },
     "src/components/menu/MobileSearch.tsx": {
-      "hash": "7941f98fdfd9",
+      "hash": "ef28a6919452",
       "docs": [
         "components/global-and-shared.md",
         "features/legacy-redesign.md"
       ]
     },
     "src/components/menu/SiteMenu.tsx": {
-      "hash": "6320aa6e5b46",
+      "hash": "bad6061bce86",
       "docs": [
         "commerce-logic.md",
         "components/global-and-shared.md",
@@ -667,10 +780,16 @@
       ]
     },
     "src/components/menu/search.ts": {
-      "hash": "96f3359f9155",
+      "hash": "f030ce9c6ff3",
       "docs": [
         "components/global-and-shared.md",
         "features/languages.md"
+      ]
+    },
+    "src/components/menu/useHouseSearch.ts": {
+      "hash": "57fc8a556058",
+      "docs": [
+        "components/global-and-shared.md"
       ]
     },
     "src/components/pdp/Accordion.tsx": {
@@ -733,7 +852,7 @@
       ]
     },
     "src/components/pdp/PriceBreakdown.tsx": {
-      "hash": "0982ad175c43",
+      "hash": "0077960eb259",
       "docs": [
         "brand-voice-and-copy.md",
         "commerce-logic.md",
@@ -746,7 +865,7 @@
       ]
     },
     "src/components/pdp/ProductFAQ.tsx": {
-      "hash": "066ac4cbf578",
+      "hash": "295a14cfc73e",
       "docs": [
         "brand-voice-and-copy.md",
         "components/pdp-modules.md",
@@ -814,8 +933,9 @@
       ]
     },
     "src/components/share/ShareSheet.tsx": {
-      "hash": "ad07a7c9d373",
+      "hash": "df95da69e7df",
       "docs": [
+        "features/ring-designer.md",
         "features/sharing.md"
       ]
     },
@@ -834,7 +954,7 @@
       ]
     },
     "src/components/transition/PageTransition.tsx": {
-      "hash": "66fdda3658af",
+      "hash": "917d87680395",
       "docs": [
         "motion-and-interaction.md"
       ]
@@ -852,6 +972,12 @@
         "features/virtual-try-on.md"
       ]
     },
+    "src/components/tryon/RingTryOn.tsx": {
+      "hash": "acb9953045e9",
+      "docs": [
+        "features/virtual-try-on.md"
+      ]
+    },
     "src/components/tryon/TryOnButton.tsx": {
       "hash": "4106b366f270",
       "docs": [
@@ -865,7 +991,7 @@
       ]
     },
     "src/components/tryon/TryOnProvider.tsx": {
-      "hash": "6bb9ad1be732",
+      "hash": "2f1c92248368",
       "docs": [
         "architecture.md",
         "data-model.md",
@@ -877,7 +1003,7 @@
       ]
     },
     "src/components/tryon/TryOnStudio.tsx": {
-      "hash": "24f566ffb825",
+      "hash": "5ba7c09c84ba",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -888,6 +1014,18 @@
         "pages/cart-and-checkout.md",
         "product-overview.md",
         "ux-patterns-and-accessibility.md"
+      ]
+    },
+    "src/components/tryon/fingerPose.ts": {
+      "hash": "8458e6209ace",
+      "docs": [
+        "features/virtual-try-on.md"
+      ]
+    },
+    "src/components/tryon/handTracker.ts": {
+      "hash": "90a3ac2c33b2",
+      "docs": [
+        "features/virtual-try-on.md"
       ]
     },
     "src/components/ui.ts": {
@@ -967,16 +1105,17 @@
       ]
     },
     "src/components/visit/VisitDrawer.tsx": {
-      "hash": "1240602ee3e4",
+      "hash": "8dd8e0573e21",
       "docs": [
         "features/legacy-redesign.md"
       ]
     },
     "src/components/visit/VisitFlow.tsx": {
-      "hash": "c87967b7ef20",
+      "hash": "0ddbb7874428",
       "docs": [
         "brand-voice-and-copy.md",
-        "features/legacy-redesign.md"
+        "features/legacy-redesign.md",
+        "features/ring-designer.md"
       ]
     },
     "src/data/catalog.fr.ts": {
@@ -990,7 +1129,7 @@
       ]
     },
     "src/data/catalog.ts": {
-      "hash": "d077751bc2f1",
+      "hash": "7e50bbe5c1c9",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -1012,13 +1151,14 @@
       ]
     },
     "src/data/costing.ts": {
-      "hash": "8bf52d04b943",
+      "hash": "d7f5f6f88c66",
       "docs": [
         "brand-voice-and-copy.md",
         "commerce-logic.md",
         "components/pdp-modules.md",
         "data-model.md",
         "features/languages.md",
+        "features/ring-designer.md",
         "pages/product.md",
         "product-overview.md",
         "shopify-integration.md"
@@ -1042,8 +1182,9 @@
       ]
     },
     "src/data/house.ts": {
-      "hash": "68f507f7733e",
+      "hash": "6f0591223093",
       "docs": [
+        "commerce-logic.md",
         "features/legacy-redesign.md"
       ]
     },
@@ -1060,6 +1201,33 @@
         "pages/home.md",
         "pages/product.md",
         "product-overview.md",
+        "shopify-integration.md"
+      ]
+    },
+    "src/data/ring.ts": {
+      "hash": "15fdf836cb05",
+      "docs": [
+        "features/ring-designer.md"
+      ]
+    },
+    "src/data/ringAdvice.ts": {
+      "hash": "279edf1c1268",
+      "docs": [
+        "features/ring-designer.md"
+      ]
+    },
+    "src/data/ringCopy.ts": {
+      "hash": "021d60feff84",
+      "docs": [
+        "features/ring-designer.md"
+      ]
+    },
+    "src/data/ringPrice.ts": {
+      "hash": "6a1b0d3c6479",
+      "docs": [
+        "architecture.md",
+        "commerce-logic.md",
+        "features/ring-designer.md",
         "shopify-integration.md"
       ]
     },
@@ -1087,9 +1255,10 @@
       ]
     },
     "src/data/visits.ts": {
-      "hash": "78223c4b7596",
+      "hash": "fc352c908bc3",
       "docs": [
-        "features/legacy-redesign.md"
+        "features/legacy-redesign.md",
+        "features/ring-designer.md"
       ]
     },
     "src/i18n/catalog.ts": {
@@ -1120,7 +1289,7 @@
       ]
     },
     "src/i18n/us.ts": {
-      "hash": "c2567d8a8b3e",
+      "hash": "e46cf52e6619",
       "docs": [
         "brand-voice-and-copy.md",
         "features/languages.md",
@@ -1129,7 +1298,7 @@
       ]
     },
     "src/index.css": {
-      "hash": "f68ed0ad2eee",
+      "hash": "827ad2699bfa",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -1189,7 +1358,7 @@
       ]
     },
     "src/pages/Account.tsx": {
-      "hash": "8810bc9329f0",
+      "hash": "8e9818008f61",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -1215,13 +1384,13 @@
       ]
     },
     "src/pages/Cart.tsx": {
-      "hash": "de63bf9df054",
+      "hash": "22c89e88c5c3",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
         "commerce-logic.md",
-        "components/pdp-modules.md",
         "data-model.md",
+        "features/ring-designer.md",
         "known-issues.md",
         "pages/cart-and-checkout.md",
         "pages/category.md",
@@ -1230,7 +1399,7 @@
       ]
     },
     "src/pages/Category.tsx": {
-      "hash": "586b10493f1e",
+      "hash": "a3f0491f8b2d",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -1244,19 +1413,26 @@
       ]
     },
     "src/pages/Checkout.tsx": {
-      "hash": "5dc44aac5d23",
+      "hash": "b9c5d1bc7bc5",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
         "commerce-logic.md",
-        "components/pdp-modules.md",
         "data-model.md",
+        "features/ring-designer.md",
         "known-issues.md",
         "pages/cart-and-checkout.md",
         "pages/category.md",
         "product-overview.md",
         "shopify-integration.md",
         "ux-patterns-and-accessibility.md"
+      ]
+    },
+    "src/pages/Designer.tsx": {
+      "hash": "12a34e90fabf",
+      "docs": [
+        "commerce-logic.md",
+        "features/ring-designer.md"
       ]
     },
     "src/pages/GiftCards.tsx": {
@@ -1293,7 +1469,7 @@
       ]
     },
     "src/pages/Product.tsx": {
-      "hash": "c7b87d7137a7",
+      "hash": "682f36ba8977",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -1314,8 +1490,9 @@
       ]
     },
     "src/pages/Shop.tsx": {
-      "hash": "2b51eb7050be",
+      "hash": "0910d3d75af2",
       "docs": [
+        "components/global-and-shared.md",
         "features/legacy-redesign.md"
       ]
     },
@@ -1335,7 +1512,7 @@
       ]
     },
     "src/store.tsx": {
-      "hash": "d32f312fa383",
+      "hash": "70a3d3210c26",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -1345,6 +1522,7 @@
         "data-model.md",
         "features/languages.md",
         "features/legacy-redesign.md",
+        "features/ring-designer.md",
         "known-issues.md",
         "motion-and-interaction.md",
         "pages/account-and-wishlist.md",

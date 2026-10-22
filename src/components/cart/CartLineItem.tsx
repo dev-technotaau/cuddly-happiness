@@ -1,10 +1,12 @@
 import { Heart, Minus, Pencil, Plus, X } from 'lucide-react'
 import { getProduct, personalizationPrice, priceFor } from '../../data/catalog'
+import { RING_COPY } from '../../data/ringCopy'
+import { designDeposit } from '../../data/ringPrice'
 import { bilingual, useCopy } from '../../i18n'
 import { useCatalog } from '../../i18n/catalog'
 import { COMMON } from '../../i18n/common'
 import { href, useStore, type CartLine } from '../../store'
-import { lineDetails } from '../lineDetails'
+import { designedLine, lineDetails } from '../lineDetails'
 import GiftCardArt from '../giftcard/GiftCardArt'
 import Price from '../Price'
 import TryOnButton from '../tryon/TryOnButton'
@@ -39,17 +41,21 @@ const COPY = bilingual(
 )
 
 export default function CartLineItem({ line, variant = 'drawer', onNavigate }: Props) {
-  const { updateQty, removeLine, linePrice, toggleWishlist, isWished, currency } = useStore()
+  const { updateQty, removeLine, linePrice, toggleWishlist, isWished, currency, designs, saveDesign } = useStore()
   const t = useCopy(COPY)
   const common = useCopy(COMMON)
+  const ring = useCopy(RING_COPY)
   const catalog = useCatalog()
   const p = getProduct(line.slug)
   if (!p) return null
-  const name = catalog.name(p)
+  // A ring from the designer shows as designed, and edits back in the designer.
+  const designed = designedLine(line, designs)
+  const name = designed ? designed.title : catalog.name(p)
   const page = variant === 'page'
-  const productHref = line.giftCard ? href.giftcards : href.product(p.slug)
+  // A design opens in the designer to change, and "Update the bag" replaces this line.
+  const productHref = line.giftCard ? href.giftcards : line.design ? href.designer({ r: line.design, edit: '1' }) : href.product(p.slug)
   const unit = linePrice(line) / line.qty
-  const fullPrice = !line.giftCard && !line.rental ? priceFor(p, currency, line.metal) + personalizationPrice(p, line.personalization, currency) : unit
+  const fullPrice = !line.giftCard && !line.rental && !line.design ? priceFor(p, currency, line.metal) + personalizationPrice(p, line.personalization, currency) : unit
   const details = lineDetails(line, p)
   const iconBtn = 'flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-[var(--text-taupe)] transition-colors hover:text-[var(--text-espresso)]'
 
@@ -59,7 +65,7 @@ export default function CartLineItem({ line, variant = 'drawer', onNavigate }: P
     </div>
   ) : (
     <a href={productHref} onClick={onNavigate} className={`group block shrink-0 overflow-hidden bg-[var(--bg-silk)] ${page ? 'h-44 w-36' : 'h-32 w-24'}`}>
-      <img src={p.images[0]} alt={name} className="editorial-zoom h-full w-full object-cover" />
+      <img src={designed?.image || p.images[0]} alt={name} className="editorial-zoom h-full w-full object-cover" />
     </a>
   )
 
@@ -69,7 +75,7 @@ export default function CartLineItem({ line, variant = 'drawer', onNavigate }: P
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <p className="font-spec text-[9px] uppercase tracking-[0.22em] text-[var(--text-taupe)]">{line.rental ? t.rental : line.giftCard ? t.giftCard : catalog.product(p).collection}</p>
+            <p className="font-spec text-[9px] uppercase tracking-[0.22em] text-[var(--text-taupe)]">{line.rental ? t.rental : line.giftCard ? t.giftCard : designed ? ring.designed : catalog.product(p).collection}</p>
             <a href={productHref} onClick={onNavigate} className={`font-serif-editorial mt-1 block leading-tight transition-colors hover:text-[var(--gold-vermeil)] ${page ? 'text-3xl' : 'text-xl'}`}>
               {name}
             </a>
@@ -90,7 +96,10 @@ export default function CartLineItem({ line, variant = 'drawer', onNavigate }: P
           {!line.giftCard && (
             <button
               onClick={() => {
-                if (!isWished(p.slug)) toggleWishlist(p.slug)
+                // A design is kept with the visitor's designs; a piece goes to the wishlist.
+                if (designed) {
+                  if (!designs.some((s) => s.code === line.design)) saveDesign({ code: line.design!, image: '', saved: new Date().toISOString() })
+                } else if (!isWished(p.slug)) toggleWishlist(p.slug)
                 removeLine(line.key)
               }}
               className={iconBtn}
@@ -98,7 +107,7 @@ export default function CartLineItem({ line, variant = 'drawer', onNavigate }: P
               <Heart size={11} strokeWidth={1.4} /> {t.later}
             </button>
           )}
-          {!line.giftCard && <TryOnButton product={p} metal={line.metal} text={line.personalization?.text} variant="link" label={common.viewOnYou} className="!pb-0.5 !text-[10px] !tracking-[0.18em] text-[var(--text-taupe)]" />}
+          {!line.giftCard && !designed && <TryOnButton product={p} metal={line.metal} text={line.personalization?.text} variant="link" label={common.viewOnYou} className="!pb-0.5 !text-[10px] !tracking-[0.18em] text-[var(--text-taupe)]" />}
         </div>
 
         <div className="mt-auto flex items-end justify-between gap-4 pt-4">
@@ -119,6 +128,8 @@ export default function CartLineItem({ line, variant = 'drawer', onNavigate }: P
             <Price amount={linePrice(line)} className={page ? 'text-base' : 'text-sm'} />
             {line.qty > 1 && <p className="font-spec mt-0.5 text-[10px] text-[var(--text-taupe)]"><Price amount={unit} className="[&_span]:hidden" /> {t.each}</p>}
             {fullPrice !== unit && <p className="font-spec text-[10px] text-[var(--text-taupe)] line-through"><Price amount={fullPrice} className="[&_span]:hidden" /></p>}
+            {/* A designed ring: its deposit today, the balance on approval of its design */}
+            {line.design && <p className="font-spec mt-0.5 text-[10px] text-[var(--text-taupe)]"><Price amount={designDeposit(unit) * line.qty} className="[&_span]:hidden" /> {ring.today}</p>}
           </div>
         </div>
       </div>

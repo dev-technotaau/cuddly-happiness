@@ -17,7 +17,7 @@ export interface CostLine {
 }
 
 /** Indicative metal rates per gram, CAD. */
-const METAL_RATE: Record<Metal, number> = { '18k-yellow': 82.4, '18k-white': 84.1, '18k-rose': 81.9, platinum: 48.6, vermeil: 1.6 }
+export const METAL_RATE: Record<Metal, number> = { '18k-yellow': 82.4, '18k-white': 84.1, '18k-rose': 81.9, platinum: 48.6, vermeil: 1.6 }
 
 // The statement's wording. Numbers inside it are formatted for the locale where the lines are built.
 const COPY = bilingual(
@@ -58,7 +58,7 @@ const COPY = bilingual(
     courier: { CAD: 'Signature courier, Canada', USD: 'Signature courier, duties prepaid' } as Record<Currency, string>,
     engraving: ['Engraving', 'Hand or laser, up to 18 characters'] as [string, string],
     care: ['Lifetime care plan', 'Annual cleaning, claw checks, polish'] as [string, string],
-    margin: ['Design, showroom & maison margin', 'Design, salon, staff, warranty reserve'] as [string, string],
+    margin: ['Design, salon & maison margin', 'Design, salon, staff, warranty reserve'] as [string, string],
     option: 'Option',
     selected: 'Selected option',
   },
@@ -114,7 +114,7 @@ const STONE_SHARE: Record<string, number> = {
 }
 
 const MAKING_SHARE: Record<string, number> = { bridal: 0.13, custom: 0.2, watches: 0.08 }
-const LABOUR_RATE_CAD = 95 // per bench hour
+export const LABOUR_RATE_CAD = 95 // per bench hour
 
 /** Products priced as a service or deposit, where a material breakdown would mislead. */
 export const hasCostBreakdown = (p: Product) => p.metals.length > 0 && !/commission|redesign/i.test(p.name)
@@ -238,10 +238,16 @@ export function buildCostBreakdown(p: Product, currency: Currency, metal?: Metal
   return { lines, price: base + accent, metalWeight: weight, labourHours: hours }
 }
 
-/** Splits a combined label like "GST 5% + QST 9.975%" into separate tax lines. */
-export function splitTaxes(label: string, amount: number): { name: string; rate: number; amount: number }[] {
-  const parts = [...label.matchAll(/([A-Z]+)\s*([\d.]+)%/g)].map((x) => ({ name: x[1], rate: Number(x[2]) / 100 }))
-  return parts.map((t) => ({ ...t, amount: Math.round(amount * t.rate) }))
+/** Splits a province's combined tax ("GST 5% + QST 9.975%") into separate lines that add up to the bag's tax. */
+export function splitTaxes(tax: { label: string; rate: number }, amount: number): { name: string; rate: number; amount: number }[] {
+  const parts = [...tax.label.matchAll(/([A-Z]+)\s*([\d.]+)%/g)].map((x) => ({ name: x[1], rate: Number(x[2]) / 100 }))
+  // The bag rounds the whole rate once; each line rounds on its own and the last takes the rest, so they meet to the dollar.
+  let left = Math.round(amount * tax.rate)
+  return parts.map((t, i) => {
+    const part = i === parts.length - 1 ? left : Math.round(amount * t.rate)
+    left -= part
+    return { ...t, amount: part }
+  })
 }
 
 /** A piece's chapter name, in the visitor's language. */

@@ -71,7 +71,7 @@ Inline `fontFamily` values also name Baskervville (Personalizer "Serif" preview,
 - Arbitrary sizes in use:
   - Micro: `text-[10px]` (152), `text-[11px]` (91), `text-[9px]` (22), `text-[8px]` (1).
   - Display: `text-[2.75rem]` (7), `text-[3rem]`, `text-[3.25rem]`, `text-[3.5rem]`, `text-[3.75rem]`, `text-[4.25rem]`, `text-[4.75rem]` (3), `text-[5rem]`, `text-[5.25rem]`, `text-[7rem]`, `text-[7.5rem]`, `text-[9rem]`.
-  - Special: `text-[17vw]` (footer wordmark), `cqi` units inside gift-card art.
+  - Special: `cqi` units, sized to a container (`@container`): the footer wordmark (`text-[16cqi]`, so it spans its column exactly) and the gift-card art.
 - Standard sizes in use: `text-sm` (70), `text-xs` (55), `text-3xl` (31), `text-6xl` (18), `text-4xl` (15), `text-xl`, `text-2xl` (12 each), `text-5xl` (10), `text-lg` (9), `text-7xl` (7), `text-base` (5), `text-8xl` (4).
 - Tracking:
   - Most used: `0.2em` (53), `0.22em` (47), `0.3em` (29), `0.24em` (29), `0.18em` (26), `0.16em` (14), `0.26em` (11), `0.28em` (10).

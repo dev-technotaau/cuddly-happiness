@@ -218,7 +218,7 @@ A three-slide editorial carousel on the vault background. Each slide pairs a thr
   - Eyebrow (`data-fade`): a `w-10` champagne rule (`[data-eyebrow-rule]`, drawn in on reveal) and `font-spec text-[10px] uppercase tracking-[0.24em] sm:tracking-[0.34em]` text in champagne.
   - **Title lockup** (`<h1>`): `font-serif-editorial font-light leading-[0.88] tracking-[-0.03em] !oldstyle-nums [text-rendering:optimizeLegibility] lg:max-w-[72%]`, with `fontSize: clamp(3.25rem, min(9.2vw, 14vh), 8.75rem)`. That is about 126 px at 1440 × 900, 92 px at 1366 × 657 and 52 px on phones.
     - Every line is flush left, giving one strong edge.
-    - Each line is a mask span `block overflow-hidden pb-[0.24em] -mb-[0.16em]` holding a `[data-line]` span.
+    - Each line is a mask span `block overflow-hidden pb-[0.24em] -mb-[0.16em]` (the italic line `-mb-[0.05em]`, so the line after it clears the italic's descenders) holding a `[data-line]` span.
     - The accent line opens with a gold hairline (`[data-rule]`, `mr-[0.3em] mt-[0.56em] h-px w-[0.9em] sm:w-[1.5em]`, a gradient from transparent to champagne). It draws in from the left edge and leads into the italic.
     - The italic (`[data-gleam]`, `text-[1.05em] font-normal italic`) is a text-clipped gradient: champagne with a pale band (`#fff4d8`) at 50 %, `bg-[length:250%_100%] bg-[position:100%_0%] bg-clip-text text-transparent`. It is padded `pb-[0.3em] -mb-[0.3em] pr-[0.08em] -mr-[0.08em]` so descenders and the italic overhang stay inside the painted box.
   - Body (`data-fade`): `max-w-sm text-pretty text-sm leading-relaxed text-white/75`.

@@ -28,6 +28,13 @@
     outline-offset: 3px;
   }
 
+  /* Whatever can be clicked shows the hand, as links do. Tailwind 4 leaves buttons on the arrow (3 gave them the hand),
+     so the header's bag and menu buttons, Shop, and every close looked inert beside the links. Utilities still win
+     (cursor-not-allowed on an unavailable option, cursor-grab on what is dragged). */
+  :where(button:not(:disabled), [role='button'], [role='option'], [role='tab'], summary, select, input[type='checkbox'], input[type='radio'], input[type='range'], input[type='file'], label:has(> input[type='file'])) {
+    cursor: pointer;
+  }
+
   html {
     background-color: var(--bg-travertine);
     color: var(--text-espresso);
@@ -135,6 +142,12 @@ html.lenis body {
 @keyframes scrollCue {
   from { transform: translateY(-100%); }
   to { transform: translateY(200%); }
+}
+
+/* The ring designer's viewer: a gold segment runs along its foot while the ring is being built */
+@keyframes ring-build {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(300%); }
 }
 
 /* Animated hairline underline for editorial links */

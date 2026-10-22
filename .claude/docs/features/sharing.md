@@ -54,7 +54,7 @@ It replaced the wishlist's old "Copy link", which copied `#/wishlist`. That link
 - **The device's share sheet with the photograph.** When `navigator.share` exists, "Share from this device" leads the sheet. The photograph (`w=1200`) is fetched as a `File` when the sheet opens, because a share sheet must open inside the click with the file already in hand. It is attached when `navigator.canShare({ files })` allows it, with an "Attach the photograph" toggle.
 - **Wording per channel.** WhatsApp, Messages and Email get the full line. X gets "{name} by Teresa & Sons, Montréal". Pinterest gets "{name}. {tagline} Teresa & Sons, Montréal." with the photograph as `media`. An optional note (140 characters) leads every message.
 - **Attribution.** Every link carries `utm_source={channel}&utm_medium=share`, and list links are tagged per piece. Shares raise `tns:share`.
-- **Channels that suit the device.** Messages (`sms:`) appears only on touch screens (`pointer: coarse`). Pinterest appears only for pieces with a photograph. The channel used last in the session moves to the front ("Used last time").
+- **Channels that suit the device.** Messages (`sms:`) appears only on touch screens (`pointer: coarse`). Pinterest appears only for pieces with a public photograph (an `http(s)` image: a ring from the designer, pictured in the browser, has none). The channel used last in the session moves to the front ("Used last time").
 - **Copy that never dead-ends.**
   - "Copy link" turns vermeil with "Copied", announces it, and resets after 2.4 s.
   - If the browser withholds the clipboard, the link field (a read-only input) is selected and the sheet says "press Ctrl+C" (⌘C on Apple devices).
