@@ -1,5 +1,5 @@
+import { outlineOf, radiusAt } from '../../data/outline'
 import { CUTS, type BandForm, type BandStones, type Coverage, type Finish, type ProngTip, type SettingHeight, type SettingStyle, type Shape, type SideShape, type StoneType } from '../../data/ring'
-import { outlineOf, radiusAt } from './outline'
 
 // The stones' own colours, as in the 3D view.
 const GEM_TINT: Record<StoneType, string> = { diamond: '#f4f8fb', sapphire: '#2b4fd6', ruby: '#c8123a', emerald: '#14a46a' }

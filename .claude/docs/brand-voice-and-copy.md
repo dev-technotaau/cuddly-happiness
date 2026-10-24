@@ -26,7 +26,7 @@ Scope: every user-facing string in `src/**/*.{ts,tsx}`, which covers all of `src
 | Element | Verbatim | Where |
 |---|---|---|
 | House name | `Teresa & Sons` (written `Teresa &amp; Sons` in some JSX text) | throughout |
-| Wordmark | `Teresa <em>&amp;</em> Sons`: Baskervville capitals, `text-[17px] uppercase tracking-[0.12em]` (22 px and 0.16em from `sm`, 25 px from `lg`) on one line; the ampersand is the italic in `text-[var(--gold-vermeil)]` | `src/components/Header.tsx` |
+| Wordmark | `Teresa <em>&amp;</em> Sons`: Baskervville capitals, the compact lockup (owner, 2026-10-22): `text-[17px] uppercase tracking-[0.08em]` (19 px from `sm`, 21 px from `xl`) on one line; the ampersand is the italic in `text-[var(--gold-vermeil)]` | `src/components/Header.tsx` |
 | Wordmark subline | `Montréal &middot; Est. 1962` (spec face, 8 px with `tracking-[0.28em]`, 9 px with `[0.4em]` from `sm`, uppercase, taupe) | `Header.tsx` |
 | Gift-card wordmark | `Teresa <em>&amp;</em> Sons` in tracked capitals (ampersand in the design's `accent` colour) over `Carte-cadeau · Montréal` | `src/components/giftcard/GiftCardArt.tsx` |
 | Hero side label | `Joailliers · Montréal · Est. 1962` (vertical, `tracking-[0.5em]`) | `src/components/HomeHero.tsx` |

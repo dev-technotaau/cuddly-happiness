@@ -3,16 +3,23 @@
 // halo and pavé stones follow in a ripple; a new metal is a colour that turns, not a rebuild. The exploded view lifts
 // the parts apart and reports where each one is, for its label.
 import gsap from 'gsap'
-import { BufferGeometry, Color, Group, InstancedMesh, Matrix4, Mesh, Quaternion, Vector3, type Material, type MeshPhysicalMaterial, type Object3D, type ShaderMaterial, type Texture } from 'three'
-import type { MeshBVHUniformStruct } from 'three-mesh-bvh'
-import { headMetal, layoutOf, type Layout, type RingDesign } from '../../../data/ring'
+import { BufferGeometry, Color, Group, InstancedMesh, Matrix3, Matrix4, Mesh, Quaternion, Vector3, type Material, type MeshBasicNodeMaterial, type Object3D, type TextureNode } from 'three/webgpu'
+import { headMetal, layoutOf, type EngravingFont, type Layout, type RingDesign, type StoneType } from '../../../data/ring'
+import { TRACE_MATERIAL, type Traceable } from './bvh'
 import { gemGeometry } from './gems'
-import { METAL_LOOK, engravingMaterial, gemUniforms, meleeGem, metalMaterial, retintMetal, textTexture, tracedGem, type GemUniforms } from './materials'
-import { bandGeometries, bandStones, basketRail, bezel, cathedral, claws, engravingStrip, haloGallery, haloStones, hiddenHaloStones, milgrain, peekabooStones, seat, sideStones, surpriseStone } from './parts'
+import { gemMaterial, type GemUniforms } from './gemMaterial'
+import { METAL_LOOK, engravingMap, engravingMaterial, metalMaterial, recut, retintMetal, type Lettering, type MetalMaterial } from './materials'
+import type { RingTracer } from './raytrace'
+import { bandGeometries, bandStones, basketRail, bezel, cathedral, centreFoot, claws, engravingStrip, haloGallery, haloStones, hiddenCollar, hiddenHaloStones, milgrain, peekabooCups, peekabooStones, prongGeometry, prongTrace, sideStones, splitBridge, surprisePad, surpriseStone } from './parts'
 
 export type PartId = 'centre' | 'head' | 'band' | 'halo' | 'pave' | 'sides' | 'accents' | 'engraving'
 
-const FONT_CSS = { script: "'Pinyon Script', cursive", serif: "italic 500 'Baskervville', serif", block: "500 'Jost', sans-serif" } as const
+/** The engraving's faces: the script, the house's italic serif, tracked block capitals' face. */
+const LETTERING: Record<EngravingFont, Lettering> = {
+  script: { style: '', family: "'Pinyon Script', cursive", size: 0.74, tracking: 0.02 },
+  serif: { style: 'italic 500 ', family: "'Baskervville', serif", size: 0.6, tracking: 0.04 },
+  block: { style: '500 ', family: "'Jost', sans-serif", size: 0.5, tracking: 0.18 },
+}
 
 interface Part {
   group: Group
@@ -23,24 +30,28 @@ interface Part {
 
 const melee = gemGeometry('round', 1, 1, 2)
 
-/** Marks a material as its part's own (a traced stone, the engraving), so it is freed with the part; the metals and
- *  the melee material are shared and live as long as the model. */
+/** Marks a material as its part's own (a centre or side stone, the engraving), so it is freed with the part; the metals
+ *  and the melee material are shared and live as long as the model. */
 const owned = <T extends Material>(m: T): T => {
   m.userData.owned = true
   return m
 }
 
-/** Removes and frees an object's meshes: geometry (not the shared melee and bead shapes), instance buffers, and the
- *  part's own materials with their textures and stone BVHs. */
+/** The shapes every part shares, kept for the model's life. */
+const shared = (g: BufferGeometry) => g === melee || g === beadGeometry || g === prongGeometry || g === prongTrace
+
+/** Removes and frees an object's meshes: geometry (not the shared melee, bead and prong shapes) and its traced copy,
+ *  instance buffers, and the part's own materials with their textures. */
 function dispose(o: Object3D) {
   o.traverse((c) => {
     const m = c as Mesh
-    if (m.geometry && m.geometry !== melee && m.geometry !== beadGeometry) m.geometry.dispose()
+    if (m.geometry && !shared(m.geometry)) m.geometry.dispose()
+    const trace = m.userData?.trace as BufferGeometry | undefined
+    if (trace && !shared(trace)) trace.dispose()
     if ((c as InstancedMesh).isInstancedMesh) (c as InstancedMesh).dispose()
-    const mat = m.material as (Material & { alphaMap?: Texture | null }) | Material[] | undefined
+    const mat = m.material as Material | Material[] | undefined
     if (!mat || Array.isArray(mat) || !mat.userData.owned) return
-    ;((mat as ShaderMaterial).uniforms?.bvh?.value as MeshBVHUniformStruct | undefined)?.dispose()
-    mat.alphaMap?.dispose()
+    ;(mat.userData.lettering as TextureNode | undefined)?.value.dispose()
     mat.dispose()
   })
   o.removeFromParent()
@@ -52,22 +63,33 @@ export class RingModel {
   readonly anchors = new Map<PartId, Vector3>()
   layout: Layout | null = null
   private parts = new Map<PartId, Part>()
-  private bandMetal: MeshPhysicalMaterial
-  private headMetal: MeshPhysicalMaterial
-  private meleeMat: ShaderMaterial
+  readonly bandMetal: MetalMaterial
+  readonly headMetal: MetalMaterial
+  private meleeMat: MeshBasicNodeMaterial
   private uniforms: GemUniforms
+  private tracer: RingTracer | null
+  /** Counts every change of shape (a part rebuilt or moved), so a traced copy knows when it is out of date. */
+  version = 0
+  /** Until when (performance.now()) the parts are still moving into place. */
+  busyUntil = 0
+  /** Called when the model changes by itself (a typeface come in), so its renderer draws it again. */
+  onRedraw: (() => void) | null = null
   private design: RingDesign | null = null
   private exploded = false
   private motion: boolean
   private held: gsap.core.Timeline | null = null
 
-  /** `uniforms`: the light its stones read; the designer's own by default, another renderer brings its own. */
-  constructor(motion: boolean, uniforms: GemUniforms = gemUniforms) {
+  /** `uniforms`: the light its stones read, its renderer's own; `tracer`: the ring traced against itself, when the
+   *  renderer has one. */
+  constructor(motion: boolean, uniforms: GemUniforms, tracer: RingTracer | null = null) {
     this.motion = motion
     this.uniforms = uniforms
-    this.bandMetal = metalMaterial('platinum')
-    this.headMetal = metalMaterial('platinum')
-    this.meleeMat = meleeGem('diamond', uniforms)
+    this.tracer = tracer
+    this.bandMetal = metalMaterial('platinum', 'polished', tracer)
+    this.headMetal = metalMaterial('platinum', 'polished', tracer)
+    // Melee is traced as the larger stones are: the light leaving it meets the seat it sits in and the prongs over it,
+    // so each stone shows the metal round it (a ray a pixel: the cost goes by the pixels it covers, not its count).
+    this.meleeMat = gemMaterial(melee, 'diamond', uniforms, true, tracer)
   }
 
   /** Builds what changed; `first` plays the whole assembly. A change of measure only (a weight, a width, a size, as a
@@ -83,24 +105,26 @@ export class RingModel {
     // Each part's signature: everything that changes its shape or where it sits (the band's height moves the head).
     const seat = [d.size, d.band.form, d.band.width, d.setting.height, d.setting.cathedral]
     const sigs: Record<PartId, string> = {
-      band: JSON.stringify([d.band.form, d.band.width, d.band.taper, d.size]),
+      band: JSON.stringify([d.band.form, d.band.width, d.band.taper, d.size, d.details.surprise]),
       head: JSON.stringify([d.stone.shape, d.stone.type, d.stone.carat, d.setting, d.prongs, d.details.hiddenHalo, d.details.peekaboo, d.band.taper, seat]),
       centre: JSON.stringify([d.stone.shape, d.stone.type, d.stone.carat, seat]),
-      halo: JSON.stringify([d.setting.style, d.stone.shape, d.stone.carat, d.details.hiddenHalo, d.details.peekaboo, seat]),
+      halo: JSON.stringify([d.setting.style, d.stone.shape, d.stone.carat, d.prongs, d.details.hiddenHalo, d.details.peekaboo, seat]),
       pave: JSON.stringify([d.band, d.size, d.stone.shape, d.stone.carat, d.setting.style, d.setting.sides, d.setting.sideCarat]),
       sides: JSON.stringify([d.setting.style, d.setting.sides, d.setting.sideCarat, d.stone.shape, d.stone.carat, seat]),
       accents: JSON.stringify([d.details.surprise, d.details.milgrain, d.band, d.size, d.stone.shape, d.stone.carat]),
-      engraving: JSON.stringify([d.details.engraving, d.details.font, d.size, d.band.width]),
+      engraving: JSON.stringify([d.details.engraving, d.details.font, d.size, d.band.width, d.band.form, d.details.surprise]),
     }
     const tl = gsap.timeline({ paused: !this.motion || hold })
     const order: PartId[] = ['band', 'head', 'centre', 'halo', 'sides', 'pave', 'accents', 'engraving']
     const at: Record<PartId, number> = first ? { band: 0, head: 0.75, centre: 1.25, halo: 1.6, sides: 1.45, pave: 1.0, accents: 1.9, engraving: 2.1 } : { band: 0, head: 0, centre: 0.1, halo: 0.2, sides: 0.15, pave: 0.1, accents: 0.25, engraving: 0.2 }
+    let changed = false
     for (const id of order) {
       const old = this.parts.get(id)
       if (old && old.sig === sigs[id]) {
         // Unchanged, but it may sit at a new height (a new size moves everything).
         continue
       }
+      changed = true
       const part = this.build(id, d, L)
       if (old) {
         if (quick) dispose(old.group)
@@ -118,11 +142,17 @@ export class RingModel {
     if (!this.motion) tl.progress(1)
     else if (hold) this.held = tl
     else tl.play()
-    return this.motion ? tl.duration() : 0
+    const duration = this.motion ? tl.duration() : 0
+    if (changed) {
+      this.version++
+      this.busyUntil = hold ? Infinity : performance.now() + duration * 1000
+    }
+    return duration
   }
 
   /** Plays an assembly held back (its parts wait at their start, unseen) while the shaders compiled. */
   release() {
+    if (this.held) this.busyUntil = performance.now() + this.held.duration() * 1000
     this.held?.play()
     this.held = null
   }
@@ -132,7 +162,7 @@ export class RingModel {
     const band = d.metal.band
     const head = headMetal(d)
     // A hammered finish is the band's: the claws and head stay polished, as the bench leaves them.
-    const to = (m: MeshPhysicalMaterial, metal: typeof band) => {
+    const to = (m: MetalMaterial, metal: typeof band) => {
       const c = new Color(METAL_LOOK[metal].color)
       retintMetal(m, metal, m === this.headMetal && d.metal.finish === 'hammered' ? 'polished' : d.metal.finish)
       if (animate && this.motion) gsap.to(m.color, { r: c.r, g: c.g, b: c.b, duration: 0.8, ease: 'power2.out' })
@@ -140,10 +170,38 @@ export class RingModel {
     }
     to(this.bandMetal, band)
     to(this.headMetal, head)
+    // The engraving's metal is the band's: a satin band's grain runs on round it (a change of shader only when it starts
+    // or stops).
+    this.parts.get('engraving')?.group.traverse((o) => {
+      const mat = (o as Mesh).material as MetalMaterial | undefined
+      if (!mat?.userData?.lettering) return
+      if (mat.anisotropy > 0 !== this.bandMetal.anisotropy > 0) mat.needsUpdate = true
+      mat.anisotropy = this.bandMetal.anisotropy
+    })
   }
 
   private mesh(geometry: BufferGeometry, material: Material, parent: Group) {
     const m = new Mesh(geometry, material)
+    parent.add(m)
+    return m
+  }
+
+  /** Small stones, one mesh each (the tracer reads each stone's own matrix), sharing the melee material. */
+  private stones(mats: Matrix4[], parent: Group): Mesh[] {
+    return mats.map((mx) => {
+      const m = new Mesh(melee, this.meleeMat)
+      m.applyMatrix4(mx)
+      parent.add(m)
+      return m
+    })
+  }
+
+  /** The prongs that hold small stones, one instanced set in a metal, traced as their coarser copy. */
+  private prongs(mats: Matrix4[], metal: Material, parent: Group): InstancedMesh {
+    const m = new InstancedMesh(prongGeometry, metal, mats.length)
+    mats.forEach((mx, i) => m.setMatrixAt(i, mx))
+    m.instanceMatrix.needsUpdate = true
+    m.userData.trace = prongTrace
     parent.add(m)
     return m
   }
@@ -174,13 +232,35 @@ export class RingModel {
         const parts: Mesh[] = []
         if (d.setting.style === 'bezel') for (const g of bezel(d, L)) parts.push(this.mesh(g, this.headMetal, group))
         else {
-          parts.push(this.mesh(basketRail(d, L), this.headMetal, group))
-          if (L.centre.depth > 4.2) parts.push(this.mesh(basketRail(d, L, 0.18, 0.42, 0.28), this.headMetal, group))
+          // A hidden halo's collar ties the claws where the rail would: the rail runs under it instead.
+          parts.push(this.mesh(L.hiddenHalo ? basketRail(d, L, 0.22, 0.28) : basketRail(d, L), this.headMetal, group))
+          if (L.centre.depth > 4.2 && !L.hiddenHalo) parts.push(this.mesh(basketRail(d, L, 0.2, 0.28), this.headMetal, group))
+          // The claws' foot, cast into the band.
+          parts.push(this.mesh(centreFoot(d, L), this.headMetal, group))
         }
-        parts.push(this.mesh(seat(L), this.headMetal, group))
-        if (L.halo) parts.push(this.mesh(haloGallery(d, L), this.headMetal, group))
+        // A split shank carries the head on a bridge between its strands.
+        const bridge = d.band.form === 'split' ? splitBridge(L) : null
+        if (bridge) parts.push(this.mesh(bridge, this.bandMetal, group))
+        if (L.halo) {
+          const h = haloGallery(d, L)
+          // Drawn with its seats cut fine; traced as its coarser copy.
+          const frame = this.mesh(h.frame, this.headMetal, group)
+          frame.userData.trace = h.trace
+          parts.push(frame)
+          for (const g of h.posts) parts.push(this.mesh(g, this.headMetal, group))
+        }
+        if (L.peekaboo) for (const g of peekabooCups(d, L)) parts.push(this.mesh(g, this.headMetal, group))
+        if (L.hiddenHalo) {
+          const h = hiddenCollar(d, L)
+          const collar = this.mesh(h.frame, this.headMetal, group)
+          collar.userData.trace = h.trace
+          parts.push(collar)
+        }
         if (d.setting.cathedral) for (const g of cathedral(d, L)) parts.push(this.mesh(g, this.bandMetal, group))
-        if (L.sides) for (const g of sideStones(d, L).claws) parts.push(this.mesh(g, this.headMetal, group))
+        if (L.sides) {
+          const s = sideStones(d, L)
+          for (const g of [...s.claws, ...s.feet]) parts.push(this.mesh(g, this.headMetal, group))
+        }
         // Each claw in its own group at its base, so it can grow from there.
         const growers: Group[] = []
         for (const c of claws(d, L)) {
@@ -207,11 +287,9 @@ export class RingModel {
       }
       case 'centre': {
         const g = gemGeometry(d.stone.shape, L.centre.width, L.centre.length / L.centre.width)
-        const mat = owned(tracedGem(g, d.stone.type, this.uniforms))
+        const mat = owned(gemMaterial(g, d.stone.type, this.uniforms, false, this.tracer))
         const m = this.mesh(g, mat, group)
-        m.onBeforeRender = () => (mat.uniforms.modelMatrixInverse.value as Matrix4).copy(m.matrixWorld).invert()
         m.position.y = L.y.girdle
-        m.renderOrder = 2
         return {
           group,
           sig: '',
@@ -220,27 +298,24 @@ export class RingModel {
             tl.from(m.position, { y: L.y.girdle + 11, duration: 1, ease: 'power3.out' }, at)
             tl.from(m.rotation, { y: Math.PI * 0.75, duration: 1.1, ease: 'power3.out' }, at)
             tl.from(m.scale, { x: 0.7, y: 0.7, z: 0.7, duration: 0.8, ease: 'power3.out' }, at)
-            tl.from(mat.uniforms.opacity, { value: 0, duration: 0.5 }, at)
+            tl.from(mat, { opacity: 0, duration: 0.5 }, at)
           },
         }
       }
       case 'halo': {
         if (!L.halo && !L.hiddenHalo && !L.peekaboo) return null
-        const sets: InstancedMesh[] = []
-        const add = (mats: Matrix4[], geometry: BufferGeometry, material: Material, scale = 1) => {
-          const inst = new InstancedMesh(geometry, material, mats.length)
-          mats.forEach((mx, i) => inst.setMatrixAt(i, scale === 1 ? mx : mx.clone().scale(new Vector3(scale, scale, scale))))
-          inst.instanceMatrix.needsUpdate = true
-          group.add(inst)
-          sets.push(inst)
-        }
+        const sets: (Mesh[] | InstancedMesh)[] = []
         if (L.halo) {
           const h = haloStones(d, L)
-          add(h.stones, melee, this.meleeMat)
-          add(h.beads, beadGeometry, this.headMetal, 0.17)
+          sets.push(this.stones(h.stones, group))
+          sets.push(this.prongs(h.prongs, this.headMetal, group))
         }
-        if (L.hiddenHalo) add(hiddenHaloStones(d, L), melee, this.meleeMat)
-        if (L.peekaboo) add(peekabooStones(d, L), melee, this.meleeMat)
+        if (L.hiddenHalo) {
+          const h = hiddenHaloStones(d, L)
+          sets.push(this.stones(h.stones, group))
+          sets.push(this.prongs(h.prongs, this.headMetal, group))
+        }
+        if (L.peekaboo) sets.push(this.stones(peekabooStones(d, L), group))
         return { group, sig: '', enter: (tl, at) => sets.forEach((s, i) => ripple(tl, s, at + i * 0.08, 0.7)) }
       }
       case 'sides': {
@@ -248,12 +323,10 @@ export class RingModel {
         const s = sideStones(d, L)
         const shape = d.setting.sides === 'baguette' ? 'emerald' : d.setting.sides
         const geo = gemGeometry(shape, s.sizes.width, s.sizes.length / s.sizes.width)
+        const mat = owned(gemMaterial(geo, 'diamond', this.uniforms, false, this.tracer))
         const meshes = s.at.map((mx) => {
-          const mat = owned(tracedGem(geo, 'diamond', this.uniforms))
           const m = this.mesh(geo, mat, group)
           m.applyMatrix4(mx)
-          m.onBeforeRender = () => (mat.uniforms.modelMatrixInverse.value as Matrix4).copy(m.matrixWorld).invert()
-          m.renderOrder = 2
           return m
         })
         return { group, sig: '', enter: (tl, at) => meshes.forEach((m, i) => tl.from(m.position, { y: m.position.y + 7, duration: 0.85, ease: 'power3.out' }, at + i * 0.12)) }
@@ -261,31 +334,33 @@ export class RingModel {
       case 'pave': {
         if (!L.pave) return null
         const p = bandStones(d, L)
-        const stones = new InstancedMesh(melee, this.meleeMat, p.stones.length)
-        p.stones.forEach((mx, i) => stones.setMatrixAt(i, mx))
-        group.add(stones)
-        let beads: InstancedMesh | null = null
-        if (p.beads.length) {
-          beads = new InstancedMesh(beadGeometry, this.bandMetal, p.beads.length)
-          p.beads.forEach((mx, i) => beads!.setMatrixAt(i, mx.clone().scale(new Vector3(0.17, 0.17, 0.17))))
-          group.add(beads)
-        }
+        const stones = this.stones(p.stones, group)
+        const prongs = p.prongs.length ? this.prongs(p.prongs, this.bandMetal, group) : null
         for (const r of p.rails) this.mesh(r, this.bandMetal, group)
-        return { group, sig: '', enter: (tl, at) => ripple(tl, stones, at, 1, p.order) }
+        return {
+          group,
+          sig: '',
+          enter: (tl, at) => {
+            ripple(tl, stones, at, 1, p.order)
+            if (prongs) ripple(tl, prongs, at + 0.15, 1)
+          },
+        }
       }
       case 'accents': {
-        const sets: InstancedMesh[] = []
+        const sets: (Mesh[] | InstancedMesh)[] = []
         if (L.surprise) {
-          const s = new InstancedMesh(melee, this.meleeMat, 1)
-          s.setMatrixAt(0, surpriseStone(L))
-          group.add(s)
-          sets.push(s)
+          sets.push(this.stones([surpriseStone(d, L)], group))
+          // A split or twisted band carries it on a pad across its strands; a one-piece band has its seat cut in.
+          const pad = surprisePad(d, L)
+          if (pad) this.mesh(pad, this.bandMetal, group)
         }
         if (d.details.milgrain) {
           const headArc = Math.atan2(L.centre.width * 0.5 + 0.8, L.y.bandTop)
-          const mats = milgrain(L, headArc)
+          const mats = milgrain(d, L, headArc)
           const m = new InstancedMesh(beadGeometry, this.bandMetal, mats.length)
           mats.forEach((mx, i) => m.setMatrixAt(i, mx.clone().scale(new Vector3(0.12, 0.12, 0.12))))
+          // Drawn, not traced: hundreds of grains no reflection would show, which would double the hierarchy.
+          m.userData.noTrace = true
           group.add(m)
           sets.push(m)
         }
@@ -295,15 +370,38 @@ export class RingModel {
       case 'engraving': {
         const text = d.details.engraving.trim()
         if (!text) return null
-        const length = Math.min(L.band.inner * 2.2, 2.2 + text.length * 1.05)
-        const tex = textTexture(text, `${d.details.font === 'block' ? 74 : 92}px ${FONT_CSS[d.details.font]}`, 1024, 128, { tracking: d.details.font === 'block' ? 14 : 2 })
-        const mat = owned(engravingMaterial(this.bandMetal.color, tex))
-        this.mesh(engravingStrip(L, length), mat, group)
+        const face = LETTERING[d.details.font]
+        // Across the band's middle, and at most a third of the way round.
+        const across = L.band.width * 0.62
+        const draw = () => engravingMap(text, face, across, L.band.inner * 2.2)
+        const first = draw()
+        const mat = owned(engravingMaterial(this.bandMetal, first.map, this.tracer))
+        // Cut into a copy of the band's own inner surface: drawn, not traced (the band is).
+        const mesh = this.mesh(engravingStrip(d, L, first.length, across), mat, group)
+        mesh.userData.noTrace = true
+        // It lies on the band: when it goes, it fades where it is.
+        group.userData.flush = true
+        mat.userData.fades = true
+        // The typeface may still be on its way: once it has come, the lettering is cut again in it.
+        const probe = `${face.style}24px ${face.family}`
+        if (document.fonts && !document.fonts.check(probe, text)) {
+          document.fonts.load(probe, text).then(
+            () => {
+              if (this.parts.get('engraving')?.group !== group || !document.fonts.check(probe, text)) return
+              const next = draw()
+              recut(mat, next.map)
+              mesh.geometry.dispose()
+              mesh.geometry = engravingStrip(d, L, next.length, across)
+              this.onRedraw?.()
+            },
+            () => {},
+          )
+        }
         return {
           group,
           sig: '',
           enter: (tl, at) => {
-            tl.from(mat, { opacity: 0, duration: 0.9 }, at)
+            tl.from(mat, { opacity: 0, duration: 1.2, ease: 'power1.inOut' }, at)
           },
         }
       }
@@ -318,17 +416,24 @@ export class RingModel {
       dispose(g)
       return
     }
-    tl.to(g.scale, { x: 0.94, y: 0.94, z: 0.94, duration: 0.25, ease: 'power2.in', onComplete: () => dispose(g) }, 0)
+    // A part lying on another's surface (the engraving) stays where it is.
+    const shrink = g.userData.flush ? {} : { x: 0.94, y: 0.94, z: 0.94 }
+    tl.to(g.scale, { ...shrink, duration: 0.25, ease: 'power2.in', onComplete: () => dispose(g) }, 0)
+    // The part's own stones (and the engraving) fade as it goes (the shared melee shrinks with its group).
+    const fading = new Set<Material>()
     g.traverse((c) => {
-      const mat = (c as Mesh).material as ShaderMaterial | undefined
-      if (mat?.uniforms?.opacity) tl.to(mat.uniforms.opacity, { value: 0, duration: 0.25 }, 0)
+      const mat = (c as Mesh).material as Material | Material[] | undefined
+      if (mat && !Array.isArray(mat) && mat.userData.owned && ((mat as MeshBasicNodeMaterial).alphaHash || mat.userData.fades)) fading.add(mat)
     })
+    fading.forEach((mat) => tl.to(mat, { opacity: 0, duration: 0.25 }, 0))
     tl.set(g, { visible: false }, 0.25)
   }
 
   /** Lifts the parts apart (or back together). */
   explode(on: boolean) {
     this.exploded = on
+    this.version++
+    this.busyUntil = performance.now() + (this.motion ? 1100 : 0)
     for (const [id, part] of this.parts) {
       const to = on ? this.offset(id) : new Vector3()
       if (this.motion) gsap.to(part.group.position, { x: to.x, y: to.y, z: to.z, duration: 1.1, ease: 'power3.inOut' })
@@ -362,6 +467,75 @@ export class RingModel {
     return part ? a.clone().add(part.group.position) : a.clone()
   }
 
+  /** The ring's metal and stones as triangles in its own space, for tracing (the engraving's decal left out; a part with a
+   *  coarser copy for tracing, a seated frame or the prongs, by that copy). */
+  traceable(): Traceable {
+    this.root.updateMatrixWorld(true)
+    const toRoot = new Matrix4().copy(this.root.matrixWorld).invert()
+    const rel = new Matrix4()
+    const each = new Matrix4()
+    const normalMatrix = new Matrix3()
+    let positions = new Float32Array(9 * 4096)
+    let normals = new Float32Array(9 * 4096)
+    let materials = new Float32Array(4096)
+    let n = 0
+    const v = new Vector3()
+    const add = (mesh: Mesh, matrix: Matrix4, id: number) => {
+      const g = (mesh.userData.trace as BufferGeometry | undefined) ?? mesh.geometry
+      const pos = g.getAttribute('position')
+      const nor = g.getAttribute('normal')
+      const index = g.index
+      const total = index ? index.count : pos.count
+      const start = Math.max(0, g.drawRange.start)
+      const end = Math.min(total, start + (Number.isFinite(g.drawRange.count) ? g.drawRange.count : total))
+      normalMatrix.getNormalMatrix(matrix)
+      const tris = Math.floor((end - start) / 3)
+      if (n + tris > materials.length) {
+        const size = Math.max(materials.length * 2, n + tris)
+        const grow = (a: Float32Array, k: number) => {
+          const b = new Float32Array(size * k)
+          b.set(a)
+          return b
+        }
+        positions = grow(positions, 9)
+        normals = grow(normals, 9)
+        materials = grow(materials, 1)
+      }
+      for (let i = start; i + 2 < end; i += 3) {
+        for (let c = 0; c < 3; c++) {
+          const k = index ? index.getX(i + c) : i + c
+          const o = n * 9 + c * 3
+          v.fromBufferAttribute(pos, k).applyMatrix4(matrix)
+          positions[o] = v.x
+          positions[o + 1] = v.y
+          positions[o + 2] = v.z
+          v.fromBufferAttribute(nor, k).applyMatrix3(normalMatrix).normalize()
+          normals[o] = v.x
+          normals[o + 1] = v.y
+          normals[o + 2] = v.z
+        }
+        materials[n++] = id
+      }
+    }
+    this.root.traverseVisible((o) => {
+      const mesh = o as Mesh
+      if (!mesh.isMesh || mesh.userData.noTrace || !((mesh.userData.trace as BufferGeometry | undefined) ?? mesh.geometry).getAttribute('normal')) return
+      const material = mesh.material as Material
+      const stone = material.userData.stone as StoneType | undefined
+      const id = material === this.bandMetal ? TRACE_MATERIAL.band : material === this.headMetal ? TRACE_MATERIAL.head : stone ? TRACE_MATERIAL[stone] : -1
+      if (id < 0) return
+      rel.multiplyMatrices(toRoot, mesh.matrixWorld)
+      const inst = mesh as InstancedMesh
+      if (inst.isInstancedMesh) {
+        for (let i = 0; i < inst.count; i++) {
+          inst.getMatrixAt(i, each)
+          add(mesh, each.premultiply(rel), id)
+        }
+      } else add(mesh, rel, id)
+    })
+    return { positions: positions.slice(0, n * 9), normals: normals.slice(0, n * 9), materials: materials.slice(0, n) }
+  }
+
   dispose() {
     for (const p of this.parts.values()) dispose(p.group)
     this.parts.clear()
@@ -391,8 +565,14 @@ const beadGeometry = (() => {
   return g
 })()
 
-/** Stones of an instanced set appear one after another (in `order`, else their index), each scaling up from nothing. */
-function ripple(tl: gsap.core.Timeline, mesh: InstancedMesh, at: number, duration: number, order?: number[]) {
+/** A set of stones (meshes) or beads (an instanced set) appears one after another (in `order`, else their index), each
+ *  scaling up from nothing. */
+function ripple(tl: gsap.core.Timeline, set: Mesh[] | InstancedMesh, at: number, duration: number, order?: number[]) {
+  if (Array.isArray(set)) {
+    rippleMeshes(tl, set, at, duration, order)
+    return
+  }
+  const mesh = set
   const n = mesh.count
   const base = [...Array(n).keys()].map((i) => {
     const m = new Matrix4()
@@ -424,3 +604,21 @@ function ripple(tl: gsap.core.Timeline, mesh: InstancedMesh, at: number, duratio
   tl.to(state, { t: 1, duration, ease: 'none', onUpdate: apply, onComplete: apply }, at)
 }
 
+/** The ripple for stones as meshes: each scales up from nothing in its turn. */
+function rippleMeshes(tl: gsap.core.Timeline, meshes: Mesh[], at: number, duration: number, order?: number[]) {
+  const n = meshes.length
+  const base = meshes.map((m) => m.scale.clone())
+  const rank = order ? [...order.keys()].sort((a, b) => order[a] - order[b]) : [...Array(n).keys()]
+  const delay = new Array<number>(n)
+  rank.forEach((idx, k) => (delay[idx] = n > 1 ? k / (n - 1) : 0))
+  const state = { t: 0 }
+  const apply = () => {
+    for (let i = 0; i < n; i++) {
+      const local = Math.min(1, Math.max(0, (state.t - delay[i] * 0.6) / 0.4))
+      const k = 1 - (1 - local) ** 3
+      meshes[i].scale.copy(base[i]).multiplyScalar(Math.max(0.001, k))
+    }
+  }
+  apply()
+  tl.to(state, { t: 1, duration, ease: 'none', onUpdate: apply, onComplete: apply }, at)
+}

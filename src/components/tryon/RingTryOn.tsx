@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { RingDesign } from '../../data/ring'
 import type { LightPreset } from '../designer/three/lighting'
 import { TryOnStage } from '../designer/three/tryOnStage'
@@ -9,8 +9,8 @@ import { loadTracker, type Tracker } from './handTracker'
 export type TrackState = { phase: 'loading'; progress: number } | { phase: 'live'; hint: Hint | 'looking' } | { phase: 'photo'; found: boolean } | { phase: 'manual'; reason: 'failed' | 'chosen' } | { phase: 'lost' }
 
 export interface RingTryOnApi {
-  /** Draws the ring, as it is now, over a photograph being composed (`w` × `h`: the stage, scaled). */
-  draw(ctx: CanvasRenderingContext2D, w: number, h: number): void
+  /** Draws the ring, as it is now, over a photograph being composed (`w` × `h`: the stage, scaled), as a still. */
+  draw(ctx: CanvasRenderingContext2D, w: number, h: number): Promise<void>
 }
 
 type Media = HTMLVideoElement | HTMLImageElement
@@ -36,6 +36,8 @@ interface Props {
 /** The ring in 3D on the visitor's hand: tracked in the camera or found in a photo, steadied and lit for the room. */
 export default function RingTryOn({ design, media, source, mirror, finger, fit, light, placed, manual, api, onState }: Props) {
   const host = useRef<HTMLDivElement>(null)
+  // The stage starts asynchronously; the room's light is read once it is there.
+  const [ready, setReady] = useState(false)
   const stage = useRef<TryOnStage | null>(null)
   const tracker = useRef<Tracker | null>(null)
   const failed = useRef(false)
@@ -44,8 +46,8 @@ export default function RingTryOn({ design, media, source, mirror, finger, fit, 
   const found = useRef<{ hand: Hand; pose: FingerPose } | null>(null)
   const read = useRef(false)
   // The latest of everything the loops read, so they never restart for a slider.
-  const now = useRef({ media, source, mirror, finger, fit, placed, manual })
-  now.current = { media, source, mirror, finger, fit, placed, manual }
+  const now = useRef({ design, media, source, mirror, finger, fit, placed, manual })
+  now.current = { design, media, source, mirror, finger, fit, placed, manual }
   const last = useRef('')
   const report = useRef(onState)
   report.current = (s: TrackState) => {
@@ -84,18 +86,32 @@ export default function RingTryOn({ design, media, source, mirror, finger, fit, 
     draw.current()
   }
 
-  // The stage: made once, freed on leaving.
+  // The stage: started once (its renderer starts asynchronously), freed on leaving.
   useEffect(() => {
     if (!host.current) return
-    const s = new TryOnStage(host.current, () => report.current({ phase: 'lost' }))
-    stage.current = s
-    if (import.meta.env.DEV) (window as unknown as { __tryon: unknown }).__tryon = { stage: s, found, now }
-    s.setDesign(design)
-    api.current = { draw: (ctx, w, h) => ctx.drawImage(s.capture(), 0, 0, w, h) }
-    draw.current()
+    let s: TryOnStage | null = null
+    let gone = false
+    TryOnStage.create(host.current, () => report.current({ phase: 'lost' }))
+      .then((made) => {
+        if (gone) return made.dispose()
+        s = made
+        stage.current = made
+        if (import.meta.env.DEV) (window as unknown as { __tryon: unknown }).__tryon = { stage: made, found, now }
+        made.setDesign(now.current.design)
+        api.current = {
+          draw: async (ctx, w, h) => {
+            const still = await made.capture(w, h)
+            if (still) ctx.drawImage(still, 0, 0, w, h)
+          },
+        }
+        draw.current()
+        setReady(true)
+      })
+      .catch(() => report.current({ phase: 'lost' }))
     return () => {
+      gone = true
       api.current = null
-      s.dispose()
+      s?.dispose()
       stage.current = null
     }
   }, [])
@@ -182,7 +198,7 @@ export default function RingTryOn({ design, media, source, mirror, finger, fit, 
     sample()
     const id = source === 'camera' ? window.setInterval(sample, 700) : 0
     return () => window.clearInterval(id)
-  }, [light, media, source])
+  }, [light, media, source, ready])
 
   // The camera: each new frame, the hand is found, the ring placed and drawn, all within that frame.
   useEffect(() => {

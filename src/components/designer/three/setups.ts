@@ -1,8 +1,9 @@
-// Where the ring is shown. The studio: a seamless travertine floor and a soft contact shadow, the ring standing on its
-// band as jewellers photograph it. The salon: an open box on lacquered walnut, the ring held in a velvet slit under a
+// Where the ring is shown. The studio: a seamless travertine floor, the ring standing on its band as jewellers
+// photograph it, its shadow traced on the floor (raytrace.ts; drawn stand-ins until it is baked). The salon: an open box on lacquered walnut, the ring held in a velvet slit under a
 // satin lid with the maison's name. The hand: a porcelain display hand, made here from a smooth distance field, its
 // ring finger sized to the ring.
 import { CanvasTexture, CircleGeometry, Color, CylinderGeometry, Group, Matrix4, Mesh, MeshBasicMaterial, MeshPhysicalMaterial, NoColorSpace, PlaneGeometry, SRGBColorSpace, Vector3, BufferGeometry, Float32BufferAttribute, type Texture } from 'three'
+import { MeshPhysicalNodeMaterial } from 'three/webgpu'
 import { MarchingCubes } from 'three/examples/jsm/objects/MarchingCubes.js'
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
 import type { Layout } from '../../../data/ring'
@@ -27,6 +28,10 @@ export interface Setup {
   light: LightPreset
   /** Lowest the camera may look from (radians from straight down). */
   maxPolar: number
+  /** The floor under the ring, which takes its traced shadow. */
+  ground?: Mesh
+  /** Drawn shadows standing in until the traced one is baked. */
+  stand?: Mesh[]
 }
 
 // Colour textures are sRGB; masks (alpha maps) are linear, so their gradients fall off as drawn.
@@ -90,7 +95,7 @@ const outer = (L: Layout) => L.band.inner + L.band.thickness
 
 function studio(L: Layout): Setup {
   const group = new Group()
-  const floor = new Mesh(new CircleGeometry(160, 64), new MeshPhysicalMaterial({ color: new Color('#ece6db'), roughness: 0.9, transparent: true, alphaMap: radialMask(0.55), depthWrite: false }))
+  const floor = new Mesh(new CircleGeometry(160, 64), new MeshPhysicalNodeMaterial({ color: new Color('#ece6db'), roughness: 0.9, transparent: true, alphaMap: radialMask(0.55), depthWrite: false }))
   floor.rotation.x = -Math.PI / 2
   // Drawn first, so the shadows (transparent too) always lie on it.
   floor.renderOrder = -1
@@ -110,7 +115,7 @@ function studio(L: Layout): Setup {
   shadows.add(contact, pool)
   group.add(shadows)
   const ringAt = new Matrix4().makeRotationY(turn).setPosition(0, outer(L), 0)
-  return { group, ringAt, target: new Vector3(0, outer(L) + 3, 0), distance: 74, from: new Vector3(0.55, 0.36, 0.76).normalize(), background: backdrop('#f6f2ea', '#e5ddd0'), light: 'studio', maxPolar: Math.PI / 2 - 0.04 }
+  return { group, ringAt, target: new Vector3(0, outer(L) + 3, 0), distance: 74, from: new Vector3(0.55, 0.36, 0.76).normalize(), background: backdrop('#f6f2ea', '#e5ddd0'), light: 'studio', maxPolar: Math.PI / 2 - 0.04, ground: floor, stand: [contact, pool] }
 }
 
 function salon(L: Layout): Setup {
@@ -150,7 +155,7 @@ function salon(L: Layout): Setup {
   lidBox.position.set(0, 3, D / 2)
   lid.add(lidBox)
   const lining = new Mesh(new PlaneGeometry(W - 5, D - 5), satin())
-  ;(lining.material as MeshPhysicalMaterial).map = textTexture('TERESA & SONS', "500 74px 'Baskervville', serif", 1024, 820, { color: '#a8875a', background: '#f3ece0', tracking: 22 })
+  ;(lining.material as MeshPhysicalNodeMaterial).map = textTexture('TERESA & SONS', "500 74px 'Baskervville', serif", 1024, 820, { color: '#a8875a', background: '#f3ece0', tracking: 22 })
   lining.rotation.x = Math.PI / 2
   lining.position.set(0, -0.05, D / 2)
   lid.add(lining)

@@ -2,8 +2,8 @@
 // stars, kites, upper and lower girdle facets, pavilion mains) or a step cut's terraces laid over it. Flat-shaded, so
 // every facet catches light on its own. Millimetres; the table faces +Y, the length runs along +Z.
 import { BufferGeometry, Float32BufferAttribute, Vector3 } from 'three'
+import { outlineOf, radiusAt, type Pt } from '../../../data/outline'
 import { CUTS, type Shape } from '../../../data/ring'
-import { outlineOf, radiusAt, type Pt } from '../outline'
 
 interface Proportions {
   /** Table width ÷ girdle width, crown and pavilion heights and the girdle's thickness, all ÷ the stone's width. */

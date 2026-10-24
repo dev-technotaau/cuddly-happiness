@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { Camera, Layers, Maximize2, Minimize2, Orbit, RotateCw, Sun, X } from 'lucide-react'
+import { outlineOf } from '../../data/outline'
 import { CUTS, type RingDesign } from '../../data/ring'
 import type { StepId } from '../../data/ringAdvice'
 import { describeDesign } from '../../data/ringCopy'
 import { bilingual, formatNumber, useCopy, useLocale } from '../../i18n'
 import { onStageClear } from '../../lib/stage'
 import { btnQuiet } from '../ui'
-import { outlineOf } from './outline'
+import canDraw3d from './canDraw3d'
 import type { LightPreset } from './three/lighting'
 import type { PartId } from './three/ringModel'
 import type { SetupId } from './three/setups'
@@ -88,9 +89,10 @@ const COPY = bilingual(
   },
 )
 
-/** What the page can ask of the viewer: pictures of the ring, a turn, a view. */
+/** What the page can ask of the viewer: pictures of the ring (accumulated stills, so they take a moment), a turn, a
+ *  view. */
 export interface ViewerApi {
-  snapshot: (kind: 'card' | 'tryon' | 'view', width?: number, height?: number) => string
+  snapshot: (kind: 'card' | 'tryon' | 'view', width?: number, height?: number) => Promise<string>
   turnAround: () => void
   focus: (on: StepId | ViewId) => void
 }
@@ -102,15 +104,6 @@ interface Props {
   caption?: { text: string; key: number } | null
   api?: { current: ViewerApi | null }
   className?: string
-}
-
-// WebGL 2 is what the stones' tracing needs.
-function canDraw() {
-  try {
-    return !!document.createElement('canvas').getContext('webgl2')
-  } catch {
-    return false
-  }
 }
 
 /** A drawing of the ring for browsers without 3D: the band in perspective, the stone's own outline on top. */
@@ -141,7 +134,7 @@ export default function RingViewer({ design, step, caption, api, className = '' 
   const built = useRef(false)
   const latest = useRef(design)
   latest.current = design
-  const [status, setStatus] = useState<'loading' | 'ready' | 'fallback' | 'lost'>(() => (canDraw() ? 'loading' : 'fallback'))
+  const [status, setStatus] = useState<'loading' | 'ready' | 'fallback' | 'lost'>(() => (canDraw3d() ? 'loading' : 'fallback'))
   const [attempt, setAttempt] = useState(0)
   const [setup, setSetup] = useState<SetupId>('studio')
   const [light, setLight] = useState<LightState>(DEFAULT_LIGHT)
@@ -153,21 +146,22 @@ export default function RingViewer({ design, step, caption, api, className = '' 
   const [hint, setHint] = useState(true)
   const [full, setFull] = useState(false)
   const [shown, setShown] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
   const motion = typeof window !== 'undefined' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
   const touch = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
   const mac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform)
   const dark = setup === 'salon'
 
-  // The engine: loaded once the page is up, then the ring assembles as the page is uncovered.
+  // The engine: loaded once the page is up (WebGPU, else WebGL 2), then the ring assembles as the page is uncovered.
   useEffect(() => {
-    if (!canDraw()) return
+    if (!canDraw3d()) return
     let cancelled = false
     let s: Stage | null = null
     let undo: (() => void) | null = null
     import('./three/stage')
-      .then(({ Stage }) => {
+      .then(async ({ Stage }) => {
         if (cancelled || !host.current) return
-        s = new Stage(host.current, motion, {
+        const made = await Stage.create(host.current, motion, {
           onLabels: setLabels,
           onBuilding: setBuilding,
           onInteract: () => setHint(false),
@@ -175,6 +169,8 @@ export default function RingViewer({ design, step, caption, api, className = '' 
           // The veil lifts as the ring begins to assemble, its shaders compiled.
           onReady: () => setStatus('ready'),
         })
+        if (cancelled) return made.dispose()
+        s = made
         stage.current = s
         if (import.meta.env.DEV) (window as unknown as { __ring: Stage }).__ring = s
         undo = onStageClear(() => {
@@ -196,7 +192,7 @@ export default function RingViewer({ design, step, caption, api, className = '' 
   useEffect(() => {
     if (!api) return
     api.current = {
-      snapshot: (kind, w, h) => stage.current?.snapshot(kind, w, h) ?? '',
+      snapshot: async (kind, w, h) => (await stage.current?.snapshot(kind, w, h)) ?? '',
       turnAround: () => stage.current?.turnAround(),
       focus: (on) => stage.current?.focus(on),
     }
@@ -276,8 +272,12 @@ export default function RingViewer({ design, step, caption, api, className = '' 
     else box.current?.requestFullscreen?.().catch(() => undefined)
   }
 
-  const save = () => {
-    const url = stage.current?.snapshot('view', 1600, 2000)
+  // The picture is drawn as a still at full size, which takes a moment.
+  const save = async () => {
+    if (saving) return
+    setSaving(true)
+    const url = await stage.current?.snapshot('view', 1600, 2000)
+    setSaving(false)
     if (!url) return
     const a = document.createElement('a')
     a.href = url
@@ -407,7 +407,7 @@ export default function RingViewer({ design, step, caption, api, className = '' 
             </div>
             {motion && <button type="button" onClick={() => { setSpin((v) => !v); setHint(false) }} aria-label={t.spin} aria-pressed={spin} title={t.spin} className={`${chip} ${on(spin)}`}><span className="font-spec text-[10px] tracking-[0.04em]">360°</span></button>}
             <button type="button" onClick={toggleExploded} aria-label={t.explode} aria-pressed={exploded} title={t.explode} className={`${chip} ${on(exploded)}`}><Layers size={17} strokeWidth={1.4} /></button>
-            <button type="button" onClick={save} aria-label={t.photo} title={t.photo} className={`${chip} max-sm:hidden`}><Camera size={17} strokeWidth={1.4} /></button>
+            <button type="button" onClick={save} aria-label={t.photo} aria-busy={saving} title={t.photo} className={`${chip} max-sm:hidden ${saving ? 'animate-pulse motion-reduce:animate-none' : ''}`}><Camera size={17} strokeWidth={1.4} /></button>
             {document.fullscreenEnabled && <button type="button" onClick={toggleFull} aria-label={full ? t.exitFull : t.full} title={full ? t.exitFull : t.full} className={chip}>{full ? <Minimize2 size={16} strokeWidth={1.4} /> : <Maximize2 size={16} strokeWidth={1.4} />}</button>}
           </div>
 

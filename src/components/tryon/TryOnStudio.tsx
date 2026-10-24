@@ -27,6 +27,7 @@ import type { LightPreset } from '../designer/three/lighting'
 import { getLenis } from '../SmoothScroll'
 import Price from '../Price'
 import { FINGERS, type FingerId } from './fingerPose'
+import canDraw3d from '../designer/canDraw3d'
 import JewelryOverlay from './JewelryOverlay'
 import type { RingTryOnApi, TrackState } from './RingTryOn'
 import type { TryOnRequest } from './TryOnProvider'
@@ -197,15 +198,6 @@ const COPY = bilingual(
 )
 
 type Source = 'idle' | 'requesting' | 'camera' | 'photo' | 'denied' | 'unsupported'
-
-/** WebGL 2, which the 3D ring's traced stones need. */
-function canDraw3d() {
-  try {
-    return !!document.createElement('canvas').getContext('webgl2')
-  } catch {
-    return false
-  }
-}
 
 export default function TryOnStudio({ request, onClose }: { request: TryOnRequest; onClose: () => void }) {
   const { currency, addToCart, openVisit } = useStore()
@@ -422,8 +414,8 @@ export default function TryOnStudio({ request, onClose }: { request: TryOnReques
     ctx.restore()
 
     if (ar) {
-      // The ring in 3D, as it sits on the hand now.
-      ringApi.current?.draw(ctx, cw, ch)
+      // The ring in 3D, as it sits on the hand now, drawn as a still.
+      await ringApi.current?.draw(ctx, cw, ch)
     } else {
       // The piece: the designed ring's own picture, or the drawn overlay.
       const img = new Image()

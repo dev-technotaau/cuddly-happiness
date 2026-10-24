@@ -54,4 +54,4 @@ Then link the new route from the Header (desktop nav and mobile menu), the deskt
 
 - **Nesting:** keep `StoreProvider ▸ TryOnProvider ▸ SmoothScroll`. `useStore()` and `useTryOn()` throw outside their providers.
 - **Lenis:** `SmoothScroll` creates the only Lenis instance. Elsewhere use `getLenis()`, which returns `null` under reduced motion.
-- **Heavy overlays:** load them lazily with `lazy()` + `<Suspense fallback={null}>`, as `TryOnProvider` does. Pages are eager imports, except the ring designer (`lazy` in `App.tsx`, keyed by `route.query.r` or `from`), whose 3D engine loads separately again from `RingViewer` (`import('./three/stage')`). Keep three.js out of every other chunk.
+- **Heavy overlays:** load them lazily with `lazy()` + `<Suspense fallback={null}>`, as `TryOnProvider` does. Pages are eager imports, except the ring designer (`lazy` in `App.tsx`, keyed by `route.query.r` or `from`), whose 3D engine loads separately again from `RingViewer` (`import('./three/stage')`). Keep three.js out of every other chunk: a page asks `canDraw3d` (`src/components/designer/canDraw3d.ts`, free of three.js) before loading it.

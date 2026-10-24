@@ -1,7 +1,8 @@
 // The light around the ring. Each preset is a small room of softboxes, windows or candles, rendered twice: prefiltered
 // for the metal's reflections, and as a cube for the stones to trace into. Diamonds need contrast to sparkle, so the
 // rooms are dark with bright panels, as in a jeweller's photo studio.
-import { BackSide, BoxGeometry, Color, CubeCamera, DoubleSide, Group, HalfFloatType, LinearMipmapLinearFilter, Mesh, MeshBasicMaterial, PMREMGenerator, PlaneGeometry, Scene, SphereGeometry, WebGLCubeRenderTarget, type Texture, type WebGLRenderer } from 'three'
+import { BackSide, BoxGeometry, Color, CubeCamera, CubeRenderTarget, DoubleSide, Group, HalfFloatType, LinearMipmapLinearFilter, Mesh, MeshBasicMaterial, Object3D, PMREMGenerator, PlaneGeometry, Scene, SphereGeometry, Vector3, type CubeTexture, type Euler, type Texture, type WebGPURenderer } from 'three/webgpu'
+import { COARSE, GEM_CUBE } from './gemMaterial'
 
 export type LightPreset = 'studio' | 'daylight' | 'salon' | 'candle' | 'gallery'
 export const LIGHT_PRESETS: LightPreset[] = ['studio', 'daylight', 'salon', 'candle', 'gallery']
@@ -15,8 +16,9 @@ interface Panel {
 }
 
 const ROOMS: Record<LightPreset, { walls: string; floor: string; ceiling: string; panels: Panel[] }> = {
-  // A light tent, as jewellers shoot: soft white all round, two strips and a box overhead, and black flags that give
-  // polished metal its dark edges and a diamond its contrast.
+  // A light tent, as jewellers shoot: soft white all round, two strips and a box overhead, a soft fill on the camera's
+  // side (a flat face turned to the lens mirrors the tent, not a void), and dark cards to the sides and behind that
+  // give polished metal its dark edges and a diamond its contrast.
   studio: {
     walls: '#bab6ae',
     floor: '#9c978e',
@@ -26,7 +28,8 @@ const ROOMS: Record<LightPreset, { walls: string; floor: string; ceiling: string
       { at: [-42, 12, 14], size: [14, 50], color: '#ffffff', power: 3.6 },
       { at: [42, 12, 14], size: [14, 50], color: '#ffffff', power: 3.6 },
       { at: [0, 8, -46], size: [80, 30], color: '#fbf6ee', power: 1.4 },
-      { at: [-30, 6, 38], size: [26, 36], color: '#000000', power: 1 },
+      { at: [8, 14, 46], size: [64, 34], color: '#fbf8f2', power: 1.1 },
+      { at: [-46, 20, 30], size: [16, 40], color: '#1c1b1a', power: 1 },
       { at: [34, 4, -30], size: [22, 32], color: '#000000', power: 1 },
       { at: [-44, 26, -18], size: [4, 40], color: '#000000', power: 1 },
       { at: [-20, 32, -26], size: [8, 8], color: '#ffffff', power: 16 },
@@ -92,6 +95,37 @@ const ROOMS: Record<LightPreset, { walls: string; floor: string; ceiling: string
 // dark, which a jeweller's tent gives with black cards; the metal keeps the bright room.
 const GEM_WALLS: Record<LightPreset, number> = { studio: 0.22, daylight: 0.55, salon: 1, candle: 1, gallery: 1 }
 
+/** A light of a room, for the floor's shadow to aim at: a rectangle (its centre and half extents, world), and how bright
+ *  it is (luminance). */
+export interface RoomLight {
+  centre: Vector3
+  right: Vector3
+  up: Vector3
+  luminance: number
+}
+
+const luminanceOf = (c: Color) => 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b
+
+/** A preset's lights as the room turned by `rotation` (the scene's) places them, and its walls' and ceiling's mean
+ *  luminance (the light from everywhere else). Dark cards give no light and are left out. */
+export function roomLights(preset: LightPreset, rotation: Euler): { lights: RoomLight[]; ambient: number } {
+  const r = ROOMS[preset]
+  const dummy = new Object3D()
+  const lights: RoomLight[] = []
+  for (const p of r.panels) {
+    const luminance = luminanceOf(new Color(p.color)) * p.power
+    if (luminance <= 0) continue
+    dummy.position.set(...p.at)
+    dummy.lookAt(0, 0, 0)
+    const [w, h] = p.round ? [p.size[0], p.size[0]] : p.size
+    const right = new Vector3(1, 0, 0).applyQuaternion(dummy.quaternion).multiplyScalar(w / 2)
+    const up = new Vector3(0, 1, 0).applyQuaternion(dummy.quaternion).multiplyScalar(h / 2)
+    lights.push({ centre: dummy.position.clone().applyEuler(rotation), right: right.applyEuler(rotation), up: up.applyEuler(rotation), luminance })
+  }
+  const ambient = (luminanceOf(new Color(r.walls)) * 4 + luminanceOf(new Color(r.ceiling))) / 5
+  return { lights, ambient }
+}
+
 /** Builds a preset's room as a scene; `walls` dims its walls, floor and ceiling. */
 function room(preset: LightPreset, walls = 1): Scene {
   const r = ROOMS[preset]
@@ -125,14 +159,20 @@ function free(scene: Scene) {
 /** The two renderings of the light: one for metals (scene.environment), one for stones (a cube they trace into). */
 export class Lighting {
   private pmrem: PMREMGenerator
-  private cube = new WebGLCubeRenderTarget(512, { type: HalfFloatType, generateMipmaps: true, minFilter: LinearMipmapLinearFilter })
+  // The stones' cube, sharp enough for a close look, with mip levels for the tracer's filtering. One texture for the
+  // renderer's life: a new light redraws it in place, so the stones' materials never change.
+  private cube = new CubeRenderTarget(GEM_CUBE, { type: HalfFloatType, generateMipmaps: true, minFilter: LinearMipmapLinearFilter })
   private camera = new CubeCamera(0.5, 400, this.cube)
   private cache = new Map<LightPreset, Texture>()
   private preset: LightPreset | null = null
 
-  constructor(private renderer: WebGLRenderer) {
+  constructor(private renderer: WebGPURenderer) {
     this.pmrem = new PMREMGenerator(renderer)
-    this.pmrem.compileEquirectangularShader()
+  }
+
+  /** The stones' cube, the same texture whatever the light. */
+  get gemCube(): CubeTexture {
+    return this.cube.texture
   }
 
   /** Lights the scene with a preset: returns the metals' environment and the stones' cube. */
@@ -140,7 +180,8 @@ export class Lighting {
     let env = this.cache.get(preset)
     if (!env) {
       const scene = room(preset)
-      env = this.pmrem.fromScene(scene, 0.035).texture
+      // 512 a face (256 on a phone), so the polished metal's reflections stay crisp up close.
+      env = this.pmrem.fromScene(scene, 0.035, 0.1, 400, { size: COARSE ? 256 : 512 }).texture
       this.cache.set(preset, env)
       free(scene)
     }

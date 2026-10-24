@@ -178,6 +178,12 @@ function SkipLink() {
   )
 }
 
+/** The film grain, over every page but the ring designer's, where the 3D view must read clean. */
+function Grain() {
+  const { route } = useStore()
+  return route.name === 'designer' ? null : <div className="film-grain" aria-hidden />
+}
+
 export default function App() {
   return (
     <StoreProvider>
@@ -197,7 +203,7 @@ export default function App() {
           <BackToTop />
           <LanguageNotice />
           <LanguageVeil />
-          <div className="film-grain" aria-hidden />
+          <Grain />
         </div>
       </SmoothScroll>
       </TryOnProvider>

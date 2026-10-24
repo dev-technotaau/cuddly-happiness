@@ -411,11 +411,15 @@ export default function Designer({ query }: { query: Query }) {
   // The review's picture of the ring, for the share and the bag, taken once per design.
   useEffect(() => {
     if (step !== 'review' || card?.code === made) return
-    const id = window.setTimeout(() => {
-      const image = viewer.current?.snapshot('card', 360, 450)
-      if (image) setCard({ code: made, image })
+    let gone = false
+    const id = window.setTimeout(async () => {
+      const image = await viewer.current?.snapshot('card', 360, 450)
+      if (image && !gone) setCard({ code: made, image })
     }, 1600)
-    return () => window.clearTimeout(id)
+    return () => {
+      gone = true
+      window.clearTimeout(id)
+    }
   }, [step, made, card])
 
   // The moment the ring is complete, it turns once in the light.
@@ -462,7 +466,9 @@ export default function Designer({ query }: { query: Query }) {
       el?.focus({ preventScroll: true })
     })
 
-  const keepDesign = (image = viewer.current?.snapshot('card', 360, 450)) => {
+  // The design is kept with its picture, drawn as a still (the review's own card when it already has one).
+  const keepDesign = async () => {
+    const image = card?.code === made ? card.image : await viewer.current?.snapshot('card', 360, 450)
     if (image) saveDesign({ code: made, image, saved: new Date().toISOString() })
   }
 
@@ -472,7 +478,7 @@ export default function Designer({ query }: { query: Query }) {
       goTo('size')
       return
     }
-    keepDesign()
+    void keepDesign()
     const line = { slug: DESIGN_SLUG, size: design.size, design: made }
     // Editing a ring already in the bag: its line gives way to the new one, keeping its quantity.
     if (editLine && editLine.design !== made) {
@@ -486,15 +492,15 @@ export default function Designer({ query }: { query: Query }) {
 
   const consultRequest = { purpose: 'design' as const, pieces: [{ slug: DESIGN_SLUG, size: design.size ?? undefined, design: made }] }
 
-  const tryOn = () => {
-    const image = viewer.current?.snapshot('tryon', 720, 720)
+  const tryOn = async () => {
+    const image = await viewer.current?.snapshot('tryon', 720, 720)
     if (!commission || !image) return
     // A metal chosen on the hand comes back to the design.
     openTryOn({ product: commission, design: { image, title: described.title, price, code: made, size: design.size, onSize: () => goTo('size'), onMetal: (m) => change({ metal: { band: m } }, catalog.metal(m)) } })
   }
 
-  const savePicture = () => {
-    const url = viewer.current?.snapshot('view', 1600, 2000)
+  const savePicture = async () => {
+    const url = await viewer.current?.snapshot('view', 1600, 2000)
     if (!url) return
     const a = document.createElement('a')
     a.href = url
@@ -756,7 +762,7 @@ export default function Designer({ query }: { query: Query }) {
         <p className="mt-2.5 text-xs text-[var(--text-taupe)]">{t.consultNote(t.minutes(visitLength('design', 'salon')), t.minutes(visitLength('design', 'video')).toLowerCase())}</p>
         <div className="mt-4 flex flex-wrap gap-x-6">
           <button type="button" onClick={tryOn} className={action}><span aria-hidden className="h-1.5 w-1.5 rounded-full bg-[var(--gold-vermeil)]" /> <span className={underline}>{common.viewOnYou}</span></button>
-          <button type="button" onClick={() => { keepDesign(); setKept(true) }} className={action}><Bookmark size={13} strokeWidth={1.4} /> <span className={underline}>{kept ? t.kept : t.keep}</span></button>
+          <button type="button" onClick={() => { void keepDesign(); setKept(true) }} className={action}><Bookmark size={13} strokeWidth={1.4} /> <span className={underline}>{kept ? t.kept : t.keep}</span></button>
           <ShareButton subject={share} className="min-h-11" />
           <button type="button" onClick={() => openAsk([], [made])} className={action}><MessageCircle size={13} strokeWidth={1.4} /> <span className={underline}>{t.ask}</span></button>
           <button type="button" onClick={savePicture} className={action}><Camera size={13} strokeWidth={1.4} /> <span className={underline}>{t.picture}</span></button>

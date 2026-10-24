@@ -163,10 +163,12 @@ export default function BackToTop() {
     let vel = 0
     let progress = 0
     let lift = 0
+    // The lift the dock carries, exactly as written. Its box is read back through this value, never through `lift`:
+    // the gap between the two fed the next target, and the dock trembled at the foot of the page (2026-10-23).
+    let applied = 0
     let magX = 0
     let magY = 0
     let wroteOffset = -1
-    let wroteLift = -1
     let wroteMag = ''
 
     const tick = (now: number) => {
@@ -205,14 +207,15 @@ export default function BackToTop() {
       const wrap = dock.current
       if (wrap && near.size) {
         const home = wrap.getBoundingClientRect()
-        const top = home.top + lift
-        const bottom = home.bottom + lift
+        const top = home.top + applied
+        const bottom = home.bottom + applied
         for (const el of near) {
           const r = el.getBoundingClientRect()
           if (!r.height || r.top >= vh || r.right <= home.left || r.left >= home.right || r.bottom <= top - GAP) continue
           liftTarget = Math.max(liftTarget, bottom - r.top + GAP)
         }
-        liftTarget = Math.min(liftTarget, vh * 0.6)
+        // Whole pixels, so the layout's own sub-pixel rounding can't move the target either.
+        liftTarget = Math.round(Math.min(liftTarget, vh * 0.6))
       }
 
       const btn = button.current
@@ -235,9 +238,10 @@ export default function BackToTop() {
 
       lift += (liftTarget - lift) * follow(0.22)
       if (Math.abs(liftTarget - lift) < 0.05) lift = liftTarget
-      if (wrap && lift !== wroteLift) {
-        wrap.style.transform = lift ? `translate3d(0, ${(-lift).toFixed(2)}px, 0)` : ''
-        wroteLift = lift
+      const next = Math.round(lift * 100) / 100
+      if (wrap && next !== applied) {
+        wrap.style.transform = next ? `translate3d(0, ${-next}px, 0)` : ''
+        applied = next
       }
 
       magX += ((L.hover ? L.mx : 0) - magX) * follow(0.2)

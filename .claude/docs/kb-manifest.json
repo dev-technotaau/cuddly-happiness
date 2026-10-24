@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-22",
-  "gitHead": "dedcf9d",
+  "generatedAt": "2026-10-23",
+  "gitHead": "523bda8",
   "files": {
     ".figma/make/analyze-routes": {
       "hash": "d51912b900af",
@@ -103,7 +103,7 @@
       ]
     },
     "package.json": {
-      "hash": "07dec18342c6",
+      "hash": "d0dcd34f5f0b",
       "docs": [
         "architecture.md",
         "code-conventions.md",
@@ -141,7 +141,7 @@
       ]
     },
     "src/App.tsx": {
-      "hash": "f7ab79e05f51",
+      "hash": "ba4abf3d4a15",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -160,7 +160,7 @@
       ]
     },
     "src/components/BackToTop.tsx": {
-      "hash": "4be86d8eb68c",
+      "hash": "8444d8a429bb",
       "docs": [
         "components/global-and-shared.md",
         "motion-and-interaction.md"
@@ -194,7 +194,7 @@
       ]
     },
     "src/components/Header.tsx": {
-      "hash": "85695b85a134",
+      "hash": "0819ac1d6a88",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -440,7 +440,13 @@
       ]
     },
     "src/components/designer/RingViewer.tsx": {
-      "hash": "47f53e72a37d",
+      "hash": "d647b946b8ae",
+      "docs": [
+        "features/ring-designer.md"
+      ]
+    },
+    "src/components/designer/canDraw3d.ts": {
+      "hash": "b44d3e32d65a",
       "docs": [
         "features/ring-designer.md"
       ]
@@ -451,50 +457,86 @@
         "features/ring-designer.md"
       ]
     },
+    "src/components/designer/three/accumulate.ts": {
+      "hash": "de266d0b2c3a",
+      "docs": [
+        "features/ring-designer.md"
+      ]
+    },
+    "src/components/designer/three/bvh.ts": {
+      "hash": "625243acdb16",
+      "docs": [
+        "features/ring-designer.md"
+      ]
+    },
+    "src/components/designer/three/bvhWorker.ts": {
+      "hash": "b9d152975878",
+      "docs": [
+        "features/ring-designer.md"
+      ]
+    },
+    "src/components/designer/three/gemMaterial.ts": {
+      "hash": "d1aa48833819",
+      "docs": [
+        "features/ring-designer.md"
+      ]
+    },
     "src/components/designer/three/gems.ts": {
       "hash": "f985f2fe9dc0",
       "docs": [
         "features/ring-designer.md"
       ]
     },
+    "src/components/designer/three/gpu.ts": {
+      "hash": "6041af4ac8ec",
+      "docs": [
+        "features/ring-designer.md"
+      ]
+    },
     "src/components/designer/three/lighting.ts": {
-      "hash": "fb578c549a44",
+      "hash": "641ecdb8369a",
       "docs": [
         "features/ring-designer.md"
       ]
     },
     "src/components/designer/three/materials.ts": {
-      "hash": "b6aadf7b1943",
+      "hash": "9c6c3a9558b5",
       "docs": [
         "features/ring-designer.md"
       ]
     },
     "src/components/designer/three/parts.ts": {
-      "hash": "bf34297377e5",
+      "hash": "0486dad42a5d",
+      "docs": [
+        "features/ring-designer.md"
+      ]
+    },
+    "src/components/designer/three/raytrace.ts": {
+      "hash": "0d8272385d92",
       "docs": [
         "features/ring-designer.md"
       ]
     },
     "src/components/designer/three/ringModel.ts": {
-      "hash": "436cdcc3383c",
+      "hash": "248dd2ad3bc8",
       "docs": [
         "features/ring-designer.md"
       ]
     },
     "src/components/designer/three/setups.ts": {
-      "hash": "c089a328db73",
+      "hash": "87c35ba9312c",
       "docs": [
         "features/ring-designer.md"
       ]
     },
     "src/components/designer/three/stage.ts": {
-      "hash": "6b70df99de2c",
+      "hash": "74d84823ad0f",
       "docs": [
         "features/ring-designer.md"
       ]
     },
     "src/components/designer/three/tryOnStage.ts": {
-      "hash": "28f6c8f9f224",
+      "hash": "20ee4ad1379b",
       "docs": [
         "features/virtual-try-on.md"
       ]
@@ -973,7 +1015,7 @@
       ]
     },
     "src/components/tryon/RingTryOn.tsx": {
-      "hash": "acb9953045e9",
+      "hash": "aa5baefe2a94",
       "docs": [
         "features/virtual-try-on.md"
       ]
@@ -1003,7 +1045,7 @@
       ]
     },
     "src/components/tryon/TryOnStudio.tsx": {
-      "hash": "5ba7c09c84ba",
+      "hash": "d84accf5faaa",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -1429,7 +1471,7 @@
       ]
     },
     "src/pages/Designer.tsx": {
-      "hash": "12a34e90fabf",
+      "hash": "ffbea33ab8e8",
       "docs": [
         "commerce-logic.md",
         "features/ring-designer.md"
@@ -1553,10 +1595,11 @@
       ]
     },
     "vite.config.ts": {
-      "hash": "45b3a50b22c9",
+      "hash": "c5eb420f8526",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
+        "features/ring-designer.md",
         "known-issues.md",
         "platform-and-tooling.md",
         "shopify-integration.md"

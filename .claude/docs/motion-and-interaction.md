@@ -802,7 +802,7 @@ Lenis animates these scrolls over 1.25 s with the expo-out easing. For the last 
 
 ## BackToTop motion (added 2026-10-15)
 
-- **Animation loop:** `src/components/BackToTop.tsx` runs its own requestAnimationFrame loop, separate from the GSAP ticker. Each frame it reads first (Lenis `scroll`/`limit`, obstacle rects), then writes three inline styles only when they change: the ring `strokeDashoffset`, the wrapper `translate3d` lift, and the ring/arrow magnetic offset.
+- **Animation loop:** `src/components/BackToTop.tsx` runs its own requestAnimationFrame loop, separate from the GSAP ticker. Each frame it reads first (Lenis `scroll`/`limit`, obstacle rects), then writes three inline styles only when they change: the ring `strokeDashoffset`, the wrapper `translate3d` lift, and the ring/arrow magnetic offset. The lift target is in whole pixels and the wrapper is measured through the lift as written, so at rest nothing is rewritten (2026-10-23).
 - **Easing:** values follow their targets with frame-rate-independent easing, `1 − (1 − k)^(dt/16.67)`.
 - **Programmatic scroll:** `lenis.scrollTo(target, { duration, easing: easeInOutQuart, onComplete })`. The duration scales with distance (0.85–2.2 s). User input can interrupt it, and a `travelUntil` timeout clears the travelling flag if `onComplete` never fires.
 - **CSS transitions:** show/hide uses opacity + `translate` + `scale` (700 ms, house easing); the pill width uses `grid-template-columns`; the arrow flip uses `rotate`. Under reduced motion only opacity transitions, the trip is instant and the magnet is off.

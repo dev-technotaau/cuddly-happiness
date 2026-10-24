@@ -15,7 +15,7 @@ This repo is the **UI / UX / visual design prototype** of a Shopify theme that t
 - **"Shopify-compatible" means shaped, not integrated.** Use Shopify-like data shapes and names (line-item properties, cart attributes, gift-card fields) so the real theme can map them later. Never connect to a store.
 - **Unsure whether something crosses into backend or integration?** Ask before building it.
 
-This repo is a Shopify-store **theme design prototype** for Teresa & Sons, a Montréal fine-jewellery house founded in 1962. It is built as a React 19 + TypeScript SPA (Vite 8, Tailwind CSS v4, GSAP, Lenis, lucide-react; three.js and three-mesh-bvh for the ring designer and its 3D try-on, MediaPipe for the try-on's hand tracking), scaffolded and hosted by **Figma Make**.
+This repo is a Shopify-store **theme design prototype** for Teresa & Sons, a Montréal fine-jewellery house founded in 1962. It is built as a React 19 + TypeScript SPA (Vite 8, Tailwind CSS v4, GSAP, Lenis, lucide-react; three.js's WebGPU renderer (WebGL 2 fallback) for the ring designer and its 3D try-on, MediaPipe for the try-on's hand tracking), scaffolded and hosted by **Figma Make**.
 
 - There is no backend. The catalog lives in `src/data/`.
 - All app state lives in one React Context, `src/store.tsx`, persisted to localStorage under `tns-*` keys.
@@ -39,7 +39,7 @@ This repo is a Shopify-store **theme design prototype** for Teresa & Sons, a Mon
 | Task | Command | Notes |
 |---|---|---|
 | Typecheck | `npx tsc --noEmit -p .` | Baseline is 0 errors. `pnpm run build` does **not** typecheck. |
-| Build | `pnpm run build` | Initial JS baseline: about 976 kB (305 kB gzip) across the entry chunk (714 kB) and the shared chunks it loads (icons 81 kB, gsap 70 kB, salon 89 kB, ring data 13 kB, the JSX runtime 8 kB). Both languages ship in it. Lazy chunks load on demand: the ring designer page (114 kB); three.js in a shared `ringModel` chunk (641 kB, 168 kB gzip) used by the designer's 3D engine `stage` (78 kB) and the 3D try-on `RingTryOn` (164 kB, 49 kB gzip, with MediaPipe's script; its engine and model load at runtime from jsDelivr and Google); TryOnStudio (37 kB), SiteMenu (34 kB), ShareSheet (24 kB). Measured 2026-10-22, after the try-on's reviews. |
+| Build | `pnpm run build` | Initial JS baseline: about 976 kB (305 kB gzip) across the entry chunk (714 kB) and the shared chunks it loads (icons 81 kB, gsap 70 kB, salon 89 kB, ring data 13 kB, the JSX runtime 8 kB). Both languages ship in it. Lazy chunks load on demand: the ring designer page (115 kB); three.js's WebGPU build, the ring model and its tracer in a shared `ringModel` chunk (978 kB, 274 kB gzip) used by the designer's 3D engine `stage` (71 kB) and the 3D try-on `RingTryOn` (168 kB, 51 kB gzip, with MediaPipe's script; its engine and model load at runtime from jsDelivr and Google); the tracer's worker `bvhWorker` (3 kB); TryOnStudio (37 kB), SiteMenu (34 kB), ShareSheet (24 kB). Measured 2026-10-23, after the carved engraving, the V-claws and the setups' traced shadow. |
 | Dev server | `pnpm dev`, then open `http://localhost:8443/#/` | Figma Make already runs it on `$PORT` (8443). Locally you start it yourself. `strictPort` is on; set `PORT` to change the port. |
 
 No tests and no linter exist.
@@ -75,7 +75,7 @@ src/pages/         Home · Shop · Category · Product · Cart · Checkout · Gi
 src/components/    Header Footer CartDrawer ProductCard Price WishButton RecentlyViewed SmoothScroll useReveal lineDetails
                    home/ pdp/ cart/ tryon/ video/ giftcard/ share/ menu/ splash/ transition/ (LanguageVeil) brand/ (Ampersand, Hallmark) locale/
                    visit/ (VisitDrawer, VisitFlow, VisitButton, VisitBand, NextTimes) contact/ (AskSheet) catalog/ (PieceGrid, Interlude) ui.ts (button recipes)
-                   designer/ (RingViewer, Glyph, LivePrice, RingBreakdown, DesignNotes, CaratField, BudgetFinder, DesignSpec; three/: stage, tryOnStage, lighting, setups, ringModel, parts, gems, materials)
+                   designer/ (RingViewer, Glyph, LivePrice, RingBreakdown, DesignNotes, CaratField, BudgetFinder, DesignSpec, canDraw3d; three/: gpu, stage, tryOnStage, accumulate, raytrace, bvh, bvhWorker, lighting, setups, ringModel, parts, gems, gemMaterial, materials)
                    tryon/ (TryOnProvider, TryOnStudio, JewelryOverlay; the live 3D try-on: RingTryOn, fingerPose, handTracker)
 src/lib/shopify.ts Shopify Ajax-cart payload for gift-card lines (placeholder variant IDs)
 src/lib/stage.ts   stage cover that holds entrances under the splash and page transitions; intro mode

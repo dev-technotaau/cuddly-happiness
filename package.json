@@ -16,8 +16,7 @@
     "lucide-react": "^1.57.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "three": "0.186.1",
-    "three-mesh-bvh": "0.9.16"
+    "three": "0.186.1"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.0",

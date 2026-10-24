@@ -47,7 +47,7 @@ Recipes:
 - **Buttons** (2026-10-21): use the recipes in `src/components/ui.ts` (`btnPrimary`, `btnVisit`, `btnQuiet`, `btnOnDark`, `btnVisitOnDark`) and `VisitButton` for every "Book a visit". A visit paired with a primary action has the primary's size.
 - **Focus:** a global `:focus-visible` ring (1 px vermeil) covers links, buttons and sliders; fields that use `outline-none` show focus with their underline.
 - **Money:** always `<Price amount={…} />`. It always renders in the spec face, even if you pass `font-serif-editorial`, and never wraps between the amount and its code (`whitespace-nowrap`, 2026-10-22). Restyle the currency code with `[&_span]:…`.
-- **Wordmark:** tracked capitals with a gold italic ampersand. Copy it from `Header.tsx`; never restyle it per page.
+- **Wordmark:** lightly tracked capitals (0.08em, the compact lockup, owner 2026-10-22) with a gold italic ampersand. Copy it from `Header.tsx`; never restyle it per page.
 
 ## Layout
 

@@ -26,9 +26,12 @@ react(),
       figmaMakeKitPlugin({ storiesGlob: '/src/**/*.stories.{ts,tsx,js,jsx}' }),
     ],
     resolve: {
-      alias: {
-        '@': path.resolve(__dirname, './src'),
-      },
+      alias: [
+        { find: '@', replacement: path.resolve(__dirname, './src') },
+        // The ring's 3D views draw with three.js's WebGPU renderer; its helpers (controls, geometries) import 'three', so
+        // they are pointed at the same WebGPU build and the library ships once. Only the exact name is aliased.
+        { find: /^three$/, replacement: 'three/webgpu' },
+      ],
     },
     server: {
       host: process.env.FIGMA_DEV_SERVER_HOST || '0.0.0.0',

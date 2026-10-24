@@ -2,6 +2,7 @@
 // measurements, and its address form. Everything the 3D view draws and the price counts comes from `layoutOf`, so the
 // two always agree. The proportions are the atelier's working ones; the stones are placeholders, as the catalog's are.
 import type { Metal } from './catalog'
+import { arcAt, hullOf, meleeRuns, outlineOf, outlinePath, pathLength, radiusAt, radiusTable, type Keep, type Pt } from './outline'
 
 export type StoneType = 'diamond' | 'sapphire' | 'ruby' | 'emerald'
 export type Shape = 'round' | 'oval' | 'cushion' | 'emerald' | 'radiant' | 'princess' | 'asscher' | 'pear' | 'marquise' | 'heart'
@@ -100,6 +101,9 @@ export function facesUpLike(type: StoneType, shape: Shape, carat: number) {
   return meleeCarat(d)
 }
 
+/** A V-claw's wall thickness (mm) for claws of wire radius `wire` (the claw's arms and the stem under its point follow it). */
+export const vClawWall = (wire: number) => Math.min(0.8, Math.max(0.45, wire * 1.2))
+
 /** Inside diameter (mm) of a North American ring size. */
 export const innerDiameter = (size: string | null) => 11.63 + 0.8128 * Number(size ?? 6.5)
 
@@ -112,6 +116,35 @@ export interface Melee {
   carat: number
 }
 
+/** A ring of small stones round the centre stone (a halo, a hidden halo): its path is the centre stone's outline (its
+ *  convex hull when `hull`) scaled by `scale` and grown outward by `offset` (mm), `drop` (mm) under the girdle; its
+ *  stones run between the stretches it keeps clear (`keep`, arc positions on that path: where the claws pass, and where
+ *  a stone wouldn't fit), `runs` of them in each free stretch in order round the path (`meleeRuns`). */
+export interface MeleeRing extends Melee {
+  scale: number
+  offset: number
+  drop: number
+  runs: number[]
+  keep: Keep[]
+  hull: boolean
+}
+
+/** How far a halo's stones stand off the centre stone's girdle (mm). */
+export const HALO_GAP = 0.25
+
+/** How far a hidden halo's stones lean back from upright (their tables face out and this much up). */
+export const HIDDEN_TILT = (25 * Math.PI) / 180
+
+/** A claw's wire radius as drawn (mm): finer when there are six, or two at each place (a pair reads as one claw), and
+ *  inside a halo, which guards the stone, as a bench makes them; the layout's own measure (for the metal's weight)
+ *  stays as it is. */
+export const clawWire = (d: RingDesign, L: Pick<Layout, 'prongs'>) => L.prongs.wire * (d.prongs.double ? 0.7 : L.prongs.positions.length >= 6 ? 0.9 : 1) * (d.setting.style === 'halo' ? 0.82 : 1)
+
+/** How far along a ring of small stones `mm` across the centres of the two stones beside a claw keep from it (half the
+ *  stretch kept clear): the claw, of wire radius `wire`, stands `apart` (mm) further out or in than the ring's
+ *  centreline, and passes between them clear by a breath. */
+export const clawClearance = (wire: number, mm: number, apart: number) => Math.sqrt(Math.max(0, (wire + mm / 2 + 0.03) ** 2 - apart ** 2))
+
 /** The ring measured: what the 3D view builds and the price counts. Millimetres throughout. */
 export interface Layout {
   centre: { length: number; width: number; depth: number; crown: number; pavilion: number; girdle: number }
@@ -119,8 +152,8 @@ export interface Layout {
   y: { bandTop: number; culet: number; girdle: number; table: number }
   band: { inner: number; width: number; thickness: number; topWidth: number }
   prongs: { positions: number[]; wire: number; vTips: number[] }
-  halo: Melee | null
-  hiddenHalo: Melee | null
+  halo: MeleeRing | null
+  hiddenHalo: MeleeRing | null
   sides: { shape: SideShape; carat: number; length: number; width: number; depth: number; offset: number } | null
   pave: (Melee & { arc: [number, number]; rows: number; channel: boolean }) | null
   peekaboo: Melee | null
@@ -175,18 +208,120 @@ export function layoutOf(d: RingDesign): Layout {
   const gY = culet + pavilion + girdle / 2
   const table = gY + girdle / 2 + crown
 
-  // Halo: one ring of melee around the girdle; a hidden halo: smaller stones under it.
+  const positions = bezel ? [] : prongAngles(d, cut.ratio)
+  const vTips = vTipAngles(d)
+  const wire = clamp(s.width * 0.08, 0.42, 0.75)
+  const claw = clawWire(d, { prongs: { positions, wire, vTips } })
+
+  // Halo: one ring of melee round the girdle; a hidden halo: smaller stones on a collar under it, round the pavilion.
+  // Each counted along its true path, a stretch between each two claws (the claws pass between their stones).
   const perimeter = (a: number, b: number) => Math.PI * (3 * (a + b) - Math.sqrt((3 * a + b) * (a + 3 * b)))
+  const ratio = s.length / s.width
+  // A ring of stones `mm` across, packed `pitch` apart at least; `apart`: how far a claw (at an angle, degrees) stands
+  // off its centreline, toward the centre; `extra`: more stretches to keep clear (`at` an angle, radians), and
+  // `blocked` those found on the path itself.
+  const ring = (mm: number, scale: number, offset: number, drop: number, pitch: number, apart: (deg: number) => number, extra: Keep[] = [], hull = false, blocked: (path: Pt[]) => Keep[] = () => []): MeleeRing => {
+    const path = outlinePath(d.stone.shape, s.width * scale, ratio, offset, 720, hull)
+    const keep = [...positions.map((deg) => ({ at: arcAt(path, (deg * Math.PI) / 180), half: clawClearance(claw, mm, apart(deg)) })), ...extra.map((k) => ({ at: arcAt(path, k.at), half: k.half })), ...blocked(path)]
+    const runs = meleeRuns(pathLength(path), pitch, keep)
+    const count = runs.reduce((t, n) => t + n, 0)
+    return { count, mm, carat: count * meleeCarat(mm), scale, offset, drop, runs, keep, hull }
+  }
   const haloMm = clamp(s.width * 0.17, 1.05, 1.6)
-  const halo: Melee | null = d.setting.style === 'halo' ? (() => {
-    const off = 0.25 + haloMm / 2
-    const count = Math.max(12, Math.round(perimeter(s.length / 2 + off, s.width / 2 + off) / (haloMm * 1.1)))
-    return { count, mm: haloMm, carat: count * meleeCarat(haloMm) }
-  })() : null
+  // Its claws stand at the girdle, their centres 0.55 of a wire out from it.
+  const halo: MeleeRing | null = d.setting.style === 'halo' ? ring(haloMm, 1, HALO_GAP + haloMm / 2, 0.05, haloMm + 0.06, () => HALO_GAP + haloMm / 2 - claw * 0.55) : null
   const hiddenMm = clamp(s.width * 0.13, 0.9, 1.25)
-  const hiddenHalo: Melee | null = d.details.hiddenHalo && !bezel && d.setting.style !== 'halo' ? (() => {
-    const count = Math.max(10, Math.round(perimeter(s.length * 0.42, s.width * 0.42) / (hiddenMm * 1.12)))
-    return { count, mm: hiddenMm, carat: count * meleeCarat(hiddenMm) }
+  const hiddenHalo: MeleeRing | null = d.details.hiddenHalo && !bezel && d.setting.style !== 'halo' ? (() => {
+    // Round the pavilion under the girdle, each stone leaning back HIDDEN_TILT in a collar whose top is square to it,
+    // two fifths of the way up its crown: the top of its girdle a breath off the pavilion, `below` the girdle's
+    // underside, where the pavilion is the girdle's outline scaled by `scale` (round its convex hull for a heart, its
+    // cleft bridged: `hull`). Low enough that the collar's outer edge (its seat, bright-cut bevel and rim past the stone, `rim` from
+    // the stone's axis; `out` from the path seen from above) stays inside the girdle's outline: hidden from above,
+    // except over a cleft.
+    const rho = hiddenMm / 2
+    const lean = Math.sin(HIDDEN_TILT)
+    const upright = Math.cos(HIDDEN_TILT)
+    const lift = hiddenMm * 0.075
+    const rim = rho + 0.13 + Math.max(0.08, rho * 0.18)
+    const offset = rho * lean + 0.03
+    const out = upright * lift + lean * rim
+    const unit = outlineOf(d.stone.shape, ratio)
+    const girdleR = radiusTable(unit, s.width)
+    const hullR = radiusTable(hullOf(unit), s.width)
+    const low = gY - girdle / 2
+    // A path's outward normal at a point (it runs as the outline does), over a tenth of a millimetre each way, as the 3D
+    // view takes it.
+    const normal = (path: Pt[], i: number): Pt => {
+      const k = Math.max(1, Math.round((0.1 * path.length) / pathLength(path)))
+      const a = path[(i - k + path.length) % path.length]
+      const b = path[(i + k) % path.length]
+      const l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1
+      return [(b[1] - a[1]) / l, -(b[0] - a[0]) / l]
+    }
+    const hull = d.stone.shape === 'heart'
+    const pathAt = (below: number) => outlinePath(d.stone.shape, s.width * (1 - below / pavilion), ratio, offset, 720, hull)
+    // Deep enough where the girdle is narrowest; then deeper wherever the rim would still show (round a sharp point).
+    let below = ((offset - 0.03 + out + 0.08) * pavilion) / (s.width / 2)
+    for (let pass = 0; pass < 4; pass++) {
+      const path = pathAt(below)
+      let more = 0
+      path.forEach((p, i) => {
+        const [nx, nz] = normal(path, i)
+        const x = p[0] + nx * out
+        const z = p[1] + nz * out
+        const R = girdleR(x, z)
+        if (hull && hullR(x, z) - R > 0.02) return
+        const over = Math.hypot(x, z) + 0.05 - R
+        if (over > 0) more = Math.max(more, (over * pavilion) / R)
+      })
+      if (more < 1e-3) break
+      below += more
+    }
+    const scale = 1 - below / pavilion
+    const drop = girdle / 2 + below + rho * upright
+    // Where a stone can't sit (beside a heart's cleft, round a sharp point): its girdle or its culet would come within a
+    // breath of the pavilion (a cone from the girdle's underside down to the culet), its top above the girdle's, or its
+    // girdle show past the girdle's outline seen from above (but over a cleft).
+    const fits = (p: Pt, [nx, nz]: Pt): boolean => {
+      const tx = -nz
+      const tz = nx
+      const y = gY - drop
+      const pts: [number, number, number][] = [[p[0] - nx * upright * 0.45 * hiddenMm, y - lean * 0.45 * hiddenMm, p[1] - nz * upright * 0.45 * hiddenMm]]
+      // Round the girdle's top and bottom edges.
+      const g = hiddenMm * 0.015
+      for (let k = 0; k < 32; k++) {
+        const a = (k / 32) * Math.PI * 2
+        const c = Math.cos(a) * rho
+        const u = Math.sin(a) * rho
+        for (const e of [g, -g]) pts.push([p[0] + tx * c - nx * lean * u + nx * upright * e, y + upright * u + lean * e, p[1] + tz * c - nz * lean * u + nz * upright * e])
+      }
+      return pts.every(([x, yy, z]) => {
+        const rr = Math.hypot(x, z)
+        const R = girdleR(x, z)
+        return yy < low - 0.02 && rr - R * Math.max(0, (yy - culet) / (low - culet)) > 0.015 && (rr < R - 0.03 || (hull && hullR(x, z) - R > 0.02))
+      })
+    }
+    const blocked = (path: Pt[]): Keep[] => {
+      const n = path.length
+      const step = pathLength(path) / n
+      const bad = path.map((p, i) => !fits(p, normal(path, i)))
+      const keeps: Keep[] = []
+      bad.forEach((b, i) => {
+        if (!b || bad[(i - 1 + n) % n]) return
+        let j = i
+        while (bad[(j + 1) % n] && j - i < n) j++
+        // One step either way, so a stone at a stretch's end stands where it fits; and half a pitch at least, so the stones
+        // either side stay a pitch apart.
+        keeps.push({ at: ((i + j) / 2) * step, half: Math.max((hiddenMm + 0.08) / 2, ((j - i) / 2 + 1) * step) })
+      })
+      return keeps
+    }
+    // The claws hug the pavilion, their centres 0.92 of a wire out from it (a V-claw's stem, under its point, 1.2 of its
+    // own), a little further in at the stones' middle than at their tops, as much as the pavilion slopes there.
+    const slope = (deg: number) => (radiusAt(outlineOf(d.stone.shape, ratio), (deg * Math.PI) / 180) * s.width) / pavilion
+    const stem = Math.min(claw, vClawWall(claw) / 2)
+    const tips = vTips.map((deg) => ({ at: (deg * Math.PI) / 180, half: clawClearance(stem, hiddenMm, slope(deg) * rho * upright + offset - stem * 1.2) }))
+    return ring(hiddenMm, scale, offset, drop, hiddenMm + 0.08, (deg) => slope(deg) * rho * upright + offset - claw * 0.92, tips, hull, blocked)
   })() : null
 
   // Three stones: the sides take their shape's proportions, a small gap from the centre.
@@ -216,11 +351,9 @@ export function layoutOf(d: RingDesign): Layout {
 
   const peekMm = clamp(s.width * 0.2, 1.2, 1.8)
   const peekaboo: Melee | null = d.details.peekaboo && !bezel ? { count: 2, mm: peekMm, carat: 2 * meleeCarat(peekMm) } : null
-  const surprise: Melee | null = d.details.surprise ? { count: 1, mm: 1.6, carat: meleeCarat(1.6) } : null
-
-  const positions = bezel ? [] : prongAngles(d, cut.ratio)
-  const vTips = vTipAngles(d)
-  const wire = clamp(s.width * 0.08, 0.42, 0.75)
+  // Chosen to the band: its seat, with the bevel round it, stays on the flat of the inside.
+  const surpriseMm = clamp(width * 0.55, 1, 1.6)
+  const surprise: Melee | null = d.details.surprise ? { count: 1, mm: surpriseMm, carat: meleeCarat(surpriseMm) } : null
 
   // Metal: the band's section times its circumference, then the head's wires, rails and frames.
   const fill = d.band.form === 'twist' ? 0.7 : d.band.form === 'knife' ? 0.68 : d.band.form === 'split' ? 0.86 : 0.82
@@ -231,8 +364,8 @@ export function layoutOf(d: RingDesign): Layout {
   const prongLen = pavilion + girdle + crown * 0.6 + HEIGHT_GAP[d.setting.height] + 1
   let head = positions.length * Math.PI * wire * wire * prongLen * 1.1 + Math.PI * 0.35 * 0.35 * perimeter(s.length * 0.3, s.width * 0.3)
   if (bezel) head += perimeter(s.length / 2 + 0.3, s.width / 2 + 0.3) * 1.3 * 0.45 + 6
-  if (halo) head += perimeter(s.length / 2 + haloMm, s.width / 2 + haloMm) * (haloMm + 0.3) * 0.5
-  if (hiddenHalo) head += perimeter(s.length * 0.42, s.width * 0.42) * hiddenMm * 0.45
+  if (halo) head += pathLength(outlinePath(d.stone.shape, s.width, ratio, halo.offset, 360)) * (haloMm + 0.5) * 0.55
+  if (hiddenHalo) head += pathLength(outlinePath(d.stone.shape, s.width * hiddenHalo.scale, ratio, hiddenHalo.offset, 360, hiddenHalo.hull)) * (hiddenMm * 0.5 + 0.2) * (hiddenMm + 0.3) * 0.9
   if (sides) head += 2 * (4 * Math.PI * 0.4 * 0.4 * (sides.depth + 1.5) + 2)
   if (d.setting.cathedral) head += 4 * Math.PI * 0.55 * 0.55 * 7
   volume += head

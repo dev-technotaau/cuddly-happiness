@@ -447,8 +447,7 @@ Typecheck with `npx tsc --noEmit -p .` (`--noEmit` duplicates the config and is 
 | `gsap` | dependency | `^3.15.0` | `3.15.0` |
 | `lenis` | dependency | `^1.3.26` | `1.3.26` (peer `react@19.2.4`) |
 | `lucide-react` | dependency | `^1.57.0` | `1.57.0` (peers `@types/react@19.2.14`, `react@19.2.4`) |
-| `three` | dependency | `0.186.1` (exact) | `0.186.1`: the ring designer's 3D engine and the 3D try-on, in a lazy chunk the two share (2026-10-22, owner request) |
-| `three-mesh-bvh` | dependency | `0.9.16` (exact) | `0.9.16`: the BVH the designer's stones are ray traced in |
+| `three` | dependency | `0.186.1` (exact) | `0.186.1`: the ring designer's 3D engine and the 3D try-on, drawn with its `WebGPURenderer` (WebGPU, WebGL 2 fallback) and TSL, in a lazy chunk the two share (2026-10-22, owner request; WebGPU 2026-10-23). `vite.config.ts` aliases the exact name `three` to `three/webgpu` so three.js's helpers share that build. `three-mesh-bvh` was removed on 2026-10-23; the ring's own hierarchy for tracing is built in code (`bvh.ts`), off the page's thread in a module worker (`new Worker(new URL('./bvhWorker.ts', import.meta.url), { type: 'module' })`, which Vite bundles as its own chunk) |
 | `@mediapipe/tasks-vision` | dependency | `1.0.1` (exact) | `1.0.1` (Apache-2.0): the 3D try-on's hand tracking, in the lazy `RingTryOn` chunk; its WASM loads from jsDelivr at the same version and its model from Google's model storage, when a ring is first tried on in 3D (2026-10-22, owner request). 1.0.1 rather than 1.1.x: three months out, against eight days |
 | `@types/three` | devDependency | `0.186.0` (exact) | `0.186.0` |
 | `vite` | devDependency | `^8.0.5` | `8.0.5` (peers `@types/node@22.19.17`, `jiti@2.6.1`); bundles with `rolldown@1.0.0-rc.12`, hoisted per `.modules.yaml` |
