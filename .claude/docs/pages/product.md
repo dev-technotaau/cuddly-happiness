@@ -634,7 +634,7 @@ Strings are shown exactly as written in the source. "UC" means the element appli
 |---|---|---|
 | Not found | `This piece has returned to the vault.` | `!product` |
 | Breadcrumb `nav` aria-label | `Breadcrumb` | — |
-| Breadcrumb (UC) | `Maison` · `/` · `{category.name}` · `/` · `{product.name}` | — |
+| Breadcrumb (UC) | `Maison` · `/` · `Shop all` (`Toute la boutique`, from 640 px, 2026-10-24) · `/` · `{category.name}` · `/` · `{product.name}` | — |
 | Breadcrumb right (UC) | `Ref. {product.id.toUpperCase()}` | ≥ 640px |
 | Availability (UC) | `Available for reservation · fitted in salon` | rental |
 | Availability (UC) | `` `Made to order · approx. ${product.leadTimeWeeks} weeks` `` | `leadTimeWeeks` |

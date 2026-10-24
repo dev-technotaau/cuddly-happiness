@@ -2,7 +2,7 @@
 
 The owner's brief: a three-generation Montréal house, known by word of mouth, that wants to win online. A visitor should feel "this is a serious, trusted jeweller", stay, look at the pieces, then book a visit, contact the salon, or order. Best sellers are engagement rings and diamond tennis necklaces; rentals run about 50/50 with sales and the same piece can be rented or bought; everything is designed and made in-house; "Book a visit" matters as much as "Add to bag". Keep the current style (calm, white space, large photos, few words) and remove nothing. The plan is in `.claude/plans/legacy-redesign.md` (approved 2026-10-21, with the owner's answers below).
 
-Scope: the house data (`src/data/house.ts`), private visits (`src/data/visits.ts`, `src/components/visit/`), "Ask a jeweller" (`src/components/contact/AskSheet.tsx`), rent or own and the catalog rules (`src/data/catalog.ts`), the chapter grid and filters (`src/components/catalog/`), Shop all (`src/pages/Shop.tsx`), the new Home sections (`src/components/home/`), and the changes to the header, menus, footer, product page, bag, wishlist, account and atelier.
+Scope: the house data (`src/data/house.ts`), private visits (`src/data/visits.ts`, `src/components/visit/`), "Ask a jeweller" (`src/components/contact/AskSheet.tsx`), rent or own and the catalog rules (`src/data/catalog.ts`), the chapter grid and filters (`src/components/catalog/`), Shop all's first version (`src/pages/Shop.tsx`, rebuilt 2026-10-24: [../pages/shop.md](../pages/shop.md)), the new Home sections (`src/components/home/`), and the changes to the header, menus, footer, product page, bag, wishlist, account and atelier.
 
 ## Owner answers (2026-10-21)
 
@@ -75,9 +75,9 @@ Call (`tel:`), text (`sms:` with the message), WhatsApp (`wa.me`, placeholder nu
 ## Chapters, signatures and Shop all
 
 - `Category` (`?type=engagement` on Bridal, `?type=tennis` on Necklaces): a signature hero (title, line, visit), otherwise the chapter hero plus a callout to the chapter's signature; the gifts and rentals bands (rentals: steps, own-it line, rental credit, Book a fitting); `PieceGrid`; the signature's guide (`FourCs` or `TennisGuide`); `VisitBand`; films; recently viewed.
-- `PieceGrid`: filters offered only when they split the pieces (chapter on Shop all, type family, metal, price band per market, how: available to rent / ready in the salon / made to order, shape from GIA), active chips with remove and "Clear all", sort by the shown price (fixes rental sort), `Interlude` after the sixth piece, an empty state with "Ask a jeweller".
+- `PieceGrid` (the chapter pages; Shop all has its own engine since 2026-10-24): filters offered only when they split the pieces (a chapter filter when asked, type family, metal, price band per market, how: available to rent / ready in the salon / made to order, shape from GIA), active chips with remove and "Clear all", sort by the shown price (fixes rental sort), `Interlude` after the sixth piece, an empty state with "Ask a jeweller".
 - `Interlude`: the salon invitation; after three pieces viewed or two saved it speaks to the visitor ("You’ve looked at {n} pieces…") with the pieces attached, at most once a week (`nudgeAt`), dismissible, never a pop-up.
-- `Shop` (`#/shop`, Shopify's `/collections/all`): every piece except the gift card, chapter links, `PieceGrid` with the chapter filter. Linked from the header mega menu (first row), the desktop menu, the mobile menu, the footer, Treasured's "Continue the discovery", the empty bag and the wishlist.
+- `Shop` (`#/shop`, Shopify's `/collections/all`): rebuilt 2026-10-24 with its own engine, toolbar, panel, quick view and offers, and labelled "Shop all" everywhere; see [../pages/shop.md](../pages/shop.md). Linked from the header mega menu (first row, with its own preview), the desktop menu, the mobile menu, the footer, chapter and piece breadcrumbs, Treasured's "Continue the discovery", the empty bag and the wishlist.
 
 ## Home (`src/pages/Home.tsx`)
 
@@ -116,7 +116,7 @@ Call (`tel:`), text (`sms:` with the message), WhatsApp (`wa.me`, placeholder nu
 | `src/components/contact/AskSheet.tsx` | "Ask a jeweller": call, text, WhatsApp, email, a call-back request, or book a visit |
 | `src/components/catalog/PieceGrid.tsx` | A chapter's grid with filters, chips, sort, the `Interlude` and the empty state |
 | `src/components/catalog/Interlude.tsx` | The salon invitation among the pieces; personal after three viewed or two saved |
-| `src/pages/Shop.tsx` | `#/shop`: every piece in one grid |
+| `src/pages/Shop.tsx` | `#/shop`: Shop all; see [../pages/shop.md](../pages/shop.md) |
 | `src/components/menu/MobileSearch.tsx` | Search on phones, at the head of the mobile menu |
 | `src/components/menu/Marked.tsx` | The menus’ highlight of matched words |
 | `src/components/home/Signatures.tsx` | Act 01: the two signatures as tall portraits |

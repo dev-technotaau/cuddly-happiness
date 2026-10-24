@@ -15,6 +15,7 @@ import Price from '../Price'
 import { getLenis } from '../SmoothScroll'
 import Burger from './Burger'
 import Marked from './Marked'
+import { RECOMMENDED, SHOP_PIECES } from '../shop/filters'
 import useHouseSearch from './useHouseSearch'
 
 export type MenuFocus = 'pointer' | 'keyboard' | 'search'
@@ -100,9 +101,9 @@ const COPY = bilingual(
     openBagWith: (n: number) => `Open bag, ${n} piece${n === 1 ? '' : 's'}`,
     appointment: 'Book a visit',
     ask: 'Ask a jeweller',
-    every: ['Every piece', 'All nine chapters'] as [string, string],
-    everyNote: 'Everything the house makes and curates, in one place, with filters by chapter, metal, price and renting.',
-    everyCta: 'See every piece',
+    every: ['Shop all', 'All nine chapters'] as [string, string],
+    everyNote: 'Everything the house makes and curates, in one place: filters by chapter, metal, stone and price, a quick look at any piece, and edits to begin with.',
+    everyCta: 'Shop all',
     signatureKicker: (numeral: string) => `Signature ${numeral}`,
     currency: 'Currency',
     nothing: (q: string) => `Nothing matches <em>“${q}”</em>.`,
@@ -151,9 +152,9 @@ const COPY = bilingual(
     openBagWith: (n) => `Ouvrir le panier, ${n} pièce${n < 2 ? '' : 's'}`,
     appointment: 'Prendre rendez-vous',
     ask: 'Parler à un joaillier',
-    every: ['Toutes les pièces', 'Les neuf chapitres'],
-    everyNote: 'Tout ce que la maison fait et choisit, au même endroit, avec des filtres par chapitre, métal, prix et location.',
-    everyCta: 'Voir toutes les pièces',
+    every: ['Toute la boutique', 'Les neuf chapitres'],
+    everyNote: 'Tout ce que la maison fait et choisit, au même endroit : des filtres par chapitre, métal, pierre et prix, un aperçu de chaque pièce et des sélections pour commencer.',
+    everyCta: 'Voir toute la boutique',
     signatureKicker: (numeral) => `Signature ${numeral}`,
     currency: 'Devise',
     nothing: (q) => `Rien ne correspond à <em>« ${q} »</em>.`,
@@ -285,7 +286,7 @@ export default function SiteMenu({ open, focus, onClose, trigger, onCover }: Pro
 
   const shop = useMemo<Dest[]>(() => [
     // Every piece, then the two signatures, then the chapters.
-    { id: 'all', title: t.every[0], url: href.shop(), kicker: t.every[1], accent: t.every[1], note: t.everyNote, image: IMG.tray, meta: <>{t.pieces(PRODUCTS.length - 1)}</>, cta: t.everyCta },
+    { id: 'all', title: t.every[0], url: href.shop(), kicker: t.every[1], accent: t.every[1], note: t.everyNote, image: IMG.tray, meta: <>{t.pieces(SHOP_PIECES.length)} · {t.fromPrice} <Price amount={Math.min(...SHOP_PIECES.map((p) => cardPrice(p, currency, false).amount))} /></>, pieces: RECOMMENDED.slice(0, 3), cta: t.everyCta },
     ...SIGNATURES.map((x): Dest => {
       const sig = house.signatures[x.id]
       const pieces = signaturePieces(x.id)

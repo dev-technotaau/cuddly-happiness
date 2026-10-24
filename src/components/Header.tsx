@@ -1,11 +1,12 @@
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 import { ArrowUpRight, CalendarHeart, Heart, Menu, MessageCircle, Search, ShoppingBag, User, X } from 'lucide-react'
-import { CATEGORIES, SIGNATURES, formatPrice, getProduct, getProductsByCategory } from '../data/catalog'
+import { CATEGORIES, SIGNATURES, formatPrice, getProduct, getProductsByCategory, pic } from '../data/catalog'
 import { HOUSE } from '../data/house'
 import { bilingual, useCopy } from '../i18n'
 import { useCatalog } from '../i18n/catalog'
 import { href, useStore, type Route } from '../store'
+import { EDITS, RECOMMENDED, SHOP_PIECES, applyEdit, readSelection, writeSelection, type EditId } from './shop/filters'
 import Marquee from './Marquee'
 import LanguageToggle from './locale/LanguageToggle'
 import LocaleMenu from './locale/LocaleMenu'
@@ -51,8 +52,11 @@ const COPY = bilingual(
     currency: 'Currency',
     book: 'Book a visit',
     ask: 'Ask a jeweller',
-    every: 'Every piece',
-    everyNote: 'All nine chapters, with filters',
+    shopAll: 'Shop all',
+    shopAllNote: (n: number) => `${n} pieces · every chapter`,
+    shopAllLine: 'Everything the house makes and curates, in one place, with filters by chapter, metal, stone and price.',
+    shopAllCta: (n: number) => `Shop all ${n} pieces`,
+    edits: { new: 'New arrivals', bestsellers: 'Bestsellers', rent: 'To rent for an evening', gifts: (amount: string) => `Gifts under ${amount}`, made: 'Made to order' } as { [K in 'new' | 'bestsellers' | 'rent' | 'made']: string } & { gifts: (amount: string) => string },
     signature: (numeral: string) => `Signature ${numeral}`,
   },
   {
@@ -88,8 +92,11 @@ const COPY = bilingual(
     currency: 'Devise',
     book: 'Prendre rendez-vous',
     ask: 'Parler à un joaillier',
-    every: 'Toutes les pièces',
-    everyNote: 'Les neuf chapitres, avec filtres',
+    shopAll: 'Toute la boutique',
+    shopAllNote: (n) => `${n} pièces · tous les chapitres`,
+    shopAllLine: 'Tout ce que la maison fait et choisit, au même endroit, avec des filtres par chapitre, métal, pierre et prix.',
+    shopAllCta: (n) => `Voir les ${n} pièces`,
+    edits: { new: 'Nouveautés', bestsellers: 'Incontournables', rent: 'À louer pour un soir', gifts: (amount) => `Cadeaux de moins de ${amount}`, made: 'Sur commande' },
     signature: (numeral) => `Signature ${numeral}`,
   },
 )
@@ -244,8 +251,8 @@ export default function Header() {
     return () => window.removeEventListener('resize', measure)
   }, [lineAt])
   const point = (s: Section) => ({ onPointerEnter: () => setHover(s), onFocus: () => setHover(s), onBlur: () => setHover(null) })
-  // The mega menu opens on the visitor's own chapter (or the gift cards), not always on the first.
-  const home = Math.max(0, CATEGORIES.findIndex((c) => c.slug === (route.name === 'giftcards' ? 'gifts' : chapter)))
+  // The mega menu opens on the visitor's own chapter (or the gift cards, or Shop all: -1), not always on the first.
+  const home = route.name === 'shop' ? -1 : Math.max(0, CATEGORIES.findIndex((c) => c.slug === (route.name === 'giftcards' ? 'gifts' : chapter)))
   const open = () => {
     window.clearTimeout(closeTimer.current)
     if (!megaOpen) setActive(home)
@@ -261,8 +268,15 @@ export default function Header() {
     ? { nav: 'min-[1366px]:text-[11px] min-[1366px]:tracking-[0.22em]', menu: 'gap-3 pr-3 min-[1366px]:gap-6 min-[1366px]:pr-7', links: 'gap-3 pr-3 min-[1366px]:gap-7 min-[1366px]:pr-7' }
     : { nav: 'xl:text-[11px] xl:tracking-[0.22em]', menu: 'gap-4 pr-4 xl:gap-6 xl:pr-7', links: 'gap-4 pr-4 xl:gap-7 xl:pr-7' }
 
-  const cat = CATEGORIES[active]
+  // Shop all's preview (-1): the edits as ways in, and the house's first pieces at a glance.
+  const all = active < 0
+  const cat = CATEGORIES[Math.max(0, active)]
   const featured = getProductsByCategory(cat.slug).slice(0, 2)
+  const edits = (['new', 'bestsellers', 'rent', 'gifts', 'made'] as EditId[]).map((id) => {
+    const e = EDITS.find((x) => x.id === id)!
+    const max = e.max?.[currency]
+    return { id, label: id === 'gifts' ? t.edits.gifts(formatPrice(max ?? 0, currency)) : t.edits[id as 'new'], url: href.shop(writeSelection(applyEdit(readSelection({}, currency), e, currency), currency)) }
+  })
 
   return (
     <header className="sticky top-0 z-50">
@@ -368,11 +382,11 @@ export default function Header() {
           <div className="mx-auto grid max-w-[1600px] grid-cols-12 gap-10 px-12 py-12">
             <ul className="col-span-4 border-r border-[var(--border-hairline)] pr-10">
               <li data-mega-item className="mb-3 border-b border-[var(--border-hairline)] pb-3">
-                <a href={href.shop()} aria-current={route.name === 'shop' ? 'page' : undefined} className="group flex items-baseline gap-5 py-2">
+                <a href={href.shop()} aria-current={route.name === 'shop' ? 'page' : undefined} onMouseEnter={() => setActive(-1)} onFocus={() => setActive(-1)} className={`group flex items-baseline gap-5 py-2 transition-colors ${all ? 'text-[var(--text-espresso)]' : 'text-[var(--text-taupe)]'}`}>
                   <span className="font-spec w-6 text-[10px] text-[var(--gold-ink)]">∞</span>
-                  <span className="font-serif-editorial text-[26px] leading-tight transition-colors group-hover:text-[var(--gold-vermeil)]">{t.every}</span>
+                  <span className="font-serif-editorial text-[26px] leading-tight transition-colors group-hover:text-[var(--gold-vermeil)]">{t.shopAll}</span>
                   {route.name === 'shop' && <span aria-hidden="true" className={dot} />}
-                  <span className="font-spec text-[10px] uppercase tracking-[0.2em] text-[var(--text-taupe)]">{t.everyNote}</span>
+                  <span className="font-spec text-[10px] uppercase tracking-[0.2em] text-[var(--text-taupe)]">{t.shopAllNote(SHOP_PIECES.length)}</span>
                 </a>
               </li>
               {CATEGORIES.map((c, i) => (
@@ -381,6 +395,7 @@ export default function Header() {
                     href={href.category(c.slug)}
                     aria-current={current(c.slug)}
                     onMouseEnter={() => setActive(i)}
+                    onFocus={() => setActive(i)}
                     className={`group flex items-baseline gap-5 py-2 transition-colors ${active === i ? 'text-[var(--text-espresso)]' : 'text-[var(--text-taupe)]'}`}
                   >
                     <span className="font-spec w-6 text-[10px] text-[var(--gold-ink)]">{c.eyebrow}</span>
@@ -401,41 +416,76 @@ export default function Header() {
                 </a>
               </li>
             </ul>
-            <div className="col-span-3 flex flex-col justify-between" data-mega-item>
-              <div>
-                <p className="font-spec text-[10px] uppercase tracking-[0.28em] text-[var(--gold-ink)]">{t.chapter(cat.eyebrow)}</p>
-                <p className="font-serif-editorial mt-4 text-3xl leading-snug">{catalog.category(cat).description}</p>
-              </div>
-              <ul className="mt-8 space-y-3 text-sm">
-                {SIGNATURES.filter((x) => x.category === cat.slug).map((x) => (
-                  <li key={x.id}>
-                    <a href={href.category(x.category, { type: x.family })} className="flex items-center justify-between border-b border-[var(--text-espresso)] pb-3 font-medium hover:text-[var(--gold-vermeil)]">
-                      <span><span className="font-spec mr-3 text-[10px] uppercase tracking-[0.2em] text-[var(--gold-ink)]">{t.signature(house.signatures[x.id].numeral)}</span>{house.signatures[x.id].name}</span> <ArrowUpRight size={14} strokeWidth={1.4} />
-                    </a>
-                  </li>
-                ))}
-                {featured.map((p) => (
-                  <li key={p.slug}>
-                    <a href={href.product(p.slug)} className="flex items-center justify-between border-b border-[var(--border-hairline)] pb-3 hover:text-[var(--gold-vermeil)]">
-                      {catalog.name(p)} <ArrowUpRight size={14} strokeWidth={1.4} />
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <a href={href.category(cat.slug)} className="group col-span-5 grid grid-cols-5 gap-4" data-mega-item>
-              <div className="col-span-3 aspect-[4/5] overflow-hidden bg-[var(--bg-silk)]">
-                <img key={cat.hero} src={cat.hero} alt={catalog.category(cat).name} className="editorial-zoom h-full w-full object-cover" />
-              </div>
-              <div className="col-span-2 flex flex-col gap-4">
-                <div className="aspect-square overflow-hidden bg-[var(--bg-silk)]">
-                  <img key={cat.feature} src={cat.feature} alt="" className="editorial-zoom h-full w-full object-cover" />
+            {all ? (
+              <>
+                <div className="col-span-3 flex flex-col justify-between" data-mega-item>
+                  <div>
+                    <p className="font-spec text-[10px] uppercase tracking-[0.28em] text-[var(--gold-ink)]">{t.shopAllNote(SHOP_PIECES.length)}</p>
+                    <p className="font-serif-editorial mt-4 text-3xl leading-snug">{t.shopAllLine}</p>
+                  </div>
+                  <ul className="mt-8 space-y-3 text-sm">
+                    {edits.map((e) => (
+                      <li key={e.id}>
+                        <a href={e.url} className="flex items-center justify-between border-b border-[var(--border-hairline)] pb-3 hover:text-[var(--gold-vermeil)]">
+                          {e.label} <ArrowUpRight size={14} strokeWidth={1.4} />
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                <span className="mt-auto text-[11px] font-medium uppercase tracking-[0.22em]">
-                  {t.shopChapter(catalog.category(cat).name)} <span className="text-[var(--gold-vermeil)]">&rarr;</span>
-                </span>
-              </div>
-            </a>
+                <a href={href.shop()} className="group col-span-5 flex flex-col gap-4" data-mega-item>
+                  {/* The first pieces of the house's own order, at a glance */}
+                  <div className="grid grid-cols-3 gap-3">
+                    {RECOMMENDED.slice(0, 6).map((p) => (
+                      <div key={p.slug} className="aspect-[4/5] overflow-hidden bg-[var(--bg-silk)]">
+                        <img {...pic(p.images[0], '180px')} alt="" className="editorial-zoom h-full w-full object-cover" />
+                      </div>
+                    ))}
+                  </div>
+                  <span className="text-[11px] font-medium uppercase tracking-[0.22em]">
+                    {t.shopAllCta(SHOP_PIECES.length)} <span className="text-[var(--gold-vermeil)]">&rarr;</span>
+                  </span>
+                </a>
+              </>
+            ) : (
+              <>
+                <div className="col-span-3 flex flex-col justify-between" data-mega-item>
+                  <div>
+                    <p className="font-spec text-[10px] uppercase tracking-[0.28em] text-[var(--gold-ink)]">{t.chapter(cat.eyebrow)}</p>
+                    <p className="font-serif-editorial mt-4 text-3xl leading-snug">{catalog.category(cat).description}</p>
+                  </div>
+                  <ul className="mt-8 space-y-3 text-sm">
+                    {SIGNATURES.filter((x) => x.category === cat.slug).map((x) => (
+                      <li key={x.id}>
+                        <a href={href.category(x.category, { type: x.family })} className="flex items-center justify-between border-b border-[var(--text-espresso)] pb-3 font-medium hover:text-[var(--gold-vermeil)]">
+                          <span><span className="font-spec mr-3 text-[10px] uppercase tracking-[0.2em] text-[var(--gold-ink)]">{t.signature(house.signatures[x.id].numeral)}</span>{house.signatures[x.id].name}</span> <ArrowUpRight size={14} strokeWidth={1.4} />
+                        </a>
+                      </li>
+                    ))}
+                    {featured.map((p) => (
+                      <li key={p.slug}>
+                        <a href={href.product(p.slug)} className="flex items-center justify-between border-b border-[var(--border-hairline)] pb-3 hover:text-[var(--gold-vermeil)]">
+                          {catalog.name(p)} <ArrowUpRight size={14} strokeWidth={1.4} />
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <a href={href.category(cat.slug)} className="group col-span-5 grid grid-cols-5 gap-4" data-mega-item>
+                  <div className="col-span-3 aspect-[4/5] overflow-hidden bg-[var(--bg-silk)]">
+                    <img key={cat.hero} src={cat.hero} alt={catalog.category(cat).name} className="editorial-zoom h-full w-full object-cover" />
+                  </div>
+                  <div className="col-span-2 flex flex-col gap-4">
+                    <div className="aspect-square overflow-hidden bg-[var(--bg-silk)]">
+                      <img key={cat.feature} src={cat.feature} alt="" className="editorial-zoom h-full w-full object-cover" />
+                    </div>
+                    <span className="mt-auto text-[11px] font-medium uppercase tracking-[0.22em]">
+                      {t.shopChapter(catalog.category(cat).name)} <span className="text-[var(--gold-vermeil)]">&rarr;</span>
+                    </span>
+                  </div>
+                </a>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -464,7 +514,9 @@ export default function Header() {
               <li className="border-b border-[var(--border-hairline)]">
                 <a href={href.shop()} aria-current={route.name === 'shop' ? 'page' : undefined} className="flex items-baseline gap-4 py-4">
                   <span className="font-spec w-6 text-[10px] text-[var(--gold-ink)]">∞</span>
-                  <span className="font-serif-editorial text-3xl">{t.every}</span>
+                  <span className="font-serif-editorial text-3xl">{t.shopAll}</span>
+                  {route.name === 'shop' && <span aria-hidden="true" className={dot} />}
+                  <span className="font-spec ml-auto text-[11px] text-[var(--text-taupe)]">{SHOP_PIECES.length}</span>
                 </a>
               </li>
               {CATEGORIES.map((c) => (

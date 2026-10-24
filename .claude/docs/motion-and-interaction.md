@@ -19,7 +19,8 @@ Scope: `src/components/SmoothScroll.tsx`, `src/components/useReveal.ts`, `src/co
 | Time-based tweens | `gsap.from` / `to` / `fromTo`, `gsap.timeline`, `gsap.quickTo` | `HomeHero`, `Header`, `Product`, `Gallery`, `CategoryIndex`, `WishButton` | — |
 | CSS transitions | Tailwind v4 `transition-*` / `duration-*` / `ease-*`, plus the `.editorial-zoom` and `.link-line` classes | component `className`s, `src/index.css` | Everywhere |
 | CSS keyframes | `grainShift`, `fadeUp`, `scrollCue`; Tailwind `animate-pulse` | `src/index.css`, Tailwind theme | Header, PressStrip, App, Testimonials, Treasured, UndoToast, TryOnFeature, HomeHero |
-| Web Animations API | `Element.animate()` on the track, compositor-driven, with `updatePlaybackRate` for eased stops | `src/components/Marquee.tsx` | Header, PressStrip (Home) |
+| Web Animations API | `Element.animate()` on the track, compositor-driven, with `updatePlaybackRate` for eased stops | `src/components/Marquee.tsx`; `Drift` in `src/components/shop/ShopMosaic.tsx` (columns or a row, eased stop under the mouse and on focus, inert second copy) | Header, PressStrip (Home), Shop all's hero |
+| Layout transitions | GSAP Flip, loaded after the page (`import('gsap/Flip')`), matched by `data-flip-id`; entrance by `ScrollTrigger.batch` | `src/components/shop/useGridMotion.ts` | Shop all's grid ([pages/shop.md](pages/shop.md) §6) |
 | Timers and observers | 7 timer sites (6 `setTimeout`, 1 `setInterval`), 3 `IntersectionObserver`s, 1 `requestAnimationFrame` | see §8 and §9 | — |
 
 ---

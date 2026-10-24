@@ -72,6 +72,7 @@ const COPY = bilingual(
     trustWatch: { service: ['Five-year', 'service plan'], engrave: ['Case-back', 'engraving'] } as Record<'service' | 'engrave', [string, string]>,
     breadcrumb: 'Breadcrumb',
     maison: 'Maison',
+    shopAll: 'Shop all',
     ref: (id: string) => `Ref. ${id}`,
     hint: 'Drop a hint',
     per: { weekend: 'per weekend', week: 'per week', month: 'per month' } as Record<RentalPeriod, string>,
@@ -143,6 +144,7 @@ const COPY = bilingual(
     trustWatch: { service: ['Service', 'de cinq ans'], engrave: ['Gravure', 'du fond'] },
     breadcrumb: 'Fil d’Ariane',
     maison: 'Maison',
+    shopAll: 'Toute la boutique',
     ref: (id) => `Réf. ${id}`,
     hint: 'Laisser un indice',
     per: { weekend: 'par fin de semaine', week: 'par semaine', month: 'par mois' },
@@ -408,6 +410,9 @@ export default function Product({ slug, mode: asked }: { slug: string; mode?: st
           <nav aria-label={t.breadcrumb} className="flex min-w-0 items-center gap-3">
             <a href={href.home} className="hover:text-[var(--text-espresso)]">{t.maison}</a>
             <span>/</span>
+            {/* Shop all, where the line has room for it */}
+            <a href={href.shop()} className="hidden shrink-0 hover:text-[var(--text-espresso)] sm:inline">{t.shopAll}</a>
+            <span className="hidden sm:inline">/</span>
             <a href={href.category(category.slug)} className="shrink-0 hover:text-[var(--text-espresso)]">{chapterName}</a>
             <span>/</span>
             <span className="truncate text-[var(--text-espresso)]">{copy.name}</span>

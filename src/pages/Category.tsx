@@ -27,6 +27,7 @@ const COPY = bilingual(
     missing: 'This chapter could not be found.',
     home: 'Return home',
     maison: 'Maison',
+    shopAll: 'Shop all',
     chapter: (n: string) => `Chapter ${n}`,
     giftEyebrow: 'Carte-cadeau',
     giftTitle: 'Not sure what to choose? Give the <em>choice</em>.',
@@ -47,6 +48,7 @@ const COPY = bilingual(
     missing: 'Ce chapitre est introuvable.',
     home: 'Retour à l’accueil',
     maison: 'Maison',
+    shopAll: 'Toute la boutique',
     chapter: (n) => `Chapitre ${n}`,
     giftEyebrow: 'Carte-cadeau',
     giftTitle: 'Vous hésitez? Offrez le <em>choix</em>.',
@@ -103,7 +105,7 @@ export default function Category({ slug, query }: { slug: string; query: Query }
         <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-vault)]/90 to-transparent" />
         <div className="relative mx-auto flex h-full max-w-[1600px] flex-col justify-end px-6 pb-14 text-[var(--bg-travertine)] lg:px-12">
           <p className="font-spec text-[10px] uppercase tracking-[0.32em] text-[var(--gold-champagne)]">
-            <a href={href.home} className="hover:text-white">{t.maison}</a> / {sig ? <><a href={href.category(category.slug)} className="hover:text-white">{copy.name}</a> / {house.signature} {sig.numeral}</> : t.chapter(category.eyebrow)}
+            <a href={href.home} className="hover:text-white">{t.maison}</a> / <span className="max-sm:hidden"><a href={href.shop()} className="hover:text-white">{t.shopAll}</a> / </span>{sig ? <><a href={href.category(category.slug)} className="hover:text-white">{copy.name}</a> / {house.signature} {sig.numeral}</> : t.chapter(category.eyebrow)}
           </p>
           {sig ? (
             <>

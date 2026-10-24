@@ -27,6 +27,7 @@ Scope: everything in `.claude/docs/`
 | What is Shopify-shaped today, and how to port to a Liquid / OS 2.0 theme | [shopify-integration.md](shopify-integration.md) |
 | Home page sections and copy | [pages/home.md](pages/home.md) |
 | Category page and product card | [pages/category.md](pages/category.md) |
+| Shop all: the engine (facets, counts, edits, sorts, price scale, offers), hero and mosaic, chapter tiles, toolbar, filter panel, quick view, grid motion, the menus' Shop all, Shopify mapping | [pages/shop.md](pages/shop.md) |
 | PDP orchestration: configurator, add-to-bag, section order | [pages/product.md](pages/product.md) |
 | PDP modules: Gallery, Personalizer, RentalCalendar, PriceBreakdown, Reviews, RingSize, StickyBar… | [components/pdp-modules.md](components/pdp-modules.md) |
 | Cart drawer, cart page, checkout | [pages/cart-and-checkout.md](pages/cart-and-checkout.md) |
@@ -38,7 +39,7 @@ Scope: everything in `.claude/docs/`
 | Sharing and gift hints (PDP and wishlist) | [features/sharing.md](features/sharing.md) |
 | Shoppable video and the Atelier page | [features/shoppable-video-and-atelier.md](features/shoppable-video-and-atelier.md) |
 | Languages: English (Canada, US) and French (Canada), `bilingual()` copy, the switch, the notice, formatting | [features/languages.md](features/languages.md) |
-| The legacy redesign: private visits (booking drawer), Ask a jeweller, rent or own, the two signatures, chapter filters and Shop all, the new Home sections, house rules | [features/legacy-redesign.md](features/legacy-redesign.md) |
+| The legacy redesign: private visits (booking drawer), Ask a jeweller, rent or own, the two signatures, chapter filters, the new Home sections, house rules | [features/legacy-redesign.md](features/legacy-redesign.md) |
 | What the owner asked for and why: principles, decisions, open requests, placeholders | [design-intent.md](design-intent.md) |
 | The full Figma Make build history (23 prompts and responses, with status against the code) | [history/figma-make-log.md](history/figma-make-log.md) |
 | Bugs, risks, tech debt (KI-xxx) | [known-issues.md](known-issues.md) |

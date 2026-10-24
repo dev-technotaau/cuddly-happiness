@@ -33,7 +33,7 @@ const COPY = bilingual(
     across: ' to keep your wishlist across devices.',
     empty: 'Nothing saved yet.',
     tap: 'Tap the heart on any piece to keep it here, then bring your shortlist to the salon.',
-    explore: 'See every piece',
+    explore: 'Shop all',
     looked: 'Pieces you looked at',
   },
   {
@@ -53,7 +53,7 @@ const COPY = bilingual(
     across: ' pour retrouver votre liste sur tous vos appareils.',
     empty: 'Rien d’enregistré pour l’instant.',
     tap: 'Touchez le cœur d’une pièce pour la garder ici, puis apportez votre sélection au salon.',
-    explore: 'Voir toutes les pièces',
+    explore: 'Voir toute la boutique',
     looked: 'Pièces que vous avez regardées',
   },
 )

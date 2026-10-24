@@ -2,7 +2,7 @@
 // rise out of a foot cast into the band, up the pavilion, round the girdle and over the crown, rails, rims, galleries
 // and arches, and the placements of every small stone and bead, each seated in the metal rather than resting on it.
 // Millimetres; the finger runs along Z, the band lies in the XY plane, the head sits at +Y.
-import { BufferGeometry, CatmullRomCurve3, Float32BufferAttribute, LatheGeometry, Matrix4, Quaternion, Vector2, Vector3 } from 'three'
+import { BufferGeometry, CatmullRomCurve3, Float32BufferAttribute, LatheGeometry, Matrix4, Quaternion, Uint32BufferAttribute, Vector2, Vector3 } from 'three'
 import { arcAt, meleePlaces, outlineOf, outlinePath, radiusAt, type Pt } from '../../../data/outline'
 import { CUTS, HALO_GAP, HIDDEN_TILT, clawClearance, clawWire, vClawWall, type Layout, type RingDesign } from '../../../data/ring'
 
@@ -50,34 +50,29 @@ export function outward(g: BufferGeometry): BufferGeometry {
 
 type Section = Pt[] // [u (outward from the inner surface), v (along the finger)]
 
-/** A comfort-fit section: flat sides, a domed outside, a gently domed inside. `flat`: the outside flattened, so a row
- *  of stones can sit flush in it. */
-function comfort(w: number, t: number, p = 48, flat = false): Section {
-  const out: Section = []
-  for (let i = 0; i < p; i++) {
-    const s = (i / p) * Math.PI * 2
-    const c = Math.cos(s)
-    const sn = Math.sin(s)
-    const v = (w / 2) * Math.sign(c) * Math.abs(c) ** (2 / 6)
-    const u = t / 2 + (t / 2) * Math.sign(sn) * Math.abs(sn) ** (2 / (sn >= 0 ? (flat ? 7 : 2.4) : 4.2))
-    out.push([u, v])
-  }
-  return out
+/** A comfort-fit section's point at `s` (round it, from the middle of its far side): flat sides, a domed outside, a gently
+ *  domed inside. `flat`: the outside flattened, so a row of stones can sit flush in it. */
+function comfortAt(w: number, t: number, s: number, flat = false): Pt {
+  const c = Math.cos(s)
+  const sn = Math.sin(s)
+  return [t / 2 + (t / 2) * Math.sign(sn) * Math.abs(sn) ** (2 / (sn >= 0 ? (flat ? 7 : 2.4) : 4.2)), (w / 2) * Math.sign(c) * Math.abs(c) ** (2 / 6)]
 }
 
-/** A knife-edge section: the outside rises to a fine ridge. */
-function knife(w: number, t: number, p = 48): Section {
-  const out: Section = []
-  for (let i = 0; i < p; i++) {
-    const s = (i / p) * Math.PI * 2
-    const c = Math.cos(s)
-    const sn = Math.sin(s)
-    const v = (w / 2) * Math.sign(c) * Math.abs(c) ** (2 / 6)
-    const u = sn >= 0 ? t * 0.42 + t * 0.58 * (1 - Math.abs(c)) ** 0.9 * Math.min(1, sn * 4) : t / 2 + (t / 2) * Math.sign(sn) * Math.abs(sn) ** (2 / 4.2) * 0.84
-    out.push([u, v])
-  }
-  return out
+/** A knife-edge section's point at `s`: the outside rises to a fine ridge. */
+function knifeAt(w: number, t: number, s: number): Pt {
+  const c = Math.cos(s)
+  const sn = Math.sin(s)
+  return [sn >= 0 ? t * 0.42 + t * 0.58 * (1 - Math.abs(c)) ** 0.9 * Math.min(1, sn * 4) : t / 2 + (t / 2) * Math.sign(sn) * Math.abs(sn) ** (2 / 4.2) * 0.84, (w / 2) * Math.sign(c) * Math.abs(c) ** (2 / 6)]
 }
+
+/** A section, `p` points of it evenly round its parameter. */
+const sampled = (at: (s: number) => Pt, p: number): Section => [...Array(p).keys()].map((i) => at((i / p) * Math.PI * 2))
+
+/** A comfort-fit section. */
+const comfort = (w: number, t: number, p = 48, flat = false) => sampled((s) => comfortAt(w, t, s, flat), p)
+
+/** A knife-edge section. */
+const knife = (w: number, t: number, p = 48) => sampled((s) => knifeAt(w, t, s), p)
 
 /** A round strand's section (twist, split shanks near the head). */
 function strand(r: number, p = 16): Section {
@@ -165,18 +160,25 @@ export function bandGeometries(d: RingDesign, L: Layout): BufferGeometry[] {
   const flat = d.band.stones !== 'none'
   const section = (th: number) => (d.band.form === 'knife' ? knife(taper(th), thickness) : comfort(taper(th), thickness, 48, flat))
   const band = sweep({ inner, segments, section })
-  return L.surprise ? surpriseCut(d, L, band, section(Math.PI), segments) : [band]
+  // At the bottom, where the surprise diamond's seat is cut, the section as it runs (the band is its full width there).
+  const bottom = (s: number) => (d.band.form === 'knife' ? knifeAt(width, thickness, s) : comfortAt(width, thickness, s, flat))
+  return L.surprise ? surpriseCut(d, L, band, section(Math.PI), bottom, segments) : [band]
 }
 
 /** The surprise diamond's measures, and where its seat's surface is: the band's inside at the bottom (its middle, nearest
- *  the finger), or on a split or twisted band the top of the pad that bridges its strands, a little proud of them. */
+ *  the finger), or on a split or twisted band the top of the pad that bridges its strands, a little proud of them (of a
+ *  twisted band's strands where they wind furthest in under the pad). */
 function surpriseSeat(d: RingDesign, L: Layout) {
   const mm = L.surprise!.mm
   const r = mm / 2
+  const rb = r + 0.15
   const { inner, width, thickness } = L.band
   const pad = d.band.form === 'split' || d.band.form === 'twist'
   const mid = pad ? 0 : Math.min(...(d.band.form === 'knife' ? knife(width, thickness, 96) : comfort(width, thickness, 96)).map(([u]) => u))
-  return { mm, r, g: mm * 0.015, crown: mm * 0.15, pav: mm * 0.435, rb: r + 0.15, pad, y: pad ? -inner + (d.band.form === 'split' ? 0.12 : 0.1) : -(inner + mid) }
+  // The twist's strands (`bandGeometries`: nine turns, each swinging a fifth of the width in and out) under the pad.
+  const wind = width * 0.2 * Math.sin(Math.min(Math.PI / 2, (9 * (rb + 0.18)) / inner)) - width * 0.01
+  const top = d.band.form === 'twist' ? -inner + wind + 0.06 : d.band.form === 'split' ? -inner + 0.12 : -(inner + mid)
+  return { mm, r, g: mm * 0.015, crown: mm * 0.15, pav: mm * 0.435, rb, pad, y: top }
 }
 
 /** The surprise diamond's seat from its bevel's top inward, as [radius, height over the seat's surface]: a bright-cut
@@ -198,11 +200,13 @@ function surpriseProfile(s: ReturnType<typeof surpriseSeat>): Pt[] {
 }
 
 /** Cuts the surprise diamond's seat into a one-piece band's inside at the bottom: a block of the band's grid there comes
- *  out, and an insert takes its place, its edge the block's own edge, with the band's normals and texture coordinates
- *  there, so the two meet without a seam. The insert: the inside's own surface, then the seat (`surpriseProfile`). */
-function surpriseCut(d: RingDesign, L: Layout, band: BufferGeometry, sec: Section, segments: number): BufferGeometry[] {
+ *  out, and an insert takes its place, its edge the block's own edge. The insert: the inside's own surface, exactly
+ *  (`bottom`, the section as it runs), then the seat (`surpriseProfile`), in rings round the seat that share their
+ *  directions from its centre. Its faces are small and its normals the true ones (the band's take them along the
+ *  block's edge): the inside mirrors the band at a glance there, and a reflection leaving a broad flat face starts a
+ *  little off the true surface, which a glancing one carries far, breaking it into steps. */
+function surpriseCut(d: RingDesign, L: Layout, band: BufferGeometry, sec: Section, bottom: (s: number) => Pt, segments: number): BufferGeometry[] {
   const s = surpriseSeat(d, L)
-  const { inner } = L.band
   const p = sec.length
   const P = band.getAttribute('position')
   const N = band.getAttribute('normal')
@@ -221,7 +225,6 @@ function surpriseCut(d: RingDesign, L: Layout, band: BufferGeometry, sec: Sectio
     const b = face[k + 1]
     return a[key] + (b[key] - a[key]) * Math.min(1, Math.max(0, (z - a.v) / (b.v - a.v || 1)))
   }
-  const surface = (x: number, z: number) => -Math.sqrt((inner + across(z, 'u')) ** 2 - x * x)
   const station = (2 * Math.PI * -s.y) / segments
   // The block: wide enough to clear the bevel's top by a quarter of a millimetre along the band, a fifth across it.
   const ni = Math.ceil((s.rb + 0.25) / station)
@@ -262,81 +265,90 @@ function surpriseCut(d: RingDesign, L: Layout, band: BufferGeometry, sec: Sectio
     if (angle(k) < angle(edge[lowest])) lowest = n
   })
   const loop = [...edge.slice(lowest), ...edge.slice(0, lowest)]
-  // The insert's points: the edge, a ring on the surface inside the block, the bevel's top, the seat's rings, the axis.
-  const M = 96
-  const halfAcross = Math.min(Math.abs(sec[j0][1]), Math.abs(sec[j1][1]))
-  const ringR = Math.max(s.rb + 0.03, Math.min(ni * station, halfAcross) - 0.06)
+  // The band's inside at a station angle and section parameter: the point, and its true normal (toward the finger), from
+  // the way the section runs there.
+  const { inner } = L.band
+  const exact = (th: number, sp: number) => {
+    const [u, v] = bottom(sp)
+    const [u1, v1] = bottom(sp - 1e-4)
+    const [u2, v2] = bottom(sp + 1e-4)
+    const r = inner + u
+    return { at: new Vector3(Math.sin(th) * r, Math.cos(th) * r, v), n: new Vector3(-(v2 - v1) * Math.sin(th), -(v2 - v1) * Math.cos(th), u2 - u1).normalize() }
+  }
+  // The same at a point of the inside near the bottom, by where it is across (the section's parameter there: both sections
+  // run across as (w/2)·∛cos s, which turns back) and along (the angle).
+  const surfaceAt = (x: number, z: number) => {
+    const sp = Math.PI * 2 - Math.acos(Math.max(-1, Math.min(1, Math.sign(z) * Math.abs((2 * z) / L.band.width) ** 3)))
+    return exact(Math.PI - Math.asin(Math.max(-1, Math.min(1, x / (inner + bottom(sp)[0])))), sp)
+  }
+  // The rings: the block's edge (the band's points, with points along its straight edges between them, so the two meet
+  // without a gap; their normals the band's, between its points' true ones); rings on the surface closing in to the
+  // bevel's top; the bevel's top again, where its own faces start (a crisp edge); the seat's rings; the axis.
+  const SPLIT = 6
+  const RINGS = 8
+  const edgeAt: { at: Vector3; n: Vector3 }[] = []
+  const trueAt = (k: number) => exact((Math.floor(k / p) * Math.PI * 2) / segments, ((k % p) / p) * Math.PI * 2).n
+  loop.forEach((k, idx) => {
+    const k2 = loop[(idx + 1) % loop.length]
+    const a = new Vector3(P.getX(k), P.getY(k), P.getZ(k))
+    const b = new Vector3(P.getX(k2), P.getY(k2), P.getZ(k2))
+    const na = trueAt(k)
+    const nb = trueAt(k2)
+    N.setXYZ(k, na.x, na.y, na.z)
+    for (let t = 0; t < SPLIT; t++) edgeAt.push({ at: a.clone().lerp(b, t / SPLIT), n: na.clone().lerp(nb, t / SPLIT).normalize() })
+  })
+  N.needsUpdate = true
+  const M = edgeAt.length
+  const dirs = edgeAt.map(({ at }) => Math.atan2(at.z, at.x))
   const pos: number[] = []
-  const nor: number[] = []
   const uv: number[] = []
-  const put = (x: number, y: number, z: number) => {
-    pos.push(x, y, z)
-    const th = Math.atan2(x, y)
-    uv.push(((th < 0 ? th + Math.PI * 2 : th) / (Math.PI * 2)) * 7, across(z, 'j') / p)
+  // The points whose normals are set: [point, normal].
+  const smooth: [number, Vector3][] = []
+  const put = (v: Vector3) => {
+    pos.push(v.x, v.y, v.z)
+    const th = Math.atan2(v.x, v.y)
+    uv.push(((th < 0 ? th + Math.PI * 2 : th) / (Math.PI * 2)) * 7, across(v.z, 'j') / p)
+    return pos.length / 3 - 1
   }
-  for (const k of loop) {
-    put(P.getX(k), P.getY(k), P.getZ(k))
-    nor.push(N.getX(k), N.getY(k), N.getZ(k))
+  for (const { at, n } of edgeAt) smooth.push([put(at), n])
+  for (let r = 1; r <= RINGS; r++) {
+    edgeAt.forEach(({ at }, q) => {
+      const f = r / RINGS
+      const { at: on, n } = surfaceAt(at.x + (s.rb * Math.cos(dirs[q]) - at.x) * f, at.z + (s.rb * Math.sin(dirs[q]) - at.z) * f)
+      smooth.push([put(on), n])
+    })
   }
-  const ringAt = (rr: number, y: number | null) => {
-    for (let m = 0; m < M; m++) {
-      const a = -Math.PI + (m / M) * Math.PI * 2
-      const x = rr * Math.cos(a)
-      const z = rr * Math.sin(a)
-      put(x, y ?? surface(x, z), z)
-    }
-  }
-  ringAt(ringR, null)
-  ringAt(s.rb, null)
+  for (let q = 0; q < M; q++) put(new Vector3(pos[(RINGS * M + q) * 3], pos[(RINGS * M + q) * 3 + 1], pos[(RINGS * M + q) * 3 + 2]))
   const profile = surpriseProfile(s)
-  for (const [rr, h] of profile.slice(0, -1)) ringAt(rr, s.y + h)
-  const axis = pos.length / 3
-  put(0, s.y + profile[profile.length - 1][1], 0)
-  const K = loop.length
+  for (const [rr, h] of profile.slice(0, -1)) for (let q = 0; q < M; q++) put(new Vector3(rr * Math.cos(dirs[q]), s.y + h, rr * Math.sin(dirs[q])))
+  const axis = put(new Vector3(0, s.y + profile[profile.length - 1][1], 0))
   const index: number[] = []
-  // From the block's edge to the first ring: advance round whichever is behind.
-  const ea = loop.map((k) => angle(k))
-  const ra = (m: number) => -Math.PI + (m / M) * Math.PI * 2
-  let e = 0
-  let m = 0
-  while (e < K || m < M) {
-    const nextE = e < K ? ea[(e + 1) % K] + (e + 1 >= K ? Math.PI * 2 : 0) : Infinity
-    const nextR = m < M ? ra(m + 1) : Infinity
-    if (nextE <= nextR) {
-      index.push(e % K, (e + 1) % K, K + (m % M))
-      e++
-    } else {
-      index.push(e % K, K + ((m + 1) % M), K + (m % M))
-      m++
-    }
-  }
-  // Ring to ring, then a fan to the axis.
-  const rings = 2 + profile.length - 1
+  // Ring to ring (not across the bevel's doubled top), then a fan to the axis.
+  const rings = RINGS + 2 + profile.length - 1
   for (let k = 0; k + 1 < rings; k++) {
-    const a = K + k * M
+    if (k === RINGS) continue
+    const a = k * M
     const b = a + M
     for (let q = 0; q < M; q++) {
       const q1 = (q + 1) % M
       index.push(a + q, a + q1, b + q, b + q, a + q1, b + q1)
     }
   }
-  const last = K + (rings - 1) * M
+  const last = (rings - 1) * M
   for (let q = 0; q < M; q++) index.push(last + q, last + ((q + 1) % M), axis)
   const g = new BufferGeometry()
   g.setAttribute('position', new Float32BufferAttribute(pos, 3))
   g.setAttribute('uv', new Float32BufferAttribute(uv, 2))
   g.setIndex(index)
-  // Facing the finger (its surface's normals toward the axis of the ring, +Y here): turned if wound the other way.
+  // Facing the finger (the bevel toward the axis of the ring, +Y here): turned if wound the other way.
   g.computeVertexNormals()
-  const n = g.getAttribute('normal')
-  if (n.getY(K + Math.floor(M / 4)) < 0) {
+  if (g.getAttribute('normal').getY((RINGS + 1) * M + Math.floor(M / 4)) < 0) {
     for (let k = 0; k < index.length; k += 3) [index[k + 1], index[k + 2]] = [index[k + 2], index[k + 1]]
     g.setIndex(index)
     g.computeVertexNormals()
   }
-  // The edge takes the band's own normals, so the light runs on across it.
   const out = g.getAttribute('normal')
-  for (let k = 0; k < K; k++) out.setXYZ(k, nor[k * 3], nor[k * 3 + 1], nor[k * 3 + 2])
+  for (const [k, n] of smooth) out.setXYZ(k, n.x, n.y, n.z)
   g.userData.seat = true
   return [band, g]
 }
@@ -989,12 +1001,20 @@ interface Seat {
 }
 
 /** A station of a frame swept along a path: a point on its top's centreline, the way across it (out from the path)
- *  and the way its top faces. */
+ *  and the way its top faces; and the seats near enough to cut its section (`seatsNear`), when known. */
 interface Station {
   p: Vector3
   a: Vector3
   u: Vector3
+  near?: Seat[]
 }
+
+/** The seats (at arc positions `at` along a closed path `total` long) within `reach` of a point `s` along it: the only
+ *  ones a station there need look at. */
+const seatsNear = (seats: Seat[], at: number[], total: number, s: number, reach: number) => seats.filter((_, k) => {
+  const ds = Math.abs(at[k] - s) % total
+  return Math.min(ds, total - ds) < reach
+})
 
 /** How deep the seats cut a frame's top, `o` across a station's centreline, as a setter cuts them with a bur: a
  *  bright-cut bevel `bevel` wide from the top down to the girdle, the girdle's own wall, then the hole the pavilion sits
@@ -1004,7 +1024,7 @@ function seatCut(seats: Seat[], bevel: number, erode = 0) {
   const v = new Vector3()
   return (st: Station, o: number) => {
     let deepest = 0
-    for (const seat of seats) {
+    for (const seat of st.near ?? seats) {
       v.copy(st.p).addScaledVector(st.a, o).sub(seat.c)
       const lift = v.dot(seat.axis)
       if (lift < -0.5 || lift > 1) continue
@@ -1023,54 +1043,106 @@ const arcPts = (cx: number, cy: number, r: number, from: number, to: number, k: 
   return [cx + r * Math.cos(a), cy + r * Math.sin(a)]
 })
 
-/** A frame swept along a closed path, one section a station ([across, up], round it), closed both ways. */
+/** A frame swept along a closed path, one section a station ([across, up], round it, starting on its top), closed both
+ *  ways. Its normals are three's own (each point's faces, weighed by their area), worked over the arrays directly: a
+ *  frame has tens of thousands of points and is built again as a slider is dragged. Faced outward by its first point,
+ *  on the top. */
 function sweptFrame(stations: Station[], section: (st: Station) => Pt[]): BufferGeometry {
-  const v = new Vector3()
-  const pos: number[] = []
-  let cols = 0
-  for (const st of stations) {
-    const sec = section(st)
-    cols = sec.length
-    for (const [o, h] of sec) {
-      v.copy(st.p).addScaledVector(st.a, o).addScaledVector(st.u, h)
-      pos.push(v.x, v.y, v.z)
-    }
-  }
   const rows = stations.length
-  const index: number[] = []
+  let cols = 0
+  let pos = new Float32Array(0)
+  stations.forEach((st, i) => {
+    const sec = section(st)
+    if (!i) {
+      cols = sec.length
+      pos = new Float32Array(rows * cols * 3)
+    }
+    sec.forEach(([o, h], j) => {
+      const k = (i * cols + j) * 3
+      pos[k] = st.p.x + st.a.x * o + st.u.x * h
+      pos[k + 1] = st.p.y + st.a.y * o + st.u.y * h
+      pos[k + 2] = st.p.z + st.a.z * o + st.u.z * h
+    })
+  })
+  const index = new Uint32Array(rows * cols * 6)
+  let q = 0
   for (let i = 0; i < rows; i++) {
     const i1 = (i + 1) % rows
     for (let j = 0; j < cols; j++) {
       const j1 = (j + 1) % cols
-      index.push(i * cols + j, i * cols + j1, i1 * cols + j, i1 * cols + j, i * cols + j1, i1 * cols + j1)
+      const a = i * cols + j
+      const b = i * cols + j1
+      const c = i1 * cols + j
+      const d = i1 * cols + j1
+      index.set([a, b, c, c, b, d], q)
+      q += 6
+    }
+  }
+  const nor = new Float32Array(pos.length)
+  for (let t = 0; t < index.length; t += 3) {
+    const a = index[t] * 3
+    const b = index[t + 1] * 3
+    const c = index[t + 2] * 3
+    const ux = pos[b] - pos[a]
+    const uy = pos[b + 1] - pos[a + 1]
+    const uz = pos[b + 2] - pos[a + 2]
+    const vx = pos[c] - pos[a]
+    const vy = pos[c + 1] - pos[a + 1]
+    const vz = pos[c + 2] - pos[a + 2]
+    const nx = uy * vz - uz * vy
+    const ny = uz * vx - ux * vz
+    const nz = ux * vy - uy * vx
+    for (const k of [a, b, c]) {
+      nor[k] += nx
+      nor[k + 1] += ny
+      nor[k + 2] += nz
+    }
+  }
+  for (let k = 0; k < nor.length; k += 3) {
+    const l = Math.hypot(nor[k], nor[k + 1], nor[k + 2]) || 1
+    nor[k] /= l
+    nor[k + 1] /= l
+    nor[k + 2] /= l
+  }
+  // Outward: the first point is on the top, facing its station's way up; else every face and normal is turned.
+  if (nor[0] * stations[0].u.x + nor[1] * stations[0].u.y + nor[2] * stations[0].u.z < 0) {
+    for (let k = 0; k < nor.length; k++) nor[k] = -nor[k]
+    for (let t = 0; t < index.length; t += 3) {
+      const b = index[t + 1]
+      index[t + 1] = index[t + 2]
+      index[t + 2] = b
     }
   }
   const g = new BufferGeometry()
   g.setAttribute('position', new Float32BufferAttribute(pos, 3))
-  g.setIndex(index)
-  g.computeVertexNormals()
-  return outward(g)
+  g.setAttribute('normal', new Float32BufferAttribute(nor, 3))
+  g.setIndex(new Uint32BufferAttribute(index, 1))
+  return g
 }
 
-/** A rounded frame's section at a station, [across, up] from its top's centreline: its top `2W` wide, cut by the seats
- *  (`top` samples of it, no deeper than leaves its floor 0.12 thick), its edges rounded (`k` steps a corner), `height`
- *  deep. */
-function roundedFrame(st: Station, cut: (st: Station, o: number) => number, W: number, height: number, top: number, k: number): Pt[] {
+/** A rounded frame's section, [across, up] from its top's centreline: its top `2W` wide, cut by the seats (`top` samples
+ *  of it, no deeper than leaves its floor 0.12 thick), its edges rounded (`k` steps a corner), `height` deep. The rest
+ *  of the section is the same at every station: made once. */
+function roundedFrame(cut: (st: Station, o: number) => number, W: number, height: number, top: number, k: number): (st: Station) => Pt[] {
   const re = Math.min(0.09, W * 0.15)
   const rb = Math.min(0.2, height * 0.25)
-  const out: Pt[] = []
-  for (let i = 0; i <= top; i++) {
-    const o = W - re - (2 * (W - re) * i) / top
-    out.push([o, -Math.min(cut(st, o), height - 0.12)])
+  const rest: Pt[] = [
+    ...arcPts(-(W - re), -re, re, Math.PI / 2, Math.PI, k),
+    [-W, -height + rb],
+    ...arcPts(-(W - rb), -height + rb, rb, Math.PI, Math.PI * 1.5, k),
+    [W - rb, -height],
+    ...arcPts(W - rb, -height + rb, rb, Math.PI * 1.5, Math.PI * 2, k),
+    [W, -re],
+    ...arcPts(W - re, -re, re, 0, Math.PI / 2, k).slice(0, -1),
+  ]
+  return (st) => {
+    const out: Pt[] = []
+    for (let i = 0; i <= top; i++) {
+      const o = W - re - (2 * (W - re) * i) / top
+      out.push([o, -Math.min(cut(st, o), height - 0.12)])
+    }
+    return out.concat(rest)
   }
-  out.push(...arcPts(-(W - re), -re, re, Math.PI / 2, Math.PI, k))
-  out.push([-W, -height + rb])
-  out.push(...arcPts(-(W - rb), -height + rb, rb, Math.PI, Math.PI * 1.5, k))
-  out.push([W - rb, -height])
-  out.push(...arcPts(W - rb, -height + rb, rb, Math.PI * 1.5, Math.PI * 2, k))
-  out.push([W, -re])
-  out.push(...arcPts(W - re, -re, re, 0, Math.PI / 2, k).slice(0, -1))
-  return out
 }
 
 /** How far across a ring of stones' centreline a pair of prongs stands, and how far from the centre of each stone it
@@ -1199,11 +1271,14 @@ export function haloGallery(d: RingDesign, L: Layout): { frame: BufferGeometry; 
   const build = (step: number, top: number, k: number, erode: number) => {
     const n = Math.ceil(plan.total / step)
     const cut = seatCut(seats, bevel, erode)
+    // A seat can reach a station from as far along as the frame is wide and a seat across, twice over round a tight turn.
+    const reach = (plan.r + bevel + W) * 2 + 0.5
     const stations = [...Array(n).keys()].map((i): Station => {
-      const { p, n: out } = plan.at((i / n) * plan.total)
-      return { p: new Vector3(p[0], plan.top, p[1]), a: new Vector3(out[0], 0, out[1]), u: Y }
+      const at = (i / n) * plan.total
+      const { p, n: out } = plan.at(at)
+      return { p: new Vector3(p[0], plan.top, p[1]), a: new Vector3(out[0], 0, out[1]), u: Y, near: seatsNear(seats, plan.stones, plan.total, at, reach) }
     })
-    return sweptFrame(stations, (st) => roundedFrame(st, cut, W, plan.height, top, k))
+    return sweptFrame(stations, roundedFrame(cut, W, plan.height, top, k))
   }
   const frame = build(0.04, 40, 4, 0)
   // Widened by half the coarse cell's diagonal: more than its faces ever rise over the seats they cut.
@@ -1406,9 +1481,11 @@ export function hiddenCollar(d: RingDesign, L: Layout): { frame: BufferGeometry;
   const build = (step: number, top: number, k: number, erode: number) => {
     const n = Math.ceil(plan.total / step)
     const cutAt = seatCut(seats, plan.bevel, erode)
+    const reach = (plan.r + plan.bevel + R) * 2 + 0.5
     const stations = [...Array(n).keys()].map((i) => {
-      const f = hiddenAt(plan, (i / n) * plan.total)
-      return { p: f.centre.clone().addScaledVector(f.face, plan.lift), a: f.across, u: f.face, f }
+      const at = (i / n) * plan.total
+      const f = hiddenAt(plan, at)
+      return { p: f.centre.clone().addScaledVector(f.face, plan.lift), a: f.across, u: f.face, f, near: seatsNear(seats, plan.stones, plan.total, at, reach) }
     })
     return sweptFrame(stations, (st) => {
       const { f } = st as (typeof stations)[number]

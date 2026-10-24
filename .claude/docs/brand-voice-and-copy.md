@@ -885,7 +885,7 @@ Everything in this section is observation, risk or recommendation, not a stateme
 
 **Microcopy that doesn't match behaviour**
 
-- `Continue the discovery` (Treasured) and `Find your piece` (empty Cart) both go to the Necklaces category until the "Shop all" page exists (`todo.md` §11). They replaced "Explore all collections" and "Shop the collections" on 2026-10-16, because "collection" now means a curated collection only.
+- `Continue the discovery` (Treasured) and `Find your piece` (empty Cart) go to Shop all (`#/shop`). Shop all's own label is `Shop all` / `Toute la boutique` in every menu, the footer, the empty bag and the empty wishlist (2026-10-24; it was `Every piece`, the page's title still is). They replaced "Explore all collections" and "Shop the collections" on 2026-10-16, because "collection" now means a curated collection only.
 - `Begin commission` is the CTA for **every** `custom` product, including the Engraved Nameplate Necklace.
 - The CraftStory eyebrow `The {collection} story` produces `The Gifts under $1,000 story`, `The Personalized story` and `The Rental Vault story`.
 - Three phrasings mean "this needs configuring": `Options`, `Select options`, `Choose size & options`.

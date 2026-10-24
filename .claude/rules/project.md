@@ -39,7 +39,7 @@ This repo is a Shopify-store **theme design prototype** for Teresa & Sons, a Mon
 | Task | Command | Notes |
 |---|---|---|
 | Typecheck | `npx tsc --noEmit -p .` | Baseline is 0 errors. `pnpm run build` does **not** typecheck. |
-| Build | `pnpm run build` | Initial JS baseline: about 976 kB (305 kB gzip) across the entry chunk (714 kB) and the shared chunks it loads (icons 81 kB, gsap 70 kB, salon 89 kB, ring data 13 kB, the JSX runtime 8 kB). Both languages ship in it. Lazy chunks load on demand: the ring designer page (115 kB); three.js's WebGPU build, the ring model and its tracer in a shared `ringModel` chunk (978 kB, 274 kB gzip) used by the designer's 3D engine `stage` (71 kB) and the 3D try-on `RingTryOn` (168 kB, 51 kB gzip, with MediaPipe's script; its engine and model load at runtime from jsDelivr and Google); the tracer's worker `bvhWorker` (3 kB); TryOnStudio (37 kB), SiteMenu (34 kB), ShareSheet (24 kB). Measured 2026-10-23, after the carved engraving, the V-claws and the setups' traced shadow. |
+| Build | `pnpm run build` | Initial JS baseline: about 1,040 kB (322 kB gzip) across the entry chunk (768 kB) and the shared chunks it loads (icons 72 kB, gsap 70 kB, the catalog 49 kB, salon 41 kB, ring data 21 kB, the JSX runtime 8 kB, the house 6 kB, and small shared pieces). Both languages ship in it. Lazy chunks load on demand: the ring designer page (115 kB); three.js's WebGPU build, the ring model and its tracer in a shared `ringModel` chunk (991 kB, 279 kB gzip) used by the designer's 3D engine `stage` (71 kB) and the 3D try-on `RingTryOn` (168 kB, 51 kB gzip, with MediaPipe's script; its engine and model load at runtime from jsDelivr and Google); the tracer's worker `bvhWorker` (3 kB); TryOnStudio (37 kB), SiteMenu (34 kB), ShareSheet (22 kB); Shop all's FilterPanel (11 kB), QuickView (10 kB) and GSAP Flip (24 kB). Measured 2026-10-24, after Shop all. |
 | Dev server | `pnpm dev`, then open `http://localhost:8443/#/` | Figma Make already runs it on `$PORT` (8443). Locally you start it yourself. `strictPort` is on; set `PORT` to change the port. |
 
 No tests and no linter exist.
@@ -70,11 +70,12 @@ index.html → src/main.tsx → src/App.tsx   StoreProvider ▸ TryOnProvider �
 src/store.tsx      Route union, parseHash/splitHash/bareHash, href (language prefix), cart (lineKey, linePrice), meta, wishlist, recent, searches, designs + draft, account, currency, lang
 src/i18n/          bilingual/useCopy/pick, locales and formatters · us (US spelling) · rich (<em> accents) · catalog (useCatalog) · common
 src/data/          catalog (products, types, rent or own, card prices, signatures, metals, rentals, personalization, tryOnKind) · catalog.fr · house (signatures, generations, policies) · visits · giftcards · media · costing · tax · salon
-                   ring (the designer's model, layout, code) · ringCopy · ringPrice (cost-plus statement) · ringAdvice (notes, budget)
+                   ring (the designer's model, layout, code) · outline (cut outlines, paths, small stones' places) · ringCopy · ringPrice (cost-plus statement) · ringAdvice (notes, budget)
 src/pages/         Home · Shop · Category · Product · Cart · Checkout · GiftCards · Wishlist · Account · Atelier · Designer (lazy)
 src/components/    Header Footer CartDrawer ProductCard Price WishButton RecentlyViewed SmoothScroll useReveal lineDetails
                    home/ pdp/ cart/ tryon/ video/ giftcard/ share/ menu/ splash/ transition/ (LanguageVeil) brand/ (Ampersand, Hallmark) locale/
                    visit/ (VisitDrawer, VisitFlow, VisitButton, VisitBand, NextTimes) contact/ (AskSheet) catalog/ (PieceGrid, Interlude) ui.ts (button recipes)
+                   shop/ (Shop all: filters engine, useShopCopy, ShopHero, ShopMosaic, ChapterRail, ShopToolbar, ShopSearch, WornSwitch, FilterPanel, PriceRange, OfferCard, QuickView, useGridMotion)
                    designer/ (RingViewer, Glyph, LivePrice, RingBreakdown, DesignNotes, CaratField, BudgetFinder, DesignSpec, canDraw3d; three/: gpu, stage, tryOnStage, accumulate, raytrace, bvh, bvhWorker, lighting, setups, ringModel, parts, gems, gemMaterial, materials)
                    tryon/ (TryOnProvider, TryOnStudio, JewelryOverlay; the live 3D try-on: RingTryOn, fingerPose, handTracker)
 src/lib/shopify.ts Shopify Ajax-cart payload for gift-card lines (placeholder variant IDs)

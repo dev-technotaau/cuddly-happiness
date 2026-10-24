@@ -252,7 +252,7 @@ Each price renders through `Price`, so the currency code follows it, for example
 
 ### Signature
 
-`export default function ProductCard({ product, index = 0 }: { product: Product; index?: number })`
+`export default function ProductCard({ product, index = 0, rent = false, lead, worn = false, sizes = SIZES, onQuickView, swatches = false, compact = false, reveal = true }: Props)` (the options after `rent` serve Shop all, 2026-10-24: [shop.md](./shop.md) and [../components/global-and-shared.md](../components/global-and-shared.md) §4)
 
 `index` is used **only** for the reveal stagger. The component reads `currency` from `useStore()`.
 
@@ -541,7 +541,7 @@ All strings are verbatim. `·` is U+00B7 and `—` is U+2014. Where text shows i
 | --- | --- | --- |
 | Not-found message | `This chapter could not be found.` | |
 | Not-found link | `Return home` | |
-| Hero breadcrumb | `Maison / Chapter {eyebrow}` | "Maison" is the link to `#/`. Renders as "MAISON / CHAPTER IV". |
+| Hero breadcrumb | `Maison / Shop all / Chapter {eyebrow}` | "Maison" links to `#/`, "Shop all" (`Toute la boutique`, 2026-10-24, from 640 px) to `#/shop`. Renders as "MAISON / SHOP ALL / CHAPTER IV". |
 | Hero h1 | `{name}` + `{french}` | See the §3 table |
 | Hero image alt | `{name}` | |
 | Gifts eyebrow | `Carte-cadeau` | |

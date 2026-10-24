@@ -126,6 +126,8 @@ export class Stage {
   private maxSamples: number
   // The live loop holds still while the renderer is pointed elsewhere: compiling ahead, or drawing a picture.
   private paused = false
+  /** The pictures asked for, drawn one after another (`snapshot`). */
+  private shots: Promise<unknown> = Promise.resolve()
   private setup: Setup | null = null
   private setupId: SetupId = 'studio'
   private setupKey = ''
@@ -676,9 +678,20 @@ export class Stage {
 
   /** A picture of the ring, accumulated like a still: `card` on silk in the current light, `tryon` the ring alone from
    *  above (the back of the hand) on transparent ground, the finger running up the picture, or `view`, what the
-   *  visitor sees. The live view pauses while it is drawn. */
-  async snapshot(kind: 'card' | 'tryon' | 'view', width = 600, height = 750): Promise<string> {
-    if (!this.model.layout || this.paused || this.disposed) return ''
+   *  visitor sees. The live view pauses while it is drawn. Pictures wait their turn, and for the scene to finish
+   *  compiling: one asked for while the review's card is being drawn (the try-on's, a saved design's) is drawn next,
+   *  not dropped. */
+  snapshot(kind: 'card' | 'tryon' | 'view', width = 600, height = 750): Promise<string> {
+    const next = this.shots.then(async () => {
+      while (this.paused && !this.disposed) await frame()
+      return this.shoot(kind, width, height)
+    })
+    this.shots = next.catch(() => '')
+    return next
+  }
+
+  private async shoot(kind: 'card' | 'tryon' | 'view', width: number, height: number): Promise<string> {
+    if (!this.model.layout || this.disposed) return ''
     this.paused = true
     this.stop()
     const r = this.renderer

@@ -312,18 +312,35 @@ export function hullOf(pts: Pt[]): Pt[] {
 
 /** An outline's radius (`width` mm across) toward a point, from a table of `n` directions: for many quick looks. */
 export function radiusTable(outline: Pt[], width: number, n = 720): (x: number, z: number) => number {
-  const table = [...Array(n).keys()].map((i) => radiusAt(outline, (i / n) * Math.PI * 2) * width)
+  const table = new Float64Array(n + 1)
+  for (let i = 0; i < n; i++) table[i] = radiusAt(outline, (i / n) * Math.PI * 2) * width
+  table[n] = table[0]
+  const k = n / (Math.PI * 2)
   return (x, z) => {
-    const a = (((Math.atan2(x, z) / (Math.PI * 2)) % 1) + 1) % 1 * n
-    const i = Math.floor(a)
-    return table[i % n] + (table[(i + 1) % n] - table[i % n]) * (a - i)
+    let a = Math.atan2(x, z) * k
+    if (a < 0) a += n
+    const i = a | 0
+    return table[i] + (table[i + 1] - table[i]) * (a - i)
   }
+}
+
+/** A cut's outline (or its hull) at unit width, fine enough to grow paths from: made once for each cut and proportion,
+ *  as paths are made many times for each layout. */
+const bases = new Map<string, Pt[]>()
+function baseOf(shape: Shape, ratio: number, hull: boolean): Pt[] {
+  const key = shape + ratio.toFixed(5) + (hull ? 'h' : '')
+  let found = bases.get(key)
+  if (!found) {
+    found = hull ? hullOf(outlineOf(shape, ratio, 240)) : outlineOf(shape, ratio, 240)
+    bases.set(key, found)
+  }
+  return found
 }
 
 /** The outline scaled to a stone's width and offset outward by `grow` (mm), sampled evenly by length; round its convex
  *  hull when `hull` (a heart's cleft bridged). */
 export function outlinePath(shape: Shape, width: number, ratio: number, grow = 0, count = 64, hull = false): Pt[] {
-  const base = hull ? hullOf(outlineOf(shape, ratio, 240)) : outlineOf(shape, ratio, 240)
+  const base = baseOf(shape, ratio, hull)
   const pts = base.map(([x, z]) => [x * width, z * width] as Pt)
   // Offset along the polygon's normals; a heart's cleft, grown, folds over itself and is unfolded.
   const grown = pts.map((p, i) => {

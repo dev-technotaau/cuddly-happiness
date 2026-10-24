@@ -36,7 +36,7 @@ const COPY = bilingual(
     seeFirst: 'Prefer to see it first?',
     book: 'Book a visit',
     ask: 'Ask a jeweller',
-    every: 'Every piece',
+    every: 'Shop all',
   },
   {
     shipping: { CAD: 'Livraison assurée offerte partout au Canada', USD: 'Livraison assurée offerte aux États-Unis, droits inclus' },
@@ -59,7 +59,7 @@ const COPY = bilingual(
     seeFirst: 'Envie de la voir d’abord?',
     book: 'Prendre rendez-vous',
     ask: 'Parler à un joaillier',
-    every: 'Toutes les pièces',
+    every: 'Toute la boutique',
   },
 )
 

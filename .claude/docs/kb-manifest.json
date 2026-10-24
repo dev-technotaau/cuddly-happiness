@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-23",
-  "gitHead": "523bda8",
+  "generatedAt": "2026-10-24",
+  "gitHead": "5d0b811",
   "files": {
     ".figma/make/analyze-routes": {
       "hash": "d51912b900af",
@@ -141,7 +141,7 @@
       ]
     },
     "src/App.tsx": {
-      "hash": "ba4abf3d4a15",
+      "hash": "9a196b91150d",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -155,6 +155,7 @@
         "pages/category.md",
         "pages/home.md",
         "pages/product.md",
+        "pages/shop.md",
         "platform-and-tooling.md",
         "product-overview.md"
       ]
@@ -167,7 +168,7 @@
       ]
     },
     "src/components/CartDrawer.tsx": {
-      "hash": "f6ab4ba2651b",
+      "hash": "dbfe0c9987ff",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -178,23 +179,25 @@
         "pages/cart-and-checkout.md",
         "pages/category.md",
         "pages/product.md",
+        "pages/shop.md",
         "product-overview.md",
         "shopify-integration.md",
         "ux-patterns-and-accessibility.md"
       ]
     },
     "src/components/Footer.tsx": {
-      "hash": "4a886469f2b4",
+      "hash": "06e0b9ddad89",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
         "components/global-and-shared.md",
         "known-issues.md",
+        "pages/shop.md",
         "product-overview.md"
       ]
     },
     "src/components/Header.tsx": {
-      "hash": "0819ac1d6a88",
+      "hash": "28c963285fcb",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -205,6 +208,7 @@
         "motion-and-interaction.md",
         "pages/cart-and-checkout.md",
         "pages/home.md",
+        "pages/shop.md",
         "product-overview.md",
         "ux-patterns-and-accessibility.md"
       ]
@@ -246,7 +250,7 @@
       ]
     },
     "src/components/ProductCard.tsx": {
-      "hash": "b45359fa46d5",
+      "hash": "37e7c66f7058",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -258,6 +262,7 @@
         "pages/category.md",
         "pages/home.md",
         "pages/product.md",
+        "pages/shop.md",
         "product-overview.md"
       ]
     },
@@ -421,7 +426,7 @@
       ]
     },
     "src/components/designer/Glyph.tsx": {
-      "hash": "e5817dfe930f",
+      "hash": "9b68031b9ae1",
       "docs": [
         "features/ring-designer.md"
       ]
@@ -440,19 +445,13 @@
       ]
     },
     "src/components/designer/RingViewer.tsx": {
-      "hash": "d647b946b8ae",
+      "hash": "27c5f1ec114a",
       "docs": [
         "features/ring-designer.md"
       ]
     },
     "src/components/designer/canDraw3d.ts": {
       "hash": "b44d3e32d65a",
-      "docs": [
-        "features/ring-designer.md"
-      ]
-    },
-    "src/components/designer/outline.ts": {
-      "hash": "abd50387580d",
       "docs": [
         "features/ring-designer.md"
       ]
@@ -482,7 +481,7 @@
       ]
     },
     "src/components/designer/three/gems.ts": {
-      "hash": "f985f2fe9dc0",
+      "hash": "8549c1e4dcc4",
       "docs": [
         "features/ring-designer.md"
       ]
@@ -506,7 +505,7 @@
       ]
     },
     "src/components/designer/three/parts.ts": {
-      "hash": "0486dad42a5d",
+      "hash": "2bce0707808f",
       "docs": [
         "features/ring-designer.md"
       ]
@@ -518,7 +517,7 @@
       ]
     },
     "src/components/designer/three/ringModel.ts": {
-      "hash": "248dd2ad3bc8",
+      "hash": "5f8c5d34ac6e",
       "docs": [
         "features/ring-designer.md"
       ]
@@ -530,7 +529,7 @@
       ]
     },
     "src/components/designer/three/stage.ts": {
-      "hash": "74d84823ad0f",
+      "hash": "a887feb0d781",
       "docs": [
         "features/ring-designer.md"
       ]
@@ -812,13 +811,14 @@
       ]
     },
     "src/components/menu/SiteMenu.tsx": {
-      "hash": "bad6061bce86",
+      "hash": "e67326ebb28f",
       "docs": [
         "commerce-logic.md",
         "components/global-and-shared.md",
         "data-model.md",
         "motion-and-interaction.md",
-        "pages/cart-and-checkout.md"
+        "pages/cart-and-checkout.md",
+        "pages/shop.md"
       ]
     },
     "src/components/menu/search.ts": {
@@ -829,9 +829,10 @@
       ]
     },
     "src/components/menu/useHouseSearch.ts": {
-      "hash": "57fc8a556058",
+      "hash": "769b8676a7ac",
       "docs": [
-        "components/global-and-shared.md"
+        "components/global-and-shared.md",
+        "pages/shop.md"
       ]
     },
     "src/components/pdp/Accordion.tsx": {
@@ -981,6 +982,86 @@
         "features/sharing.md"
       ]
     },
+    "src/components/shop/ChapterRail.tsx": {
+      "hash": "337a357bde8c",
+      "docs": [
+        "pages/shop.md"
+      ]
+    },
+    "src/components/shop/FilterPanel.tsx": {
+      "hash": "7f04f82a8f0a",
+      "docs": [
+        "pages/shop.md"
+      ]
+    },
+    "src/components/shop/OfferCard.tsx": {
+      "hash": "9dc6992da247",
+      "docs": [
+        "pages/shop.md"
+      ]
+    },
+    "src/components/shop/PriceRange.tsx": {
+      "hash": "7f934c15f6ab",
+      "docs": [
+        "pages/shop.md"
+      ]
+    },
+    "src/components/shop/QuickView.tsx": {
+      "hash": "d126f4d8693d",
+      "docs": [
+        "pages/shop.md"
+      ]
+    },
+    "src/components/shop/ShopHero.tsx": {
+      "hash": "4d7ba3780c1f",
+      "docs": [
+        "pages/shop.md"
+      ]
+    },
+    "src/components/shop/ShopMosaic.tsx": {
+      "hash": "712029c412d0",
+      "docs": [
+        "motion-and-interaction.md",
+        "pages/shop.md"
+      ]
+    },
+    "src/components/shop/ShopSearch.tsx": {
+      "hash": "a46c85f5a43c",
+      "docs": [
+        "pages/shop.md"
+      ]
+    },
+    "src/components/shop/ShopToolbar.tsx": {
+      "hash": "92275955af58",
+      "docs": [
+        "pages/shop.md"
+      ]
+    },
+    "src/components/shop/WornSwitch.tsx": {
+      "hash": "094ee88c62aa",
+      "docs": [
+        "pages/shop.md"
+      ]
+    },
+    "src/components/shop/filters.ts": {
+      "hash": "5ec5ae5c3b80",
+      "docs": [
+        "pages/shop.md"
+      ]
+    },
+    "src/components/shop/useGridMotion.ts": {
+      "hash": "eaf879b64867",
+      "docs": [
+        "motion-and-interaction.md",
+        "pages/shop.md"
+      ]
+    },
+    "src/components/shop/useShopCopy.ts": {
+      "hash": "7e28a906475b",
+      "docs": [
+        "pages/shop.md"
+      ]
+    },
     "src/components/splash/Splash.tsx": {
       "hash": "3c030a4ca84b",
       "docs": [
@@ -996,9 +1077,10 @@
       ]
     },
     "src/components/transition/PageTransition.tsx": {
-      "hash": "917d87680395",
+      "hash": "bc31e0b0b130",
       "docs": [
-        "motion-and-interaction.md"
+        "motion-and-interaction.md",
+        "pages/shop.md"
       ]
     },
     "src/components/transition/transitions.ts": {
@@ -1246,8 +1328,14 @@
         "shopify-integration.md"
       ]
     },
+    "src/data/outline.ts": {
+      "hash": "aae7a3471080",
+      "docs": [
+        "features/ring-designer.md"
+      ]
+    },
     "src/data/ring.ts": {
-      "hash": "15fdf836cb05",
+      "hash": "14c91f831cac",
       "docs": [
         "features/ring-designer.md"
       ]
@@ -1441,7 +1529,7 @@
       ]
     },
     "src/pages/Category.tsx": {
-      "hash": "a3f0491f8b2d",
+      "hash": "ea5644c247a2",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -1451,6 +1539,7 @@
         "motion-and-interaction.md",
         "pages/category.md",
         "pages/home.md",
+        "pages/shop.md",
         "product-overview.md"
       ]
     },
@@ -1471,7 +1560,7 @@
       ]
     },
     "src/pages/Designer.tsx": {
-      "hash": "ffbea33ab8e8",
+      "hash": "0d0bf85d7f2a",
       "docs": [
         "commerce-logic.md",
         "features/ring-designer.md"
@@ -1511,7 +1600,7 @@
       ]
     },
     "src/pages/Product.tsx": {
-      "hash": "682f36ba8977",
+      "hash": "683f0d47b4f7",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -1526,20 +1615,22 @@
         "pages/category.md",
         "pages/home.md",
         "pages/product.md",
+        "pages/shop.md",
         "product-overview.md",
         "shopify-integration.md",
         "ux-patterns-and-accessibility.md"
       ]
     },
     "src/pages/Shop.tsx": {
-      "hash": "0910d3d75af2",
+      "hash": "6b80e9b09321",
       "docs": [
         "components/global-and-shared.md",
-        "features/legacy-redesign.md"
+        "features/legacy-redesign.md",
+        "pages/shop.md"
       ]
     },
     "src/pages/Wishlist.tsx": {
-      "hash": "25e0277af7fe",
+      "hash": "2af22b4a0de2",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",
@@ -1550,11 +1641,12 @@
         "pages/account-and-wishlist.md",
         "pages/cart-and-checkout.md",
         "pages/category.md",
+        "pages/shop.md",
         "product-overview.md"
       ]
     },
     "src/store.tsx": {
-      "hash": "70a3d3210c26",
+      "hash": "704d8df998f2",
       "docs": [
         "architecture.md",
         "brand-voice-and-copy.md",

@@ -88,8 +88,8 @@ export const href = {
   get home() { return at('/') },
   shop: (query?: Query) => at(`/shop${queryString(query)}`),
   category: (slug: string, query?: Query) => at(`/c/${slug}${queryString(query)}`),
-  /** A piece's page; `rent` opens it on renting. */
-  product: (slug: string, rent = false) => at(`/p/${slug}${rent ? '?mode=rent' : ''}`),
+  /** A piece's page; `rent` opens it on renting, `own` a vault piece on owning (it opens on renting otherwise). */
+  product: (slug: string, rent = false, own = false) => at(`/p/${slug}${rent ? '?mode=rent' : own ? '?mode=own' : ''}`),
   get atelier() { return at('/atelier') },
   /** The ring designer; `r` opens a design (its code), `step` a step. */
   designer: (query?: Query) => at(`/designer${queryString(query)}`),

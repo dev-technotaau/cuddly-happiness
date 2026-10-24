@@ -78,6 +78,7 @@ Place new layers inside this ladder:
 | Layer | Value |
 |---|---|
 | Local overlays | `z-10` |
+| Pinned page bars (Shop all's toolbar, under the header) | `z-20` |
 | StickyBar (and the ring designer's phone bar) | `z-40` |
 | Back-to-top, language notice (opposite corners; the notice carries `data-fab-avoid`) | `z-[45]` |
 | Header (its mega menu and the search dropdown live inside it) | `z-50` |

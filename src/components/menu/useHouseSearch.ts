@@ -26,7 +26,7 @@ const COPY = bilingual(
 
 // What a whole query can mean exactly, beyond the titles themselves, so Enter goes straight there ("rent" → the vault).
 const ALIASES: Record<string, string[]> = {
-  shop: ['every piece', 'all pieces', 'shop', 'shop all', 'toutes les pièces', 'boutique'],
+  shop: ['every piece', 'all pieces', 'shop', 'shop all', 'all jewellery', 'all jewelry', 'everything', 'toutes les pièces', 'boutique', 'toute la boutique', 'tous les bijoux'],
   rentals: ['rent', 'rentals', 'vault', 'louer', 'location', 'coffre'],
   bridal: ['bridal', 'wedding', 'mariage'],
   custom: ['custom', 'bespoke', 'sur mesure', 'personalized', 'personnalisé'],

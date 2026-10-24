@@ -267,13 +267,18 @@ export default function Designer({ query }: { query: Query }) {
   const { openTryOn } = useTryOn()
   const root = useRef<HTMLDivElement>(null)
   const stepsTop = useRef<HTMLDivElement>(null)
+  const stepStart = useRef<HTMLElement>(null)
   const stage = useRef<HTMLDivElement>(null)
   const end = useRef<HTMLDivElement>(null)
   const viewer = useRef<ViewerApi | null>(null)
   useReveal(root)
 
-  // Where the ring starts: a code in the address, a house design, the visitor's draft, or the classic solitaire.
-  const [resumed, setResumed] = useState(() => !query.r && !query.from && !!designDraft)
+  // Where the ring starts: a code in the address, a house design, the visitor's draft, or the classic solitaire. A draft
+  // that is only the classic solitaire (a visit that changed nothing is drafted too) is nothing to welcome back.
+  const [resumed, setResumed] = useState(() => {
+    const draft = !query.r && !query.from ? decodeDesign(designDraft) : null
+    return !!draft && !sameDesign(draft, DEFAULT_DESIGN)
+  })
   const [design, setDesign] = useState<RingDesign>(() => decodeDesign(query.r) ?? PRESETS.find((p) => p.id === query.from)?.design ?? decodeDesign(designDraft) ?? DEFAULT_DESIGN)
   const [step, setStep] = useState<StepId>(() => (STEPS.includes(query.step as StepId) ? (query.step as StepId) : 'stone'))
   const [done, setDone] = useState<StepId[]>([])
@@ -445,18 +450,29 @@ export default function Designer({ query }: { query: Query }) {
     setStep(to)
     // The new step's heading takes the focus: the keyboard carries on from it, and a screen reader says where it is.
     requestAnimationFrame(() => document.getElementById('designer-step')?.focus({ preventScroll: true }))
-    const el = stepsTop.current
-    if (!el) return
-    // Back to the top of the steps: on phones, below the ring while it is pinned above them.
+    const block = stepsTop.current
+    const start = stepStart.current
+    if (!block || !start) return
+    // Back to where the step begins. On a desktop the price and the steps stay pinned under the header, so the step's own
+    // start is measured (the pinned block never leaves the screen) and brought just under them, once it has scrolled up
+    // out of sight. On phones, the top of the steps, below the ring while it is pinned above them.
     const lenis = getLenis()
     const phone = window.innerWidth < 1024
     const ring = stage.current
     const pinned = phone && !!ring && getComputedStyle(ring).position === 'sticky'
-    const offset = phone ? -((pinned && ring ? ring.offsetHeight : 0) + 120) : -130
-    if (el.getBoundingClientRect().top < 0 || phone) {
-      if (lenis) lenis.scrollTo(el, { offset })
-      else window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY + offset, behavior: 'smooth' })
-    }
+    const el = phone ? block : start
+    const line = phone ? (pinned && ring ? ring.offsetHeight : 0) + 120 : 111 + block.offsetHeight
+    if (!phone && el.getBoundingClientRect().top >= line) return
+    if (lenis) lenis.scrollTo(el, { offset: -line })
+    else window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - line, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+  }
+
+  // Back to the beginning: the classic solitaire, the first step, nothing chosen yet (one undo brings the ring back).
+  const startAfresh = () => {
+    commit({ ...DEFAULT_DESIGN }, t.afresh)
+    setResumed(false)
+    goTo('stone')
+    setDone([])
   }
 
   const rescueFocus = (near?: string) =>
@@ -798,7 +814,7 @@ export default function Designer({ query }: { query: Query }) {
           {resumed && (
             <p className="mt-6 flex items-center justify-between gap-4 bg-[var(--bg-silk)] px-4 py-3 text-xs">
               <span>{t.resumed}</span>
-              <button type="button" onClick={() => { commit({ ...DEFAULT_DESIGN }, t.afresh); rescueFocus() }} className="shrink-0 border-b border-[var(--gold-vermeil)] pb-0.5 text-[10px] uppercase tracking-[0.18em]">{t.afresh}</button>
+              <button type="button" onClick={startAfresh} className="shrink-0 border-b border-[var(--gold-vermeil)] pb-0.5 text-[10px] uppercase tracking-[0.18em]">{t.afresh}</button>
             </p>
           )}
 
@@ -835,7 +851,7 @@ export default function Designer({ query }: { query: Query }) {
               <div className="flex shrink-0 items-center gap-1">
                 <button type="button" onClick={undo} disabled={!past.length} aria-label={t.undo} title={t.undo} className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-[var(--bg-silk)] disabled:opacity-30"><Undo2 size={16} strokeWidth={1.4} /></button>
                 <button type="button" onClick={redo} disabled={!future.length} aria-label={t.redo} title={t.redo} className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-[var(--bg-silk)] disabled:opacity-30"><Redo2 size={16} strokeWidth={1.4} /></button>
-                <button type="button" onClick={() => commit({ ...DEFAULT_DESIGN }, t.afresh)} aria-label={t.afresh} title={t.afresh} className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-[var(--bg-silk)]"><RotateCcw size={15} strokeWidth={1.4} /></button>
+                <button type="button" onClick={startAfresh} aria-label={t.afresh} title={t.afresh} className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-[var(--bg-silk)]"><RotateCcw size={15} strokeWidth={1.4} /></button>
               </div>
             </div>
             {/* The steps, with what is chosen and where a note needs a look */}
@@ -862,7 +878,7 @@ export default function Designer({ query }: { query: Query }) {
           </div>
 
           {/* The step */}
-          <section key={step} aria-labelledby="designer-step" className="animate-[fadeUp_0.6s_cubic-bezier(0.16,1,0.3,1)] pt-10 motion-reduce:animate-none">
+          <section key={step} ref={stepStart} aria-labelledby="designer-step" className="animate-[fadeUp_0.6s_cubic-bezier(0.16,1,0.3,1)] pt-10 motion-reduce:animate-none">
             <p className="font-spec text-[10px] uppercase tracking-[0.3em] text-[var(--gold-ink)]">{String(index + 1).padStart(2, '0')} · {stepLabel}</p>
             <h2 id="designer-step" tabIndex={-1} className="font-serif-editorial mt-3 text-4xl font-light leading-tight outline-none">{rich(stepTitle, 'text-[var(--gold-vermeil)]')}</h2>
             <p className="mt-3 text-sm leading-relaxed text-[var(--text-taupe)]">{stepIntro}</p>
